@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#F97316"/>
+<title>EntregaLog</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;}
+
+#splash{position:fixed;inset:0;background:#F97316;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s;}
+#splash.hide{opacity:0;pointer-events:none;}
+#splash-icon{font-size:64px;margin-bottom:16px;animation:bounce 1s ease-in-out infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+#splash h1{font-size:34px;font-weight:700;color:#fff;letter-spacing:-1px;}
+#splash p{font-size:14px;color:rgba(255,255,255,0.85);margin-top:6px;}
+#splash-bar{width:160px;height:3px;background:rgba(255,255,255,0.25);border-radius:2px;margin-top:40px;overflow:hidden;}
+#splash-prog{height:100%;background:#fff;border-radius:2px;animation:load 2.2s ease forwards;}
+@keyframes load{0%{width:0;}100%{width:100%;}}
+
+#shell{max-width:430px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column;}
+#topbar{padding:12px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;background:#fff;}
+#app-title{font-size:18px;font-weight:700;color:#F97316;}
+#app-sub{font-size:11px;color:#aaa;margin-top:1px;}
+#status-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:#FFF7ED;color:#C2410C;}
+#status-badge.active{background:#DCFCE7;color:#166534;}
+
+#nav{display:flex;border-bottom:1px solid #eee;background:#fff;}
+.ntab{flex:1;padding:9px 2px;font-size:10px;text-align:center;cursor:pointer;color:#aaa;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit;}
+.ntab.active{color:#F97316;border-bottom-color:#F97316;font-weight:600;}
+.screen{display:none;flex:1;overflow-y:auto;}.screen.active{display:block;}
+
+/* TELA ENTREGAS */
+#entregas-wrap{padding:14px 16px;}
+.section-title{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-weight:600;}
+#input-area{background:#f9f9f9;border-radius:14px;padding:14px;margin-bottom:14px;border:1px solid #eee;}
+#input-area p{font-size:12px;color:#888;margin-bottom:8px;line-height:1.5;}
+#endereco-input{width:100%;background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;color:#111;outline:none;margin-bottom:8px;}
+#endereco-input:focus{border-color:#F97316;}
+.add-btn{background:#F97316;color:#fff;border:none;border-radius:10px;padding:10px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.add-btn:active{background:#EA580C;}
+#lista-entregas{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.entrega-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.entrega-num{width:26px;height:26px;border-radius:50%;background:#FFF7ED;color:#F97316;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.entrega-num.known{background:#DCFCE7;color:#166534;}
+.entrega-num.done{background:#F0FDF4;color:#86EFAC;}
+.entrega-info{flex:1;}
+.entrega-nome{font-size:13px;font-weight:600;color:#111;}
+.entrega-addr{font-size:11px;color:#888;margin-top:1px;}
+.entrega-status{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;}
+.entrega-status.conhecido{background:#DCFCE7;color:#166534;}
+.entrega-status.novo{background:#FEF9C3;color:#854D0E;}
+.entrega-status.entregue{background:#F0FDF4;color:#86EFAC;}
+.entrega-del{background:none;border:none;color:#ddd;cursor:pointer;font-size:16px;padding:2px;}
+#rota-btn{background:linear-gradient(135deg,#F97316,#EA580C);color:#fff;border:none;border-radius:14px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:none;}
+#rota-btn.show{display:block;}
+
+/* TELA MAPA */
+#mapwrap{position:relative;height:65vh;min-height:280px;}
+#leafmap{width:100%;height:100%;}
+#gps-overlay{position:absolute;bottom:8px;left:8px;z-index:1000;background:rgba(255,255,255,0.92);border:1px solid #ddd;border-radius:8px;padding:4px 10px;font-size:10px;color:#666;font-family:monospace;pointer-events:none;}
+#map-actions{padding:10px 14px;display:flex;gap:8px;border-bottom:1px solid #eee;}
+.mabtn{flex:1;padding:9px 6px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;font-family:inherit;}
+.mabtn.primary{background:#F97316;color:#fff;border-color:#F97316;}
+#prox-info{padding:10px 14px;background:#FFF7ED;border-bottom:1px solid #FED7AA;display:none;}
+#prox-nome{font-size:13px;font-weight:700;color:#C2410C;}
+#prox-addr{font-size:11px;color:#9A3412;margin-top:2px;}
+#prox-hint{font-size:11px;color:#7C2D12;margin-top:4px;font-style:italic;}
+
+/* TELA REGISTRAR */
+#reg-wrap{padding:14px 16px;}
+#reg-info{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;}
+#reg-info p{font-size:12px;color:#9A3412;line-height:1.5;}
+.ml{font-size:11px;color:#666;margin-bottom:4px;display:block;font-weight:500;}
+.mi{width:100%;margin-bottom:12px;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:13px;background:#fff;color:#111;font-family:inherit;outline:none;}
+.mi:focus{border-color:#F97316;}
+textarea.mi{height:72px;resize:none;line-height:1.5;}
+#photo-area{border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-bottom:12px;font-size:12px;color:#aaa;}
+#photo-prev{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:none;}
+.save-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* TELA HISTÓRICO */
+#hist-wrap{padding:14px 16px;}
+.hist-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:8px;}
+.hist-nome{font-size:13px;font-weight:700;color:#111;}
+.hist-addr{font-size:11px;color:#888;margin-top:2px;}
+.hist-nota{font-size:11px;color:#666;margin-top:6px;padding:6px 10px;background:#FFF7ED;border-left:2px solid #F97316;border-radius:0 8px 8px 0;}
+.hist-photo{width:100%;max-height:100px;object-fit:cover;border-radius:8px;margin-top:7px;}
+.hist-meta{font-size:10px;color:#aaa;margin-top:4px;}
+.hist-empty{text-align:center;padding:32px 0;font-size:13px;color:#aaa;}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:flex-end;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:15px;font-weight:700;color:#111;margin-bottom:14px;}
+.mbtn-row{display:flex;gap:10px;margin-top:8px;}
+.mbtn{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#888;font-family:inherit;}
+.mbtn.orange{background:#F97316;color:#fff;border-color:#F97316;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div id="splash-icon">📦</div>
+  <h1>EntregaLog</h1>
+  <p>Entregas mais rápidas todo dia</p>
+  <div id="splash-bar"><div id="splash-prog"></div></div>
+</div>
+
+<div id="shell">
+  <div id="topbar">
+    <div>
+      <div id="app-title">📦 EntregaLog</div>
+      <div id="app-sub">Rotas inteligentes para entregadores</div>
+    </div>
+    <div id="status-badge">0 entregas</div>
+  </div>
+  <div id="nav">
+    <button class="ntab active" onclick="showScreen('entregas')">📋 Entregas</button>
+    <button class="ntab" onclick="showScreen('mapa')">🗺 Rota</button>
+    <button class="ntab" onclick="showScreen('registrar')">📍 Registrar</button>
+    <button class="ntab" onclick="showScreen('historico')">📁 Histórico</button>
+  </div>
+
+  <!-- TELA ENTREGAS -->
+  <div id="screen-entregas" class="screen active">
+    <div id="entregas-wrap">
+      <div class="section-title">Adicionar entregas do dia</div>
+      <div id="input-area">
+        <p>Digite o nome do destinatário e o endereço. O app verifica se já foi registrado antes por outros entregadores.</p>
+        <input class="mi" id="nome-input" placeholder="Nome do destinatário" style="margin-bottom:8px;"/>
+        <input class="mi" id="endereco-input" placeholder="Endereço completo (Rua, número, bairro)"/>
+        <button class="add-btn" onclick="adicionarEntrega()">+ Adicionar endereço</button>
+      </div>
+      <div class="section-title">Lista de hoje</div>
+      <div id="lista-entregas">
+        <div style="text-align:center;padding:20px 0;font-size:13px;color:#aaa;">Nenhuma entrega adicionada ainda.</div>
+      </div>
+      <button class="rota-btn" id="rota-btn" onclick="gerarRota()">🗺 Gerar rota otimizada</button>
+    </div>
+  </div>
+
+  <!-- TELA MAPA -->
+  <div id="screen-mapa" class="screen">
+    <div id="mapwrap">
+      <div id="leafmap"></div>
+      <div id="gps-overlay">Aguardando GPS...</div>
+    </div>
+    <div id="prox-info">
+      <div id="prox-nome"></div>
+      <div id="prox-addr"></div>
+      <div id="prox-hint"></div>
+    </div>
+    <div id="map-actions">
+      <button class="mabtn" onclick="proximaEntrega()">⏭ Próxima</button>
+      <button class="mabtn primary" onclick="marcarEntregue()">✅ Entregue</button>
+      <button class="mabtn" onclick="abrirNavegacao()">🗺 Navegar</button>
+    </div>
+  </div>
+
+  <!-- TELA REGISTRAR -->
+  <div id="screen-registrar" class="screen">
+    <div id="reg-wrap">
+      <div class="section-title">Registrar endereço difícil</div>
+      <div id="reg-info">
+        <p>📍 Encontrou dificuldade num endereço? Registre aqui com foto e anotação para ajudar outros entregadores!</p>
+      </div>
+      <label class="ml">Nome do destinatário ou referência</label>
+      <input class="mi" id="reg-nome" placeholder="Ex: Condomínio Solar, bloco B"/>
+      <label class="ml">Endereço</label>
+      <input class="mi" id="reg-addr" placeholder="Rua, número, bairro"/>
+      <label class="ml">Dica para encontrar</label>
+      <textarea class="mi" id="reg-nota" placeholder="Ex: Portaria é nos fundos, entra pela Rua das Flores. Interfone 302."></textarea>
+      <label class="ml">Foto do local — opcional</label>
+      <img id="photo-prev" src="" alt=""/>
+      <div id="photo-area" onclick="document.getElementById('photo-input').click()">
+        📷 Tirar foto do local ou entrada
+        <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)"/>
+      </div>
+      <button class="save-btn" onclick="salvarRegistro()">💾 Salvar para todos os entregadores</button>
+    </div>
+  </div>
+
+  <!-- TELA HISTÓRICO -->
+  <div id="screen-historico" class="screen">
+    <div id="hist-wrap">
+      <div class="section-title">Endereços registrados</div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHES ENDEREÇO CONHECIDO -->
+<div class="overlay" id="modal-conhecido">
+  <div class="modal">
+    <h3>📍 Endereço conhecido!</h3>
+    <div id="modal-body"></div>
+    <div class="mbtn-row">
+      <button class="mbtn" onclick="fecharModal()">Fechar</button>
+      <button class="mbtn orange" onclick="fecharModal()">Entendido!</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const SUPABASE_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
+
+let map=null,gpsMarker=null,currentPos=null,watchId=null;
+let entregas=[],entregaAtual=0,registros=[],photoData=null;
+
+function hideSplash(){setTimeout(()=>{const s=document.getElementById('splash');s.classList.add('hide');setTimeout(()=>s.style.display='none',650);},2400);}
+
+function showScreen(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  const idx={entregas:0,mapa:1,registrar:2,historico:3}[s];
+  document.querySelectorAll('.ntab')[idx].classList.add('active');
+  if(s==='mapa'){initMapa();setTimeout(()=>{if(map)map.invalidateSize();},50);}
+  if(s==='historico')renderHistorico();
+}
+
+function initMapa(){
+  if(map)return;
+  const lat=-27.1,lon=-52.6;
+  map=L.map('leafmap',{zoomControl:true}).setView([lat,lon],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  const icon=L.divIcon({html:'<div style="width:14px;height:14px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 3px rgba(249,115,22,0.3);"></div>',iconSize:[14,14],iconAnchor:[7,7],className:''});
+  gpsMarker=L.marker([lat,lon],{icon}).addTo(map);
+  if(navigator.geolocation){
+    watchId=navigator.geolocation.watchPosition(pos=>{
+      const{latitude:la,longitude:lo}=pos.coords;
+      currentPos={lat:la,lon:lo};
+      gpsMarker.setLatLng([la,lo]);
+      map.panTo([la,lo],{animate:true});
+      document.getElementById('gps-overlay').textContent=la.toFixed(5)+', '+lo.toFixed(5);
+    },err=>{},{ enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+  }
+  renderPinsNoMapa();
+}
+
+function renderPinsNoMapa(){
+  if(!map)return;
+  entregas.forEach((e,i)=>{
+    if(!e.lat||!e.lon)return;
+    const cor=e.entregue?'#86EFAC':e.conhecido?'#4ADE80':'#FBBF24';
+    const icon=L.divIcon({html:`<div style="width:32px;height:32px;background:${cor};border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.2);">${i+1}</div>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
+    L.marker([e.lat,e.lon],{icon}).addTo(map).bindPopup(`<b>${e.nome}</b><br/>${e.addr}${e.dica?'<br/><i>'+e.dica+'</i>':''}`);
+  });
+  if(entregas.length>0){
+    const atualEntrega=entregas.find(e=>!e.entregue);
+    if(atualEntrega&&atualEntrega.lat){
+      document.getElementById('prox-info').style.display='block';
+      document.getElementById('prox-nome').textContent='📦 '+atualEntrega.nome;
+      document.getElementById('prox-addr').textContent=atualEntrega.addr;
+      document.getElementById('prox-hint').textContent=atualEntrega.dica?'💡 '+atualEntrega.dica:'';
+    }
+  }
+}
+
+async function geocodificar(addr){
+  try{
+    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+', Brasil')}&format=json&limit=1`,{headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}});
+    const data=await res.json();
+    if(data.length>0)return{lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon)};
+  }catch(e){}
+  return null;
+}
+
+async function buscarRegistro(addr){
+  try{
+    const res=await fetch(SUPABASE_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+addr.split(',')[0]+'%')+'&limit=1',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    const data=await res.json();
+    if(data&&data.length>0)return data[0];
+  }catch(e){}
+  return null;
+}
+
+async function adicionarEntrega(){
+  const nome=document.getElementById('nome-input').value.trim();
+  const addr=document.getElementById('endereco-input').value.trim();
+  if(!nome)return alert('Digite o nome do destinatário.');
+  if(!addr)return alert('Digite o endereço.');
+  const coords=await geocodificar(addr);
+  const registro=await buscarRegistro(addr);
+  const entrega={id:Date.now(),nome,addr,lat:coords?coords.lat:null,lon:coords?coords.lon:null,conhecido:!!registro,dica:registro?registro.nota:'',fotoUrl:registro?registro.foto:'',entregue:false};
+  entregas.push(entrega);
+  document.getElementById('nome-input').value='';
+  document.getElementById('endereco-input').value='';
+  atualizarLista();
+  if(registro){
+    document.getElementById('modal-body').innerHTML=`<div style="background:#DCFCE7;border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#166534;margin-bottom:4px;">✅ Endereço já registrado!</div>
+      <div style="font-size:12px;color:#166534;">${addr}</div>
+    </div>
+    ${registro.nota?`<div style="background:#FFF7ED;border-left:3px solid #F97316;padding:10px;border-radius:0 8px 8px 0;font-size:13px;color:#9A3412;font-style:italic;">"${registro.nota}"</div>`:''}
+    ${registro.foto?`<img src="${registro.foto}" style="width:100%;border-radius:10px;margin-top:10px;max-height:150px;object-fit:cover;"/>`:''}`;
+    document.getElementById('modal-conhecido').classList.add('open');
+  }
+}
+
+function atualizarLista(){
+  const lista=document.getElementById('lista-entregas');
+  const btn=document.getElementById('rota-btn');
+  if(!entregas.length){
+    lista.innerHTML='<div style="text-align:center;padding:20px 0;font-size:13px;color:#aaa;">Nenhuma entrega adicionada ainda.</div>';
+    btn.className='rota-btn';return;
+  }
+  lista.innerHTML='';
+  entregas.forEach((e,i)=>{
+    const card=document.createElement('div');card.className='entrega-card';
+    const numClass=e.entregue?'done':e.conhecido?'known':'';
+    card.innerHTML=`<div class="entrega-num ${numClass}">${i+1}</div>
+      <div class="entrega-info">
+        <div class="entrega-nome">${e.nome}</div>
+        <div class="entrega-addr">${e.addr}</div>
+      </div>
+      <span class="entrega-status ${e.entregue?'entregue':e.conhecido?'conhecido':'novo'}">${e.entregue?'✅ Entregue':e.conhecido?'✅ Conhecido':'⚠️ Novo'}</span>
+      <button class="entrega-del" onclick="removerEntrega(${i})">✕</button>`;
+    lista.appendChild(card);
+  });
+  btn.className='rota-btn show';
+  document.getElementById('status-badge').textContent=entregas.filter(e=>!e.entregue).length+' entregas';
+  document.getElementById('status-badge').className=entregas.every(e=>e.entregue)?'active':'';
+}
+
+function removerEntrega(i){entregas.splice(i,1);atualizarLista();}
+
+async function gerarRota(){
+  if(!entregas.length)return;
+  showScreen('mapa');
+  setTimeout(async()=>{
+    if(!map)return;
+    for(const e of entregas){
+      if(!e.lat||!e.lon){
+        const coords=await geocodificar(e.addr);
+        if(coords){e.lat=coords.lat;e.lon=coords.lon;}
+      }
+    }
+    const comCoords=entregas.filter(e=>e.lat&&e.lon);
+    if(comCoords.length>0){
+      const bounds=L.latLngBounds(comCoords.map(e=>[e.lat,e.lon]));
+      map.fitBounds(bounds,{padding:[30,30]});
+    }
+    renderPinsNoMapa();
+  },500);
+}
+
+function proximaEntrega(){
+  const idx=entregas.findIndex(e=>!e.entregue);
+  if(idx===-1)return alert('Todas as entregas foram concluídas!');
+  const e=entregas[idx];
+  if(e.lat&&e.lon&&map)map.setView([e.lat,e.lon],17);
+  document.getElementById('prox-nome').textContent='📦 '+e.nome;
+  document.getElementById('prox-addr').textContent=e.addr;
+  document.getElementById('prox-hint').textContent=e.dica?'💡 '+e.dica:'';
+  document.getElementById('prox-info').style.display='block';
+}
+
+function marcarEntregue(){
+  const idx=entregas.findIndex(e=>!e.entregue);
+  if(idx===-1)return;
+  entregas[idx].entregue=true;
+  atualizarLista();
+  renderPinsNoMapa();
+  proximaEntrega();
+}
+
+function abrirNavegacao(){
+  const e=entregas.find(x=>!x.entregue);
+  if(!e)return;
+  if(e.lat&&e.lon)window.open(`https://www.google.com/maps/dir/?api=1&destination=${e.lat},${e.lon}`,'_blank');
+  else window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(e.addr)}`,'_blank');
+}
+
+function handlePhoto(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    photoData=e.target.result;
+    const img=document.getElementById('photo-prev');
+    img.src=photoData;img.style.display='block';
+    document.getElementById('photo-area').style.display='none';
+  };r.readAsDataURL(file);
+}
+
+async function salvarRegistro(){
+  const nome=document.getElementById('reg-nome').value.trim();
+  const addr=document.getElementById('reg-addr').value.trim();
+  const nota=document.getElementById('reg-nota').value.trim();
+  if(!nome)return alert('Digite o nome ou referência.');
+  if(!addr)return alert('Digite o endereço.');
+  const coords=await geocodificar(addr);
+  const reg={nome,addr,nota,foto:photoData||null,lat:coords?coords.lat:null,lon:coords?coords.lon:null,data:new Date().toLocaleString('pt-BR')};
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/enderecos',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({nome,addr,nota,lat:reg.lat,lon:reg.lon})
+    });
+  }catch(e){}
+  try{
+    const lista=JSON.parse(localStorage.getItem('el_registros')||'[]');
+    lista.unshift(reg);localStorage.setItem('el_registros',JSON.stringify(lista));
+  }catch(e){}
+  document.getElementById('reg-nome').value='';
+  document.getElementById('reg-addr').value='';
+  document.getElementById('reg-nota').value='';
+  document.getElementById('photo-prev').style.display='none';
+  document.getElementById('photo-area').style.display='block';
+  document.getElementById('photo-input').value='';
+  photoData=null;
+  alert('✅ Registrado! Outros entregadores vão ver essa dica.');
+}
+
+function renderHistorico(){
+  const lista=JSON.parse(localStorage.getItem('el_registros')||'[]');
+  const wrap=document.getElementById('hist-list');
+  if(!lista.length){wrap.innerHTML='<div class="hist-empty">Nenhum endereço registrado ainda.</div>';return;}
+  wrap.innerHTML='';
+  lista.forEach(r=>{
+    const card=document.createElement('div');card.className='hist-card';
+    card.innerHTML=`<div class="hist-nome">${r.nome}</div>
+      <div class="hist-addr">${r.addr}</div>
+      ${r.nota?`<div class="hist-nota">${r.nota}</div>`:''}
+      ${r.foto?`<img class="hist-photo" src="${r.foto}"/>`:''}
+      <div class="hist-meta">${r.data}</div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function fecharModal(){document.getElementById('modal-conhecido').classList.remove('open');}
+
+hideSplash();
+</script>
+</body>
+</html>
