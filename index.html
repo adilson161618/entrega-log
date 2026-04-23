@@ -214,6 +214,7 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 let map=null,gpsMarker=null,currentPos=null,watchId=null;
 let entregas=[],entregaAtual=0,registros=[],photoData=null;
 
+function fecharCronograma(){const b=document.getElementById('cronograma-box');if(b)b.remove();}
 function hideSplash(){const s=document.getElementById('splash');setTimeout(()=>{s.classList.add('hide');setTimeout(()=>s.style.display='none',500);},1500);window.addEventListener('load',()=>{setTimeout(()=>{s.classList.add('hide');setTimeout(()=>s.style.display='none',500);},500);});}
 
 function showScreen(s){
@@ -424,7 +425,7 @@ function mostrarCronograma(pontos,origem){
   const box=document.createElement('div');
   box.id='cronograma-box';
   box.style.cssText='position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:14px 16px;z-index:1000;max-height:40vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,0.1);';
-  let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#111;">🗺 Rota otimizada — '+pontos.length+' paradas</span><button onclick="document.getElementById('cronograma-box').remove()" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;">✕</button></div>';
+  let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#111;">🗺 Rota otimizada — '+pontos.length+' paradas</span><button onclick="fecharCronograma()" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;">✕</button></div>';
   pontos.forEach((p,i)=>{
     const dist=origem?Math.round(haverDist(origem,{lat:p.lat,lon:p.lon})/1000*10)/10:0;
     html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5;">
