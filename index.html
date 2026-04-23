@@ -344,6 +344,7 @@ function atualizarLista(){
         <div class="entrega-addr">${e.addr}</div>
       </div>
       <span class="entrega-status ${e.entregue?'entregue':e.conhecido?'conhecido':'novo'}">${e.entregue?'✅ Entregue':e.conhecido?'✅ Conhecido':'⚠️ Novo'}</span>
+      <button class="entrega-del" onclick="editarEntrega(${i})" style="color:#F97316;margin-right:4px;">✏️</button>
       <button class="entrega-del" onclick="removerEntrega(${i})">✕</button>`;
     lista.appendChild(card);
   });
@@ -353,6 +354,15 @@ function atualizarLista(){
 }
 
 function removerEntrega(i){entregas.splice(i,1);atualizarLista();}
+function editarEntrega(i){
+  var e=entregas[i];
+  document.getElementById('nome-input').value=e.nome;
+  document.getElementById('endereco-input').value=e.addr;
+  entregas.splice(i,1);
+  atualizarLista();
+  document.getElementById('nome-input').focus();
+  window.scrollTo(0,0);
+}
 
 function haverDist(a,b){
   const R=6371000,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180;
