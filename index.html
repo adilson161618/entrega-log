@@ -132,7 +132,8 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
       <div id="input-area">
         <p>Digite o nome do destinatário e o endereço. O app verifica se já foi registrado antes por outros entregadores.</p>
         <input class="mi" id="nome-input" placeholder="Nome do destinatário" style="margin-bottom:8px;"/>
-        <input class="mi" id="endereco-input" placeholder="Endereço completo (Rua, número, bairro)"/>
+        <input class="mi" id="endereco-input" placeholder="Endereço, CEP ou coordenadas — opcional"/>
+        <div style="font-size:10px;color:#aaa;margin:-8px 0 8px;padding:0 2px;">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
         <button class="add-btn" onclick="adicionarEntrega()">+ Adicionar endereço</button>
       </div>
       <div class="section-title">Lista de hoje</div>
@@ -264,8 +265,27 @@ function renderPinsNoMapa(){
 }
 
 async function geocodificar(addr){
+  if(!addr||addr.trim()==='') return null;
+  // Coordenadas ex: -27.1234,-52.6789
+  const coordMatch=addr.match(/^\s*(-?\d+\.\d+)\s*[,;\s]\s*(-?\d+\.\d+)\s*$/);
+  if(coordMatch) return{lat:parseFloat(coordMatch[1]),lon:parseFloat(coordMatch[2])};
+  // CEP ex: 89801-000 ou 89801000
+  const cepMatch=addr.replace('-','').match(/^(\d{8})$/);
+  if(cepMatch){
+    try{
+      const res=await fetch('https://viacep.com.br/ws/'+cepMatch[1]+'/json/');
+      const data=await res.json();
+      if(!data.erro){
+        const q=data.logradouro+' '+data.localidade+' '+data.uf+' Brasil';
+        const res2=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&format=json&limit=1',{headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}});
+        const data2=await res2.json();
+        if(data2.length>0)return{lat:parseFloat(data2[0].lat),lon:parseFloat(data2[0].lon),addrCompleto:data.logradouro+', '+data.localidade+' - '+data.uf};
+      }
+    }catch(e){}
+  }
+  // Endereço normal
   try{
-    const res=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr+', Brasil')}&format=json&limit=1`,{headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}});
+    const res=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(addr+', Brasil')+'&format=json&limit=1',{headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}});
     const data=await res.json();
     if(data.length>0)return{lat:parseFloat(data[0].lat),lon:parseFloat(data[0].lon)};
   }catch(e){}
@@ -287,10 +307,10 @@ async function adicionarEntrega(){
   const nome=document.getElementById('nome-input').value.trim();
   const addr=document.getElementById('endereco-input').value.trim();
   if(!nome)return alert('Digite o nome do destinatário.');
-  if(!addr)return alert('Digite o endereço.');
-  const coords=await geocodificar(addr);
+  const coords=addr?await geocodificar(addr):null;
+  const addrFinal=coords&&coords.addrCompleto?coords.addrCompleto:addr;
   const registro=await buscarRegistro(addr);
-  const entrega={id:Date.now(),nome,addr,lat:coords?coords.lat:null,lon:coords?coords.lon:null,conhecido:!!registro,dica:registro?registro.nota:'',fotoUrl:registro?registro.foto:'',entregue:false};
+  const entrega={id:Date.now(),nome,addr:addrFinal||addr||'Endereço não informado',lat:coords?coords.lat:null,lon:coords?coords.lon:null,conhecido:!!registro,dica:registro?registro.nota:'',fotoUrl:registro?registro.foto:'',entregue:false};
   entregas.push(entrega);
   document.getElementById('nome-input').value='';
   document.getElementById('endereco-input').value='';
@@ -333,24 +353,92 @@ function atualizarLista(){
 
 function removerEntrega(i){entregas.splice(i,1);atualizarLista();}
 
+function haverDist(a,b){
+  const R=6371000,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function otimizarRota(pontos,origem){
+  if(!origem||!pontos.length) return pontos;
+  const restantes=[...pontos];
+  const ordenados=[];
+  let atual=origem;
+  while(restantes.length>0){
+    let menorDist=Infinity,menorIdx=0;
+    restantes.forEach((p,i)=>{
+      if(!p.lat||!p.lon) return;
+      const d=haverDist(atual,{lat:p.lat,lon:p.lon});
+      if(d<menorDist){menorDist=d;menorIdx=i;}
+    });
+    ordenados.push(restantes.splice(menorIdx,1)[0]);
+    const ult=ordenados[ordenados.length-1];
+    if(ult.lat&&ult.lon) atual={lat:ult.lat,lon:ult.lon};
+  }
+  return ordenados;
+}
+
 async function gerarRota(){
   if(!entregas.length)return;
-  showScreen('mapa');
-  setTimeout(async()=>{
-    if(!map)return;
-    for(const e of entregas){
-      if(!e.lat||!e.lon){
-        const coords=await geocodificar(e.addr);
-        if(coords){e.lat=coords.lat;e.lon=coords.lon;}
-      }
+  const btn=document.getElementById('rota-btn');
+  btn.textContent='⏳ Calculando rota...';
+  btn.disabled=true;
+  // Geocodificar todos sem coordenadas
+  for(const e of entregas){
+    if(!e.lat||!e.lon){
+      const coords=await geocodificar(e.addr);
+      if(coords){e.lat=coords.lat;e.lon=coords.lon;}
     }
-    const comCoords=entregas.filter(e=>e.lat&&e.lon);
+  }
+  // Ordenar por distância da posição atual
+  const origem=currentPos||{lat:-27.1,lon:-52.6};
+  const comCoords=entregas.filter(e=>e.lat&&e.lon);
+  const semCoords=entregas.filter(e=>!e.lat||!e.lon);
+  const ordenados=otimizarRota(comCoords,origem);
+  entregas=[...ordenados,...semCoords];
+  atualizarLista();
+  btn.textContent='🗺 Gerar rota otimizada';
+  btn.disabled=false;
+  showScreen('mapa');
+  setTimeout(()=>{
+    if(!map)return;
     if(comCoords.length>0){
       const bounds=L.latLngBounds(comCoords.map(e=>[e.lat,e.lon]));
       map.fitBounds(bounds,{padding:[30,30]});
     }
+    // Desenhar linha de rota
+    const rotaCoords=ordenados.map(e=>[e.lat,e.lon]);
+    if(origem) rotaCoords.unshift([origem.lat,origem.lon]);
+    if(window._rotaLine) window._rotaLine.remove();
+    window._rotaLine=L.polyline(rotaCoords,{color:'#F97316',weight:3,opacity:0.7,dashArray:'8,6'}).addTo(map);
     renderPinsNoMapa();
+    // Mostrar cronograma
+    mostrarCronograma(ordenados,origem);
   },500);
+}
+
+function mostrarCronograma(pontos,origem){
+  const existing=document.getElementById('cronograma-box');
+  if(existing)existing.remove();
+  if(!pontos.length)return;
+  const box=document.createElement('div');
+  box.id='cronograma-box';
+  box.style.cssText='position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:14px 16px;z-index:1000;max-height:40vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,0.1);';
+  let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;font-weight:700;color:#111;">🗺 Rota otimizada — '+pontos.length+' paradas</span><button onclick="document.getElementById('cronograma-box').remove()" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;">✕</button></div>';
+  pontos.forEach((p,i)=>{
+    const dist=origem?Math.round(haverDist(origem,{lat:p.lat,lon:p.lon})/1000*10)/10:0;
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5;">
+      <div style="width:28px;height:28px;border-radius:50%;background:${p.entregue?'#DCFCE7':p.conhecido?'#E1F5EE':'#FEF9C3'};color:${p.entregue?'#166534':p.conhecido?'#085041':'#854D0E'};font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i+1}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:#111;">${p.nome}</div>
+        <div style="font-size:10px;color:#888;">${p.addr} · ${dist} km</div>
+        ${p.dica?`<div style="font-size:10px;color:#9A3412;font-style:italic;">💡 ${p.dica}</div>`:''}
+      </div>
+      <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:${p.entregue?'#DCFCE7':p.conhecido?'#E1F5EE':'#FEF9C3'};color:${p.entregue?'#166534':p.conhecido?'#085041':'#854D0E'};">${p.entregue?'✅':p.conhecido?'✅ Conhecido':'⚠️ Novo'}</span>
+    </div>`;
+  });
+  box.innerHTML=html;
+  document.getElementById('mapwrap').appendChild(box);
 }
 
 function proximaEntrega(){
