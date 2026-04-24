@@ -454,9 +454,9 @@ function iniciarRastreamento(){
         totalDistPercorrida+=haverDist(lastPosTrack,{lat:lat,lon:lon});
       }
       lastPosTrack={lat:lat,lon:lon};
-      if(rotaLine) rotaLine.setLatLngs(rotaPercorrida);
-      else if(map){
-        rotaLine=L.polyline(rotaPercorrida,{color:'#F97316',weight:4,opacity:0.8,dashArray:'8,4'}).addTo(map);
+      if(map){
+        if(rotaLine) rotaLine.setLatLngs(rotaPercorrida);
+        else if(typeof L !== 'undefined') rotaLine=L.polyline(rotaPercorrida,{color:'#F97316',weight:4,opacity:0.8,dashArray:'8,4'}).addTo(map);
       }
       var km=(totalDistPercorrida/1000).toFixed(2);
       document.getElementById('track-dist').textContent=km+' km percorridos';
