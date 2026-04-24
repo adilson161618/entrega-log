@@ -128,6 +128,13 @@ body.dark .hist-addr,body.dark .hist-meta{color:#888;}
 body.dark #cronograma-box{background:#1a1a1a;}
 body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
 #dark-toggle-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:2px;}
+
+#track-bar{display:none;background:#1a0f05;border-bottom:1px solid #F97316;padding:8px 14px;align-items:center;justify-content:space-between;gap:10px;}
+#track-bar.active{display:flex;}
+#track-status{font-size:11px;color:#FED7AA;font-weight:600;}
+#track-dist{font-size:11px;color:#F97316;font-weight:700;}
+#track-btn{background:#F97316;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+#encerrar-btn{background:#DC2626;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 </style>
 </head>
 <body>
@@ -166,6 +173,7 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
     <button class="ntab" onclick="showScreen('registrar')">📍 Registrar</button>
     <button class="ntab" onclick="showScreen('historico')">📁 Histórico</button>
     <button class="ntab" onclick="showScreen('relatorio')">📊 Relatório</button>
+    <button class="ntab" onclick="showScreen('rotas')">🛣 Rotas</button>
   </div>
 
   <!-- TELA ENTREGAS -->
@@ -194,6 +202,17 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
       <div id="leafmap"></div>
       <div id="gps-overlay">Aguardando GPS...</div>
     </div>
+    <div id="track-bar">
+      <div>
+        <div id="track-status">GPS pronto para rastrear</div>
+        <div id="track-dist">0.00 km percorridos</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button id="track-btn" onclick="iniciarRastreamento()">▶ Iniciar GPS</button>
+        <button id="encerrar-btn" onclick="encerrarDia()">🏁 Encerrar dia</button>
+      </div>
+    </div>
+
     <div id="prox-info">
       <div id="prox-nome"></div>
       <div id="prox-addr"></div>
@@ -243,6 +262,14 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
     <div id="rel-wrap" style="padding:14px 16px;">
       <div class="section-title">Histórico por dia</div>
       <div id="rel-list"></div>
+    </div>
+  </div>
+
+
+  <div id="screen-rotas" class="screen">
+    <div style="padding:14px 16px;">
+      <div class="section-title">Rotas percorridas</div>
+      <div id="rotas-hist-list"></div>
     </div>
   </div>
 
@@ -391,6 +418,117 @@ function ligarCliente(tel){
   window.location.href='tel:'+tel;
 }
 
+
+let rotaPercorrida=[];
+let rotaLine=null;
+let gpsTracking=false;
+let totalDistPercorrida=0;
+let lastPosTrack=null;
+let trackInterval=null;
+
+function haverDist(a,b){
+  var R=6371000,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180;
+  var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function iniciarRastreamento(){
+  if(gpsTracking) return;
+  gpsTracking=true;
+  rotaPercorrida=[];
+  totalDistPercorrida=0;
+  lastPosTrack=null;
+  document.getElementById('track-bar').style.display='flex';
+  document.getElementById('track-status').textContent='GPS gravando rota...';
+  document.getElementById('track-btn').textContent='⏹ Parar';
+  document.getElementById('track-btn').onclick=pararRastreamento;
+  if(navigator.geolocation){
+    trackInterval=navigator.geolocation.watchPosition(function(pos){
+      var lat=pos.coords.latitude,lon=pos.coords.longitude;
+      currentPos={lat:lat,lon:lon};
+      if(gpsMarker) gpsMarker.setLatLng([lat,lon]);
+      if(map) map.panTo([lat,lon],{animate:true,duration:0.5});
+      document.getElementById('gps-overlay').textContent=lat.toFixed(5)+', '+lon.toFixed(5);
+      rotaPercorrida.push([lat,lon]);
+      if(lastPosTrack){
+        totalDistPercorrida+=haverDist(lastPosTrack,{lat:lat,lon:lon});
+      }
+      lastPosTrack={lat:lat,lon:lon};
+      if(rotaLine) rotaLine.setLatLngs(rotaPercorrida);
+      else if(map){
+        rotaLine=L.polyline(rotaPercorrida,{color:'#F97316',weight:4,opacity:0.8,dashArray:'8,4'}).addTo(map);
+      }
+      var km=(totalDistPercorrida/1000).toFixed(2);
+      document.getElementById('track-dist').textContent=km+' km percorridos';
+    },function(){},{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
+  }
+}
+
+function pararRastreamento(){
+  gpsTracking=false;
+  if(trackInterval){navigator.geolocation.clearWatch(trackInterval);trackInterval=null;}
+  document.getElementById('track-btn').textContent='▶ Retomar';
+  document.getElementById('track-btn').onclick=iniciarRastreamento;
+  document.getElementById('track-status').textContent='Rastreamento pausado';
+  salvarRota();
+}
+
+async function salvarRota(){
+  if(!rotaPercorrida.length) return;
+  var total=entregas.filter(function(e){return e.entregue;}).length;
+  var km=(totalDistPercorrida/1000).toFixed(2);
+  var data=new Date().toLocaleString('pt-BR');
+  // Salva localmente
+  try{
+    var hist=JSON.parse(localStorage.getItem('el_rotas')||'[]');
+    hist.unshift({data:data,km:km,total:total,rota:rotaPercorrida,pontos:entregas.filter(function(e){return e.entregue;})});
+    if(hist.length>30) hist=hist.slice(0,30);
+    localStorage.setItem('el_rotas',JSON.stringify(hist));
+  }catch(e){}
+  // Salva no Supabase
+  try{
+    var usuario_id=usuarioAtual?usuarioAtual.id:null;
+    await fetch(SUPABASE_URL+'/rest/v1/rotas',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({
+        usuario_id:usuario_id,
+        km:parseFloat(km),
+        total_entregas:total,
+        rota_coords:rotaPercorrida,
+        pontos_entregues:entregas.filter(function(e){return e.entregue;}).map(function(e){return{nome:e.nome,addr:e.addr,lat:e.lat,lon:e.lon};}),
+        data_entrega:data
+      })
+    });
+  }catch(e){}
+}
+
+function encerrarDia(){
+  if(!confirm('Encerrar o dia e salvar a rota?')) return;
+  pararRastreamento();
+  salvarEstatisticaDia(entregas.filter(function(e){return e.entregue;}).length);
+  document.getElementById('track-status').textContent='Dia encerrado — rota salva!';
+  document.getElementById('track-btn').style.display='none';
+  document.getElementById('encerrar-btn').style.display='none';
+}
+
+function renderRotasHistorico(){
+  var hist=JSON.parse(localStorage.getItem('el_rotas')||'[]');
+  var wrap=document.getElementById('rotas-hist-list');
+  if(!hist.length){wrap.innerHTML='<div class="hist-empty">Nenhuma rota salva ainda.</div>';return;}
+  var html='';
+  hist.forEach(function(r){
+    html+='<div class="hist-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+        +'<div class="hist-nome">'+r.data+'</div>'
+        +'<div style="font-size:18px;font-weight:800;color:#F97316;">'+r.total+'</div>'
+      +'</div>'
+      +'<div class="hist-addr">'+r.km+' km percorridos · '+r.total+' entrega'+(r.total!==1?'s':'')+' realizada'+(r.total!==1?'s':'')+'</div>'
+      +'</div>';
+  });
+  wrap.innerHTML=html;
+}
+
 function fecharCronograma(){const b=document.getElementById('cronograma-box');if(b)b.remove();}
 function hideSplash(){const s=document.getElementById('splash');setTimeout(()=>{s.classList.add('hide');setTimeout(()=>s.style.display='none',500);},1500);window.addEventListener('load',()=>{setTimeout(()=>{s.classList.add('hide');setTimeout(()=>s.style.display='none',500);},500);});}
 
@@ -403,6 +541,7 @@ function showScreen(s){
   if(s==='mapa'){initMapa();setTimeout(()=>{if(map)map.invalidateSize();},50);}
   if(s==='historico')renderHistorico();
   if(s==='relatorio')renderRelatorio();
+  if(s==='rotas')renderRotasHistorico();
 }
 
 function initMapa(){
@@ -673,10 +812,41 @@ function marcarEntregue(){
   const idx=entregas.findIndex(e=>!e.entregue);
   if(idx===-1)return;
   entregas[idx].entregue=true;
+  // Salva coordenadas GPS exatas do momento da entrega
+  if(currentPos&&(!entregas[idx].lat||!entregas[idx].lon)){
+    entregas[idx].lat=currentPos.lat;
+    entregas[idx].lon=currentPos.lon;
+    // Salva endereço no banco colaborativo automaticamente
+    salvarEnderecoAuto(entregas[idx]);
+  }
   salvarEstatisticaDia(1);
   atualizarLista();
   renderPinsNoMapa();
   proximaEntrega();
+}
+
+async function salvarEnderecoAuto(entrega){
+  if(!entrega.lat||!entrega.lon) return;
+  try{
+    var res=await fetch(SUPABASE_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+entrega.addr.split(',')[0]+'%')+'&limit=1',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    var data=await res.json();
+    if(data&&data.length>0) return; // já existe
+    // Salva automaticamente
+    await fetch(SUPABASE_URL+'/rest/v1/enderecos',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify({
+        nome:entrega.nome,
+        addr:entrega.addr,
+        nota:'Registrado automaticamente pelo GPS',
+        lat:entrega.lat,
+        lon:entrega.lon,
+        registrado_por:usuarioAtual?usuarioAtual.nome:'auto'
+      })
+    });
+  }catch(e){}
 }
 
 function abrirNavegacao(){
