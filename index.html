@@ -40,7 +40,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 #input-area p{font-size:12px;color:#888;margin-bottom:8px;line-height:1.5;}
 #endereco-input{width:100%;background:#fff;border:1px solid #ddd;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;color:#111;outline:none;margin-bottom:8px;}
 #endereco-input:focus{border-color:#F97316;}
-.add-btn{background:#F97316;color:#fff;border:none;border-radius:10px;padding:10px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.add-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:16px;width:100%;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
 .add-btn:active{background:#EA580C;}
 #lista-entregas{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
 .entrega-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;}
@@ -63,8 +63,8 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 #leafmap{width:100%;height:100%;}
 #gps-overlay{position:absolute;bottom:8px;left:8px;z-index:1000;background:rgba(255,255,255,0.92);border:1px solid #ddd;border-radius:8px;padding:4px 10px;font-size:10px;color:#666;font-family:monospace;pointer-events:none;}
 #map-actions{padding:10px 14px;display:flex;gap:8px;border-bottom:1px solid #eee;}
-.mabtn{flex:1;padding:9px 6px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;font-family:inherit;}
-.mabtn.primary{background:#F97316;color:#fff;border-color:#F97316;}
+.mabtn{flex:1;padding:14px 6px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;font-family:inherit;min-height:52px;}
+.mabtn.primary{background:#F97316;color:#fff;border-color:#F97316;font-size:15px;}
 #prox-info{padding:10px 14px;background:#FFF7ED;border-bottom:1px solid #FED7AA;display:none;}
 #prox-nome{font-size:13px;font-weight:700;color:#C2410C;}
 #prox-addr{font-size:11px;color:#9A3412;margin-top:2px;}
@@ -80,7 +80,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 textarea.mi{height:72px;resize:none;line-height:1.5;}
 #photo-area{border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-bottom:12px;font-size:12px;color:#aaa;}
 #photo-prev{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:none;}
-.save-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.save-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:18px;width:100%;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
 
 /* TELA HISTÓRICO */
 #hist-wrap{padding:14px 16px;}
@@ -99,6 +99,35 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
 .mbtn-row{display:flex;gap:10px;margin-top:8px;}
 .mbtn{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#888;font-family:inherit;}
 .mbtn.orange{background:#F97316;color:#fff;border-color:#F97316;}
+
+#login-screen{position:fixed;inset:0;background:#fff;z-index:8000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+#login-screen.show{display:flex;}
+#login-screen .logo{font-size:48px;margin-bottom:12px;}
+#login-screen h2{font-size:22px;font-weight:700;color:#111;margin-bottom:6px;}
+#login-screen p{font-size:13px;color:#888;margin-bottom:24px;text-align:center;line-height:1.5;}
+#login-screen .form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;}
+#user-badge{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:6px 12px;font-size:12px;color:#C2410C;font-weight:600;display:none;}
+
+body.dark #shell{background:#111;}
+body.dark #topbar,body.dark #nav,body.dark #map-actions,body.dark #prox-info{background:#1a1a1a;border-color:#333;}
+body.dark .ntab{color:#888;}
+body.dark .ntab.active{color:#F97316;border-bottom-color:#F97316;}
+body.dark #entregas-wrap,body.dark #reg-wrap,body.dark #hist-wrap{background:#111;}
+body.dark #input-area{background:#1a1a1a;border-color:#333;}
+body.dark .entrega-card{background:#1a1a1a;border-color:#333;}
+body.dark .entrega-nome,body.dark #app-title{color:#eee;}
+body.dark .entrega-addr,body.dark .section-title{color:#888;}
+body.dark .mi{background:#1a1a1a;border-color:#444;color:#eee;}
+body.dark .mi::placeholder{color:#555;}
+body.dark #login-screen{background:#111;}
+body.dark #login-screen h2{color:#eee;}
+body.dark #login-screen p{color:#888;}
+body.dark .hist-card{background:#1a1a1a;border-color:#333;}
+body.dark .hist-nome{color:#eee;}
+body.dark .hist-addr,body.dark .hist-meta{color:#888;}
+body.dark #cronograma-box{background:#1a1a1a;}
+body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
+#dark-toggle-btn{background:none;border:none;font-size:18px;cursor:pointer;padding:2px;}
 </style>
 </head>
 <body>
@@ -110,19 +139,33 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
   <div id="splash-bar"><div id="splash-prog"></div></div>
 </div>
 
+
+<div id="login-screen">
+  <div class="logo">📦</div>
+  <h2>EntregaLog</h2>
+  <p>Crie sua conta gratuita para salvar seu histórico e acessar de qualquer celular.</p>
+  <div class="form">
+    <input class="mi" id="login-nome" placeholder="Seu nome completo" style="margin-bottom:0;"/>
+    <input class="mi" id="login-whats" type="tel" placeholder="WhatsApp com DDD" style="margin-bottom:0;"/>
+    <button class="add-btn" onclick="fazerLogin()" style="margin-top:4px;">Entrar / Criar conta</button>
+    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:4px;">Seus dados ficam salvos mesmo se trocar de celular</p>
+  </div>
+</div>
+
 <div id="shell">
   <div id="topbar">
     <div>
       <div id="app-title">📦 EntregaLog</div>
       <div id="app-sub">Rotas inteligentes para entregadores</div>
     </div>
-    <div id="status-badge">0 entregas</div>
+    <div id="user-badge"></div><button id="dark-toggle-btn" onclick="toggleDark()">🌙</button><div id="status-badge">0 entregas</div>
   </div>
   <div id="nav">
     <button class="ntab active" onclick="showScreen('entregas')">📋 Entregas</button>
     <button class="ntab" onclick="showScreen('mapa')">🗺 Rota</button>
     <button class="ntab" onclick="showScreen('registrar')">📍 Registrar</button>
     <button class="ntab" onclick="showScreen('historico')">📁 Histórico</button>
+    <button class="ntab" onclick="showScreen('relatorio')">📊 Relatório</button>
   </div>
 
   <!-- TELA ENTREGAS -->
@@ -133,6 +176,7 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
         <p>Digite o nome do destinatário e o endereço. O app verifica se já foi registrado antes por outros entregadores.</p>
         <input class="mi" id="nome-input" placeholder="Nome do destinatário" style="margin-bottom:8px;"/>
         <input class="mi" id="endereco-input" placeholder="Endereço, CEP ou coordenadas — opcional"/>
+        <input class="mi" id="telefone-input" type="tel" placeholder="Telefone do cliente — opcional" style="margin-bottom:8px;"/>
         <div style="font-size:10px;color:#aaa;margin:-8px 0 8px;padding:0 2px;">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
         <button class="add-btn" onclick="adicionarEntrega()">+ Adicionar endereço</button>
       </div>
@@ -194,6 +238,14 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
   </div>
 </div>
 
+
+  <div id="screen-relatorio" class="screen">
+    <div id="rel-wrap" style="padding:14px 16px;">
+      <div class="section-title">Histórico por dia</div>
+      <div id="rel-list"></div>
+    </div>
+  </div>
+
 <!-- MODAL DETALHES ENDEREÇO CONHECIDO -->
 <div class="overlay" id="modal-conhecido">
   <div class="modal">
@@ -214,6 +266,131 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 let map=null,gpsMarker=null,currentPos=null,watchId=null;
 let entregas=[],entregaAtual=0,registros=[],photoData=null;
 
+
+let usuarioAtual=null;
+
+function fazerLogin(){
+  var nome=document.getElementById('login-nome').value.trim();
+  var whats=document.getElementById('login-whats').value.trim().replace(/\D/g,'');
+  if(!nome)return alert('Digite seu nome.');
+  if(!whats||whats.length<10)return alert('Digite seu WhatsApp com DDD.');
+  buscarOuCriarUsuario(nome,whats);
+}
+
+async function buscarOuCriarUsuario(nome,whats){
+  try{
+    // Busca usuário existente
+    var res=await fetch(SUPABASE_URL+'/rest/v1/usuarios?whatsapp=eq.'+whats+'&limit=1',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    var data=await res.json();
+    if(data&&data.length>0){
+      usuarioAtual=data[0];
+    } else {
+      // Cria novo usuário
+      var res2=await fetch(SUPABASE_URL+'/rest/v1/usuarios',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'},
+        body:JSON.stringify({nome:nome,whatsapp:whats})
+      });
+      var data2=await res2.json();
+      usuarioAtual=data2[0]||{nome:nome,whatsapp:whats};
+    }
+    try{localStorage.setItem('el_usuario',JSON.stringify(usuarioAtual));}catch(e){}
+    document.getElementById('login-screen').classList.remove('show');
+    var badge=document.getElementById('user-badge');
+    badge.textContent='👤 '+usuarioAtual.nome.split(' ')[0];
+    badge.style.display='block';
+  }catch(e){
+    // Fallback offline
+    usuarioAtual={nome:nome,whatsapp:whats};
+    try{localStorage.setItem('el_usuario',JSON.stringify(usuarioAtual));}catch(e){}
+    document.getElementById('login-screen').classList.remove('show');
+    var badge=document.getElementById('user-badge');
+    badge.textContent='👤 '+nome.split(' ')[0];
+    badge.style.display='block';
+  }
+}
+
+function checkLogin(){
+  try{
+    var saved=localStorage.getItem('el_usuario');
+    if(saved){
+      usuarioAtual=JSON.parse(saved);
+      var badge=document.getElementById('user-badge');
+      badge.textContent='👤 '+usuarioAtual.nome.split(' ')[0];
+      badge.style.display='block';
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+// Smart address search - busca no banco antes do Nominatim
+async function buscarEnderecoLocal(termo){
+  try{
+    var res=await fetch(SUPABASE_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+termo+'%')+'&limit=5',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    var data=await res.json();
+    return data||[];
+  }catch(e){return[];}
+}
+
+
+function salvarEstatisticaDia(qtd){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var stats=JSON.parse(localStorage.getItem('el_stats')||'{}');
+    stats[hoje]=(stats[hoje]||0)+qtd;
+    localStorage.setItem('el_stats',JSON.stringify(stats));
+  }catch(e){}
+}
+
+function renderRelatorio(){
+  try{
+    var stats=JSON.parse(localStorage.getItem('el_stats')||'{}');
+    var wrap=document.getElementById('rel-list');
+    var dias=Object.keys(stats).reverse();
+    if(!dias.length){wrap.innerHTML='<div class="hist-empty">Nenhuma entrega registrada ainda.</div>';return;}
+    var html='';
+    var total=0;
+    dias.forEach(function(dia){
+      var qtd=stats[dia];
+      total+=qtd;
+      html+='<div class="hist-card" style="display:flex;align-items:center;justify-content:space-between;">'
+        +'<div><div class="hist-nome">'+dia+'</div><div class="hist-addr">'+qtd+' entrega'+(qtd!==1?'s':'')+' realizada'+(qtd!==1?'s':'')+'</div></div>'
+        +'<div style="font-size:22px;font-weight:700;color:#F97316;">'+qtd+'</div>'
+        +'</div>';
+    });
+    html='<div style="background:#FFF7ED;border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #FED7AA;display:flex;justify-content:space-between;align-items:center;">'
+      +'<div><div style="font-size:11px;color:#9A3412;">Total geral</div><div style="font-size:24px;font-weight:700;color:#C2410C;">'+total+' entregas</div></div>'
+      +'<div style="font-size:11px;color:#9A3412;">'+dias.length+' dias trabalhados</div>'
+      +'</div>'+html;
+    wrap.innerHTML=html;
+  }catch(e){}
+}
+
+
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  var btn=document.getElementById('dark-toggle-btn');
+  btn.textContent=document.body.classList.contains('dark')?'☀️':'🌙';
+  try{localStorage.setItem('el_dark',document.body.classList.contains('dark')?'1':'0');}catch(e){}
+}
+function initDark(){
+  var saved=localStorage.getItem('el_dark');
+  var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(saved==='1'||(saved===null&&prefersDark)){
+    document.body.classList.add('dark');
+    var btn=document.getElementById('dark-toggle-btn');
+    if(btn) btn.textContent='☀️';
+  }
+}
+function ligarCliente(tel){
+  window.location.href='tel:'+tel;
+}
+
 function fecharCronograma(){const b=document.getElementById('cronograma-box');if(b)b.remove();}
 function hideSplash(){const s=document.getElementById('splash');setTimeout(()=>{s.classList.add('hide');setTimeout(()=>s.style.display='none',500);},1500);window.addEventListener('load',()=>{setTimeout(()=>{s.classList.add('hide');setTimeout(()=>s.style.display='none',500);},500);});}
 
@@ -225,6 +402,7 @@ function showScreen(s){
   document.querySelectorAll('.ntab')[idx].classList.add('active');
   if(s==='mapa'){initMapa();setTimeout(()=>{if(map)map.invalidateSize();},50);}
   if(s==='historico')renderHistorico();
+  if(s==='relatorio')renderRelatorio();
 }
 
 function initMapa(){
@@ -308,13 +486,32 @@ async function adicionarEntrega(){
   const nome=document.getElementById('nome-input').value.trim();
   const addr=document.getElementById('endereco-input').value.trim();
   if(!nome)return alert('Digite o nome do destinatário.');
-  const coords=addr?await geocodificar(addr):null;
-  const addrFinal=coords&&coords.addrCompleto?coords.addrCompleto:addr;
+  // Busca no banco local primeiro
+  var registroLocal=null;
+  if(nome){
+    var resultados=await buscarEnderecoLocal(nome);
+    if(resultados.length>0) registroLocal=resultados[0];
+  }
+  if(!registroLocal&&addr){
+    var resultados2=await buscarEnderecoLocal(addr);
+    if(resultados2.length>0) registroLocal=resultados2[0];
+  }
+  // Se achou no banco usa as coordenadas salvas
+  var coords=null;
+  var addrFinal=addr;
+  if(registroLocal&&registroLocal.lat&&registroLocal.lon){
+    coords={lat:registroLocal.lat,lon:registroLocal.lon};
+    addrFinal=registroLocal.addr||addr;
+  } else if(addr){
+    coords=await geocodificar(addr);
+    addrFinal=coords&&coords.addrCompleto?coords.addrCompleto:addr;
+  }
   const registro=await buscarRegistro(addr);
   const entrega={id:Date.now(),nome,addr:addrFinal||addr||'Endereço não informado',lat:coords?coords.lat:null,lon:coords?coords.lon:null,conhecido:!!registro,dica:registro?registro.nota:'',fotoUrl:registro?registro.foto:'',entregue:false};
   entregas.push(entrega);
   document.getElementById('nome-input').value='';
   document.getElementById('endereco-input').value='';
+  document.getElementById('telefone-input').value='';
   atualizarLista();
   if(registro){
     document.getElementById('modal-body').innerHTML=`<div style="background:#DCFCE7;border-radius:10px;padding:12px;margin-bottom:12px;">
@@ -344,6 +541,7 @@ function atualizarLista(){
         <div class="entrega-addr">${e.addr}</div>
       </div>
       <span class="entrega-status ${e.entregue?'entregue':e.conhecido?'conhecido':'novo'}">${e.entregue?'✅ Entregue':e.conhecido?'✅ Conhecido':'⚠️ Novo'}</span>
+      ${e.tel?`<button class="entrega-del" onclick="ligarCliente('${e.tel}')" style="color:#1D9E75;margin-right:4px;font-size:18px;">📞</button>`:''}
       <button class="entrega-del" onclick="editarEntrega(${i})" style="color:#F97316;margin-right:4px;">✏️</button>
       <button class="entrega-del" onclick="removerEntrega(${i})">✕</button>`;
     lista.appendChild(card);
@@ -475,6 +673,7 @@ function marcarEntregue(){
   const idx=entregas.findIndex(e=>!e.entregue);
   if(idx===-1)return;
   entregas[idx].entregue=true;
+  salvarEstatisticaDia(1);
   atualizarLista();
   renderPinsNoMapa();
   proximaEntrega();
@@ -510,7 +709,7 @@ async function salvarRegistro(){
     await fetch(SUPABASE_URL+'/rest/v1/enderecos',{
       method:'POST',
       headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=minimal'},
-      body:JSON.stringify({nome,addr,nota,lat:reg.lat,lon:reg.lon})
+      body:JSON.stringify({nome,addr,nota,lat:reg.lat,lon:reg.lon,registrado_por:usuario_nome})
     });
   }catch(e){}
   try{
@@ -546,6 +745,8 @@ function renderHistorico(){
 function fecharModal(){document.getElementById('modal-conhecido').classList.remove('open');}
 
 hideSplash();
+initDark();
+if(!checkLogin()){setTimeout(()=>document.getElementById("login-screen").classList.add("show"),2600);}
 </script>
 </body>
 </html>
