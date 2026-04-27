@@ -135,6 +135,9 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
 #track-dist{font-size:11px;color:#F97316;font-weight:700;}
 #track-btn{background:#F97316;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
 #encerrar-btn{background:#DC2626;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+#parada-btn{display:none;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:1001;background:#F97316;color:#fff;border:none;border-radius:50px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(249,115,22,0.5);white-space:nowrap;animation:pulse-btn 1.5s ease-in-out infinite;}
+@keyframes pulse-btn{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.05);}}
 </style>
 </head>
 <body>
@@ -168,8 +171,8 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
     <div id="user-badge"></div><button id="dark-toggle-btn" onclick="toggleDark()">🌙</button><div id="status-badge">0 entregas</div>
   </div>
   <div id="nav">
-    <button class="ntab active" onclick="showScreen('entregas')">📋 Entregas</button>
-    <button class="ntab" onclick="showScreen('mapa')">🗺 Rota</button>
+    <button class="ntab" onclick="showScreen('entregas')">📋 Entregas</button>
+    <button class="ntab active" onclick="showScreen('mapa')">🗺 Rota</button>
     <button class="ntab" onclick="showScreen('registrar')">📍 Registrar</button>
     <button class="ntab" onclick="showScreen('historico')">📁 Histórico</button>
     <button class="ntab" onclick="showScreen('relatorio')">📊 Relatório</button>
@@ -177,7 +180,7 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
   </div>
 
   <!-- TELA ENTREGAS -->
-  <div id="screen-entregas" class="screen active">
+  <div id="screen-entregas" class="screen">
     <div id="entregas-wrap">
       <div class="section-title">Adicionar entregas do dia</div>
       <div id="input-area">
@@ -197,10 +200,11 @@ body.dark #prox-info{background:#2a1a0a;border-color:#7a3a00;}
   </div>
 
   <!-- TELA MAPA -->
-  <div id="screen-mapa" class="screen">
+  <div id="screen-mapa" class="screen active">
     <div id="mapwrap">
       <div id="leafmap"></div>
       <div id="gps-overlay">Aguardando GPS...</div>
+      <button id="parada-btn" onclick="registrarParada()">📍 Registrar este ponto</button>
     </div>
     <div id="track-bar">
       <div>
@@ -328,14 +332,15 @@ async function buscarOuCriarUsuario(nome,whats){
     var badge=document.getElementById('user-badge');
     badge.textContent='👤 '+usuarioAtual.nome.split(' ')[0];
     badge.style.display='block';
+    setTimeout(function(){initMapa();},300);
   }catch(e){
-    // Fallback offline
     usuarioAtual={nome:nome,whatsapp:whats};
     try{localStorage.setItem('el_usuario',JSON.stringify(usuarioAtual));}catch(e){}
     document.getElementById('login-screen').classList.remove('show');
     var badge=document.getElementById('user-badge');
     badge.textContent='👤 '+nome.split(' ')[0];
     badge.style.display='block';
+    setTimeout(function(){initMapa();},300);
   }
 }
 
@@ -442,26 +447,8 @@ function iniciarRastreamento(){
   document.getElementById('track-status').textContent='GPS gravando rota...';
   document.getElementById('track-btn').textContent='⏹ Parar';
   document.getElementById('track-btn').onclick=pararRastreamento;
-  if(navigator.geolocation){
-    trackInterval=navigator.geolocation.watchPosition(function(pos){
-      var lat=pos.coords.latitude,lon=pos.coords.longitude;
-      currentPos={lat:lat,lon:lon};
-      if(gpsMarker) gpsMarker.setLatLng([lat,lon]);
-      if(map) map.panTo([lat,lon],{animate:true,duration:0.5});
-      document.getElementById('gps-overlay').textContent=lat.toFixed(5)+', '+lon.toFixed(5);
-      rotaPercorrida.push([lat,lon]);
-      if(lastPosTrack){
-        totalDistPercorrida+=haverDist(lastPosTrack,{lat:lat,lon:lon});
-      }
-      lastPosTrack={lat:lat,lon:lon};
-      if(map){
-        if(rotaLine) rotaLine.setLatLngs(rotaPercorrida);
-        else if(typeof L !== 'undefined') rotaLine=L.polyline(rotaPercorrida,{color:'#F97316',weight:4,opacity:0.8,dashArray:'8,4'}).addTo(map);
-      }
-      var km=(totalDistPercorrida/1000).toFixed(2);
-      document.getElementById('track-dist').textContent=km+' km percorridos';
-    },function(){},{enableHighAccuracy:true,maximumAge:3000,timeout:15000});
-  }
+  // GPS já iniciado pelo initMapa — apenas ativa o rastreamento
+  if(!map) initMapa();
 }
 
 function pararRastreamento(){
@@ -916,6 +903,8 @@ function fecharModal(){document.getElementById('modal-conhecido').classList.remo
 
 hideSplash();
 initDark();
+// Inicia GPS imediatamente
+if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(pos){currentPos={lat:pos.coords.latitude,lon:pos.coords.longitude};},function(){},{enableHighAccuracy:true,timeout:10000});}
 if(!checkLogin()){setTimeout(()=>document.getElementById("login-screen").classList.add("show"),2600);}
 </script>
 </body>
