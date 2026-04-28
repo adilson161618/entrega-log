@@ -137,6 +137,18 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
 #parada-status{font-size:11px;color:#1D9E75;font-weight:600;margin-top:6px;}
 body.dark #parada-info{background:#222;}
 body.dark #parada-nome{color:#eee;}
+
+#input-wrap{position:relative;}
+#sugestoes{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #F97316;border-radius:0 0 12px 12px;z-index:100;max-height:220px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+body.dark #sugestoes{background:#1a1a1a;border-color:#F97316;}
+.sug-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;display:flex;align-items:flex-start;gap:8px;}
+body.dark .sug-item{border-color:#222;}
+.sug-item:active{background:#FFF7ED;}
+body.dark .sug-item:active{background:#2a1500;}
+.sug-nome{font-size:13px;font-weight:600;color:#111;}
+body.dark .sug-nome{color:#eee;}
+.sug-addr{font-size:11px;color:#888;margin-top:1px;}
+.sug-nota{font-size:11px;color:#F97316;font-style:italic;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -711,6 +723,68 @@ function renderRotas(){
     });
   }catch(e){}
 }
+
+
+// ===== AUTOCOMPLETE =====
+var buscarTimer=null;
+function buscarSugestoes(termo){
+  clearTimeout(buscarTimer);
+  var el=document.getElementById('sugestoes');
+  if(!termo||termo.length<2){el.style.display='none';return;}
+  buscarTimer=setTimeout(function(){
+    try{
+      var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+      var r=lista.filter(function(x){
+        return (x.nome&&x.nome.toLowerCase().indexOf(termo.toLowerCase())>=0)||
+               (x.addr&&x.addr.toLowerCase().indexOf(termo.toLowerCase())>=0);
+      }).slice(0,5);
+      if(!r.length){el.style.display='none';return;}
+      el.innerHTML='';
+      r.forEach(function(item){
+        var d=document.createElement('div');
+        d.className='sug-item';
+        d.innerHTML='<div style="font-size:15px;flex-shrink:0;">📍</div>'
+          +'<div style="flex:1;">'
+          +'<div class="sug-nome">'+(item.nome||'Local')+'</div>'
+          +'<div class="sug-addr">'+(item.addr||'')+'</div>'
+          +(item.nota?'<div class="sug-nota">💡 '+item.nota+'</div>':'')
+          +'</div>'
+          +'<div style="font-size:10px;color:#1D9E75;font-weight:700;padding:2px 8px;background:#E1F5EE;border-radius:20px;white-space:nowrap;align-self:center;">Usar</div>';
+        d.onclick=function(){
+          el.style.display='none';
+          // Adiciona direto na lista
+          entregas.push({
+            id:Date.now(),
+            nome:item.nome||'Local',
+            addr:item.addr||'',
+            tel:'',
+            lat:item.lat||null,
+            lon:item.lon||null,
+            entregue:false,
+            conhecido:true,
+            dica:item.nota||''
+          });
+          document.getElementById('nome-input').value='';
+          document.getElementById('end-input').value='';
+          renderLista();
+          // Pin no mapa
+          if(map&&typeof L!=='undefined'&&item.lat&&item.lon){
+            var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:#4ADE80;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#111;">'+entregas.length+'</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
+            L.marker([item.lat,item.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(item.nome||'Local')+'</b><br/>'+(item.addr||'')+(item.nota?'<br/>'+item.nota:'')).openPopup();
+          }
+        };
+        el.appendChild(d);
+      });
+      el.style.display='block';
+    }catch(e){console.log('busca erro:',e);}
+  },300);
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#input-wrap')){
+    var el=document.getElementById('sugestoes');
+    if(el) el.style.display='none';
+  }
+});
 
 // ===== INIT =====
 initDark();
