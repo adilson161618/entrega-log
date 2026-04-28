@@ -340,11 +340,16 @@ function initDark(){
 
 // ===== SPLASH =====
 function hideSplash(){
-  setTimeout(function(){
+  function doHide(){
     var s=document.getElementById('splash');
-    s.classList.add('hide');
+    if(!s) return;
+    s.style.opacity='0';
+    s.style.transition='opacity 0.5s';
     setTimeout(function(){s.style.display='none';},500);
-  },2000);
+  }
+  setTimeout(doHide, 1800);
+  // Fallback — esconde depois de 3s de qualquer forma
+  setTimeout(doHide, 3000);
 }
 
 // ===== LOGIN =====
