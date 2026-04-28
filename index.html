@@ -230,11 +230,8 @@ body.dark .quick-divider::before,body.dark .quick-divider::after{background:#333
           <input class="mi" id="nome-input" placeholder="Nome do destinatário" oninput="buscarSugestoes(this.value)" autocomplete="off"/>
           <div id="sugestoes"></div>
         </div>
-        <div id="end-wrap" style="position:relative;">
-          <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas — opcional" autocomplete="off"/>
-          <button onclick="usarGPSAtual()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;" title="Usar localização atual">📍</button>
-        </div>
-        <div class="hint">Ex: Rua das Flores 123 · 89801-000 · ou toque 📍 para usar GPS atual</div>
+        <input class="mi" id="end-input" placeholder="Endereço de destino, CEP ou coordenadas" autocomplete="off"/>
+        <div class="hint">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
         <div id="gps-end-status" style="display:none;background:#E1F5EE;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#085041;"></div>
         <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente — opcional"/>
         <button class="add-btn" onclick="addEntrega()">+ Adicionar</button>
@@ -540,17 +537,35 @@ async function buscarSugestoes(termo){
         });
       }
     }catch(e){}
+    // Busca no Nominatim (locais reais do mapa)
+    try{
+      var res2=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(termo+', Chapecó, Brasil')+'&format=json&limit=3&addressdetails=1',{
+        headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
+      });
+      var mapa=await res2.json();
+      mapa.forEach(function(m){
+        var nome=m.name||m.display_name.split(',')[0];
+        var addr=m.display_name.split(',').slice(0,3).join(',');
+        if(!resultados.find(function(r){return r.addr===addr;})){
+          resultados.push({nome:nome,addr:addr,lat:parseFloat(m.lat),lon:parseFloat(m.lon),nota:'',fromMap:true});
+        }
+      });
+    }catch(e){}
     if(!resultados.length){el.style.display='none';return;}
     el.innerHTML='';
-    resultados.slice(0,5).forEach(function(r){
+    resultados.slice(0,6).forEach(function(r){
       var item=document.createElement('div');
       item.className='sug-item';
-      item.innerHTML='<div class="sug-icon">📍</div><div style="flex:1;">'
+      var icon=r.fromMap?'🗺':'📍';
+      var tagBg=r.fromMap?'#EFF6FF':'#E1F5EE';
+      var tagColor=r.fromMap?'#1D4ED8':'#166534';
+      var tagText=r.fromMap?'🗺 Mapa':'✅ Salvo';
+      item.innerHTML='<div class="sug-icon">'+icon+'</div><div style="flex:1;">'
         +'<div class="sug-nome">'+r.nome+'</div>'
         +'<div class="sug-addr">'+r.addr+'</div>'
         +(r.nota?'<div class="sug-nota">💡 '+r.nota+'</div>':'')
         +'</div>'
-        +'<div style="font-size:10px;color:#1D9E75;font-weight:600;padding:2px 6px;background:#E1F5EE;border-radius:6px;white-space:nowrap;">✅ Adicionar</div>';
+        +'<div style="font-size:10px;font-weight:600;padding:2px 6px;background:'+tagBg+';color:'+tagColor+';border-radius:6px;white-space:nowrap;">'+tagText+'</div>';
       item.onclick=function(){
         // Preenche e já adiciona direto na lista
         enderecoSelecionado={nome:r.nome,addr:r.addr,lat:r.lat,lon:r.lon,nota:r.nota};
