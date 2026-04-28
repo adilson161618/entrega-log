@@ -137,6 +137,29 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
 #parada-status{font-size:11px;color:#1D9E75;font-weight:600;margin-top:6px;}
 body.dark #parada-info{background:#222;}
 body.dark #parada-nome{color:#eee;}
+
+#sugestoes{position:absolute;left:0;right:0;background:#fff;border:1px solid #F97316;border-radius:0 0 12px 12px;z-index:100;max-height:200px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+body.dark #sugestoes{background:#1a1a1a;border-color:#F97316;}
+.sug-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;display:flex;align-items:flex-start;gap:10px;}
+.sug-item:last-child{border-bottom:none;}
+.sug-item:active,.sug-item:hover{background:#FFF7ED;}
+body.dark .sug-item{border-color:#222;}
+body.dark .sug-item:hover{background:#2a1500;}
+.sug-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.sug-nome{font-size:13px;font-weight:600;color:#111;}
+body.dark .sug-nome{color:#eee;}
+.sug-addr{font-size:11px;color:#888;margin-top:1px;}
+.sug-nota{font-size:11px;color:#F97316;font-style:italic;margin-top:2px;}
+#input-wrap{position:relative;}
+
+#quick-capture{background:linear-gradient(135deg,#F97316,#EA580C);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+#quick-capture:active{opacity:0.85;}
+.quick-divider{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.quick-divider span{font-size:11px;color:#aaa;white-space:nowrap;}
+.quick-divider::before,.quick-divider::after{content:'';flex:1;height:1px;background:#eee;}
+body.dark .quick-divider::before,body.dark .quick-divider::after{background:#333;}
+#gps-capture-status{background:#E1F5EE;border:1px solid #1D9E75;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:none;}
+#gps-capture-status p{font-size:12px;color:#085041;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -203,8 +226,11 @@ body.dark #parada-nome{color:#eee;}
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
         <p>Digite o nome e endereço. O app verifica se já foi registrado antes.</p>
-        <input class="mi" id="nome-input" placeholder="Nome do destinatário"/>
-        <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas — opcional"/>
+        <div id="input-wrap">
+          <input class="mi" id="nome-input" placeholder="Nome do destinatário" oninput="buscarSugestoes(this.value)" autocomplete="off"/>
+          <div id="sugestoes"></div>
+        </div>
+        <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas — opcional" autocomplete="off"/>
         <div class="hint">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
         <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente — opcional"/>
         <button class="add-btn" onclick="addEntrega()">+ Adicionar</button>
@@ -220,9 +246,20 @@ body.dark #parada-nome{color:#eee;}
     <div id="reg-wrap">
       <div class="sec-title">Registrar endereço difícil</div>
       <div id="reg-info"><p>📍 Registre aqui endereços difíceis com foto e dica para ajudar outros entregadores!</p></div>
-      <label class="ml">Nome ou referência</label>
+      
+      <button id="quick-capture" onclick="registroRapido()">
+        📷 Registro rápido — só foto + GPS
+      </button>
+      
+      <div class="quick-divider"><span>ou preencha manualmente</span></div>
+      
+      <div id="gps-capture-status">
+        <p id="gps-capture-txt">📍 Localização capturada!</p>
+      </div>
+      
+      <label class="ml">Nome ou referência — opcional</label>
       <input class="mi" id="reg-nome" placeholder="Ex: Condomínio Solar, bloco B"/>
-      <label class="ml">Endereço</label>
+      <label class="ml">Endereço — opcional se usar GPS</label>
       <input class="mi" id="reg-end" placeholder="Rua, número, bairro"/>
       <label class="ml">Dica para encontrar</label>
       <textarea class="mi" id="reg-nota" placeholder="Ex: Portaria nos fundos, entra pela Rua das Flores..."></textarea>
@@ -468,6 +505,60 @@ function showTab(t){
 }
 
 // ===== ENTREGAS =====
+
+var buscarTimer=null;
+async function buscarSugestoes(termo){
+  clearTimeout(buscarTimer);
+  var el=document.getElementById('sugestoes');
+  if(!termo||termo.length<2){el.style.display='none';return;}
+  buscarTimer=setTimeout(async function(){
+    var resultados=[];
+    // Busca local primeiro
+    try{
+      var local=JSON.parse(localStorage.getItem('el_regs')||'[]');
+      resultados=local.filter(function(r){
+        return r.nome.toLowerCase().includes(termo.toLowerCase())||
+               r.addr.toLowerCase().includes(termo.toLowerCase());
+      }).slice(0,3);
+    }catch(e){}
+    // Busca no Supabase
+    try{
+      var res=await fetch(SB_URL+'/rest/v1/enderecos?or=(nome.ilike.'+encodeURIComponent('*'+termo+'*')+',addr.ilike.'+encodeURIComponent('*'+termo+'*')+')&limit=5',{
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+      var data=await res.json();
+      if(data&&data.length>0){
+        data.forEach(function(d){
+          if(!resultados.find(function(r){return r.addr===d.addr;})){
+            resultados.push(d);
+          }
+        });
+      }
+    }catch(e){}
+    if(!resultados.length){el.style.display='none';return;}
+    el.innerHTML='';
+    resultados.slice(0,5).forEach(function(r){
+      var item=document.createElement('div');
+      item.className='sug-item';
+      item.innerHTML='<div class="sug-icon">📍</div><div><div class="sug-nome">'+r.nome+'</div><div class="sug-addr">'+r.addr+'</div>'+(r.nota?'<div class="sug-nota">💡 '+r.nota+'</div>':'')+'</div>';
+      item.onclick=function(){
+        document.getElementById('nome-input').value=r.nome;
+        document.getElementById('end-input').value=r.addr;
+        el.style.display='none';
+      };
+      el.appendChild(item);
+    });
+    el.style.display='block';
+  },400);
+}
+// Fecha sugestões ao clicar fora
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#input-wrap')){
+    var el=document.getElementById('sugestoes');
+    if(el) el.style.display='none';
+  }
+});
+
 async function addEntrega(){
   var nome=document.getElementById('nome-input').value.trim();
   var end=document.getElementById('end-input').value.trim();
@@ -605,19 +696,65 @@ function handlePhoto(ev){
     document.getElementById('photo-area').style.display='none';
   };r.readAsDataURL(file);
 }
+
+var gpsCapturado=null;
+
+async function registroRapido(){
+  // Captura foto primeiro
+  document.getElementById('ph-input').click();
+  // Captura GPS ao mesmo tempo
+  if(currentPos){
+    gpsCapturado=currentPos;
+    atualizarStatusGPS();
+  } else if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(pos){
+      gpsCapturado={lat:pos.coords.latitude,lon:pos.coords.longitude};
+      atualizarStatusGPS();
+    },function(){},{enableHighAccuracy:true,timeout:10000});
+  }
+}
+
+async function atualizarStatusGPS(){
+  if(!gpsCapturado) return;
+  var el=document.getElementById('gps-capture-status');
+  var txt=document.getElementById('gps-capture-txt');
+  el.style.display='block';
+  txt.textContent='⏳ Buscando endereço...';
+  // Geocodificação reversa
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+gpsCapturado.lat+'&lon='+gpsCapturado.lon+'&format=json&zoom=18',{
+      headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
+    });
+    var data=await res.json();
+    var nome=data.name||data.address.road||'Local';
+    var addr=[data.address.road,data.address.suburb,data.address.city].filter(Boolean).join(', ');
+    // Preenche automaticamente
+    if(!document.getElementById('reg-nome').value) document.getElementById('reg-nome').value=nome;
+    if(!document.getElementById('reg-end').value) document.getElementById('reg-end').value=addr;
+    txt.textContent='✅ '+addr+' ('+gpsCapturado.lat.toFixed(4)+', '+gpsCapturado.lon.toFixed(4)+')';
+  }catch(e){
+    if(!document.getElementById('reg-end').value) document.getElementById('reg-end').value=gpsCapturado.lat.toFixed(6)+','+gpsCapturado.lon.toFixed(6);
+    txt.textContent='✅ Coordenadas: '+gpsCapturado.lat.toFixed(5)+', '+gpsCapturado.lon.toFixed(5);
+  }
+}
+
 async function salvarRegistro(){
-  var nome=document.getElementById('reg-nome').value.trim();
+  var nome=document.getElementById('reg-nome').value.trim()||'Local sem nome';
   var end=document.getElementById('reg-end').value.trim();
   var nota=document.getElementById('reg-nota').value.trim();
-  if(!nome)return alert('Digite o nome ou referência.');
-  if(!end)return alert('Digite o endereço.');
-  var coords=await geocode(end);
+  if(!photoData&&!nome&&!end)return alert('Adicione pelo menos uma foto ou endereço.');
+  // Usa GPS capturado se disponível
+  var coords=gpsCapturado||currentPos||null;
+  if(!coords&&end) coords=await geocode(end);
+  if(!end&&coords) end=coords.lat.toFixed(6)+','+coords.lon.toFixed(6);
   var usr=usuarioAtual?usuarioAtual.nome:'auto';
   var reg={nome:nome,addr:end,nota:nota,foto:photoData||null,lat:coords?coords.lat:null,lon:coords?coords.lon:null,data:new Date().toLocaleString('pt-BR'),registrado_por:usr};
   try{var l=JSON.parse(localStorage.getItem('el_regs')||'[]');l.unshift(reg);localStorage.setItem('el_regs',JSON.stringify(l));}catch(e){}
   try{await fetch(SB_URL+'/rest/v1/enderecos',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr})});}catch(e){}
   document.getElementById('reg-nome').value='';document.getElementById('reg-end').value='';document.getElementById('reg-nota').value='';
-  photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
+  photoData=null;gpsCapturado=null;
+  document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
+  document.getElementById('gps-capture-status').style.display='none';
   alert('✅ Registrado! Outros entregadores vão ver essa dica.');
 }
 
