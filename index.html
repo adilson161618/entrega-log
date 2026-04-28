@@ -204,9 +204,9 @@ body.dark #parada-nome{color:#eee;}
       <div id="input-area">
         <p>Digite o nome e endereço. O app verifica se já foi registrado antes.</p>
         <input class="mi" id="nome-input" placeholder="Nome do destinatário"/>
-        <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas — opcional"/>
+        <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas - opcional"/>
         <div class="hint">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
-        <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente — opcional"/>
+        <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente - opcional"/>
         <button class="add-btn" onclick="addEntrega()">+ Adicionar</button>
       </div>
       <div class="sec-title">Lista de hoje</div>
@@ -226,7 +226,7 @@ body.dark #parada-nome{color:#eee;}
       <input class="mi" id="reg-end" placeholder="Rua, número, bairro"/>
       <label class="ml">Dica para encontrar</label>
       <textarea class="mi" id="reg-nota" placeholder="Ex: Portaria nos fundos, entra pela Rua das Flores..."></textarea>
-      <label class="ml">Foto — opcional</label>
+      <label class="ml">Foto - opcional</label>
       <img id="photo-prev" src="" alt=""/>
       <div id="photo-area" onclick="document.getElementById('ph-input').click()">📷 Tirar foto ou escolher da galeria<input type="file" id="ph-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)"/></div>
       <button class="save-btn" onclick="salvarRegistro()">💾 Salvar para todos os entregadores</button>
@@ -268,7 +268,7 @@ body.dark #parada-nome{color:#eee;}
       <div id="parada-coords-txt"></div>
       <div id="parada-status">Buscando endereço...</div>
     </div>
-    <label class="ml">Dica — opcional</label>
+    <label class="ml">Dica - opcional</label>
     <textarea class="mi" id="parada-nota" placeholder="Ex: Portaria nos fundos..."></textarea>
     <div class="mbtn-row">
       <button class="mbtn" onclick="fecharModalParada()">Cancelar</button>
@@ -666,7 +666,7 @@ function renderHistorico(){
 
     // Compartilhar WhatsApp
     document.getElementById('btn-share-'+idx).onclick=function(){
-      var msg='📦 *EntregaLog* — Endereço registrado!
+      var msg='📦 *EntregaLog* - Endereço registrado!
 
 ';
       msg+='📍 *'+(r.nome||'Local')+'*
