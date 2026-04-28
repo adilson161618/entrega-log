@@ -666,21 +666,12 @@ function renderHistorico(){
 
     // Compartilhar WhatsApp
     document.getElementById('btn-share-'+idx).onclick=function(){
-      var msg='📦 *EntregaLog* - Endereço registrado!
-
-';
-      msg+='📍 *'+(r.nome||'Local')+'*
-';
-      if(r.addr) msg+=r.addr+'
-';
-      if(r.nota) msg+='💡 '+r.nota+'
-';
-      if(r.lat&&r.lon) msg+='
-https://maps.google.com/?q='+r.lat+','+r.lon+'
-';
-      msg+='
-🚀 Baixe o EntregaLog grátis:
-https://adilson161618.github.io/entrega-log';
+      var msg='EntregaLog - Endereco registrado!\n\n';
+      msg+=(r.nome||'Local')+'\n';
+      if(r.addr) msg+=r.addr+'\n';
+      if(r.nota) msg+='Dica: '+r.nota+'\n';
+      if(r.lat&&r.lon) msg+='\nhttps://maps.google.com/?q='+r.lat+','+r.lon+'\n';
+      msg+='\nBaixe o EntregaLog gratis:\nhttps://adilson161618.github.io/entrega-log';
       window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
     };
   });
