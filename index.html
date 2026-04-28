@@ -660,9 +660,17 @@ function renderHistorico(){
     document.getElementById('btn-rota-'+idx).onclick=function(){
       entregas.push({id:Date.now(),nome:r.nome||'Local',addr:r.addr||'',tel:'',lat:r.lat||null,lon:r.lon||null,entregue:false,conhecido:true,dica:r.nota||''});
       renderLista();
-      showTab('entregas');
       this.textContent='✅ Adicionado!';
       this.style.background='#1D9E75';
+      // Vai direto para o mapa e mostra o pin
+      showTab('mapa');
+      setTimeout(function(){
+        if(map&&typeof L!=='undefined'&&r.lat&&r.lon){
+          map.setView([r.lat,r.lon],17);
+          var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">'+entregas.length+'</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+          L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>Dica: '+r.nota:'')).openPopup();
+        }
+      },400);
     };
 
     // Ver mapa
