@@ -215,7 +215,10 @@ body.dark .sug-nome{color:#eee;}
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
         <p>Digite o nome e endereço. O app verifica se já foi registrado antes.</p>
-        <input class="mi" id="nome-input" placeholder="Nome do destinatário"/>
+        <div id="input-wrap" style="position:relative;">
+          <input class="mi" id="nome-input" placeholder="Nome do destinatário" oninput="buscarSugestoes(this.value)" autocomplete="off"/>
+          <div id="sugestoes"></div>
+        </div>
         <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas - opcional"/>
         <div class="hint">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
         <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente - opcional"/>
