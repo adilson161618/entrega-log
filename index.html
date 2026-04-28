@@ -164,10 +164,7 @@ body.dark .quick-divider::before,body.dark .quick-divider::after{background:#333
 </head>
 <body>
 
-  <h1>EntregaLog</h1>
-  <p>Rotas inteligentes para entregadores</p>
-  <div id="splash-bar"><div id="splash-prog"></div></div>
-</div>
+
 
 <div id="login-screen">
   <div style="font-size:48px;margin-bottom:12px;">📦</div>
@@ -337,18 +334,7 @@ function initDark(){
 }
 
 // ===== SPLASH =====
-function hideSplash(){
-  var s=document.getElementById('splash');
-  if(!s) return;
-  setTimeout(function(){
-    s.style.opacity='0';
-    s.style.transition='opacity 0.4s';
-    setTimeout(function(){
-      s.style.display='none';
-      s.remove();
-    },400);
-  },1500);
-}
+function hideSplash(){}
 
 // ===== LOGIN =====
 function checkLogin(){
