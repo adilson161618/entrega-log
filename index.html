@@ -627,10 +627,62 @@ function renderHistorico(){
   var el=document.getElementById('hist-list');
   if(!lista.length){el.innerHTML='<div class="hist-empty">Nenhum endereço registrado.</div>';return;}
   el.innerHTML='';
-  lista.forEach(function(r){
+  lista.forEach(function(r,idx){
     var c=document.createElement('div');c.className='hist-card';
-    c.innerHTML='<div class="hist-nome">'+r.nome+'</div><div class="hist-addr">'+r.addr+'</div>'+(r.nota?'<div class="hist-nota">'+r.nota+'</div>':'')+(r.foto?'<img class="hist-photo" src="'+r.foto+'"/>':'')+'<div class="hist-meta">'+r.data+(r.registrado_por?' · '+r.registrado_por:'')+'</div>';
+    c.innerHTML='<div class="hist-nome">'+(r.nome||'Local')+'</div>'
+      +'<div class="hist-addr">'+(r.addr||'')+'</div>'
+      +(r.nota?'<div class="hist-nota">💡 '+r.nota+'</div>':'')
+      +(r.foto?'<img class="hist-photo" src="'+r.foto+'"/>':'')
+      +'<div class="hist-meta">'+(r.data||'')+(r.registrado_por?' · '+r.registrado_por:'')+'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:10px;">'
+        +'<button id="btn-rota-'+idx+'" style="flex:1;background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Rota</button>'
+        +(r.lat&&r.lon?'<button id="btn-mapa-'+idx+'" style="flex:1;background:#E1F5EE;color:#085041;border:1px solid #1D9E75;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗺 Ver</button>':'')
+        +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'
+      +'</div>';
     el.appendChild(c);
+
+    // + Rota
+    document.getElementById('btn-rota-'+idx).onclick=function(){
+      entregas.push({id:Date.now(),nome:r.nome||'Local',addr:r.addr||'',tel:'',lat:r.lat||null,lon:r.lon||null,entregue:false,conhecido:true,dica:r.nota||''});
+      renderLista();
+      showTab('entregas');
+      this.textContent='✅ Adicionado!';
+      this.style.background='#1D9E75';
+    };
+
+    // Ver mapa
+    if(r.lat&&r.lon){
+      document.getElementById('btn-mapa-'+idx).onclick=function(){
+        showTab('mapa');
+        setTimeout(function(){
+          if(map&&typeof L!=='undefined'){
+            map.setView([r.lat,r.lon],17);
+            var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+          }
+        },400);
+      };
+    }
+
+    // Compartilhar WhatsApp
+    document.getElementById('btn-share-'+idx).onclick=function(){
+      var msg='📦 *EntregaLog* — Endereço registrado!
+
+';
+      msg+='📍 *'+(r.nome||'Local')+'*
+';
+      if(r.addr) msg+=r.addr+'
+';
+      if(r.nota) msg+='💡 '+r.nota+'
+';
+      if(r.lat&&r.lon) msg+='
+https://maps.google.com/?q='+r.lat+','+r.lon+'
+';
+      msg+='
+🚀 Baixe o EntregaLog grátis:
+https://adilson161618.github.io/entrega-log';
+      window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    };
   });
 }
 
