@@ -27,13 +27,13 @@ body.dark .modal-sheet{background:#1a1a1a;}
 body.dark .modal-sheet h3{color:#eee;}
 body.dark .ml{color:#aaa;}
 
-#splash{position:fixed;inset:0;background:#F97316;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;}
-#splash.hide{opacity:0;pointer-events:none;}
+#splash-disabled{position:fixed;inset:0;background:#F97316;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;}
+#splash-disabled-hide{opacity:0;pointer-events:none;}
 #splash h1{font-size:36px;font-weight:800;color:#fff;margin-top:16px;}
 #splash p{font-size:14px;color:rgba(255,255,255,0.8);margin-top:8px;}
-#splash-bar{width:160px;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;margin-top:40px;overflow:hidden;}
-#splash-prog{height:100%;background:#fff;width:100%;}
-@keyframes load{0%{width:0}100%{width:100%}}
+#splash-bar-disabled{width:160px;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;margin-top:40px;overflow:hidden;}
+#splash-prog-disabled{height:100%;background:#fff;width:100%;}
+@keyframes load-disabled{0%{width:0}100%{width:100%}}
 
 #login-screen{position:fixed;inset:0;background:#fff;z-index:8000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 #login-screen.show{display:flex;}
@@ -164,8 +164,6 @@ body.dark .quick-divider::before,body.dark .quick-divider::after{background:#333
 </head>
 <body>
 
-<div id="splash">
-  <div style="font-size:60px;">📦</div>
   <h1>EntregaLog</h1>
   <p>Rotas inteligentes para entregadores</p>
   <div id="splash-bar"><div id="splash-prog"></div></div>
@@ -962,7 +960,7 @@ function renderRotas(){
 
 // ===== INIT =====
 initDark();
-hideSplash();
+// splash removida
 // Pré-carrega GPS
 if(navigator.geolocation){
   navigator.geolocation.getCurrentPosition(function(pos){
