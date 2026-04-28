@@ -567,15 +567,34 @@ async function buscarSugestoes(termo){
         +'</div>'
         +'<div style="font-size:10px;font-weight:600;padding:2px 6px;background:'+tagBg+';color:'+tagColor+';border-radius:6px;white-space:nowrap;">'+tagText+'</div>';
       item.onclick=function(){
-        // Preenche e já adiciona direto na lista
-        enderecoSelecionado={nome:r.nome,addr:r.addr,lat:r.lat,lon:r.lon,nota:r.nota};
-        document.getElementById('nome-input').value=r.nome;
-        document.getElementById('end-input').value=r.addr;
         el.style.display='none';
+        // Adiciona direto na lista de entregas
+        entregas.push({
+          id:Date.now(),
+          nome:r.nome,
+          addr:r.addr||'',
+          tel:'',
+          lat:r.lat||null,
+          lon:r.lon||null,
+          entregue:false,
+          conhecido:true,
+          dica:r.nota||''
+        });
+        document.getElementById('nome-input').value='';
+        document.getElementById('end-input').value='';
+        document.getElementById('gps-end-status').style.display='none';
+        enderecoSelecionado=null;
+        renderLista();
         // Mostra confirmação
         var gs=document.getElementById('gps-end-status');
         gs.style.display='block';
-        gs.textContent='✅ Endereço encontrado nos registros: '+r.addr+(r.nota?' · 💡 '+r.nota:'');
+        gs.textContent='✅ '+r.nome+' adicionado! '+r.addr+(r.nota?' · 💡 '+r.nota:'');
+        setTimeout(function(){gs.style.display='none';},3000);
+        // Adiciona pin no mapa
+        if(map&&L&&r.lat&&r.lon){
+          var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:#4ADE80;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.2);">'+entregas.length+'</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
+          L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/><i>💡 '+r.nota+'</i>':''));
+        }
       };
       el.appendChild(item);
     });
@@ -743,7 +762,6 @@ function marcarEntregue(){
   var i=entregas.findIndex(function(x){return!x.entregue;});
   if(i===-1){alert('Todas entregues!');return;}
   entregas[i].entregue=true;
-  if(currentPos&&(!entregas[i].lat||!entregas[i].lon)){entregas[i].lat=currentPos.lat;entregas[i].lon=currentPos.lon;}
   salvarEstatDia(1);
   renderLista();
   proximaEntrega();
