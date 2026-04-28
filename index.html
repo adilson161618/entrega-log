@@ -225,13 +225,17 @@ body.dark .quick-divider::before,body.dark .quick-divider::after{background:#333
     <div id="entregas-wrap">
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
-        <p>Digite o nome e endereço. O app verifica se já foi registrado antes.</p>
+        <p>Digite o nome — o app busca nos registros salvos automaticamente.</p>
         <div id="input-wrap">
           <input class="mi" id="nome-input" placeholder="Nome do destinatário" oninput="buscarSugestoes(this.value)" autocomplete="off"/>
           <div id="sugestoes"></div>
         </div>
-        <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas — opcional" autocomplete="off"/>
-        <div class="hint">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
+        <div id="end-wrap" style="position:relative;">
+          <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas — opcional" autocomplete="off"/>
+          <button onclick="usarGPSAtual()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;" title="Usar localização atual">📍</button>
+        </div>
+        <div class="hint">Ex: Rua das Flores 123 · 89801-000 · ou toque 📍 para usar GPS atual</div>
+        <div id="gps-end-status" style="display:none;background:#E1F5EE;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#085041;"></div>
         <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente — opcional"/>
         <button class="add-btn" onclick="addEntrega()">+ Adicionar</button>
       </div>
@@ -507,8 +511,11 @@ function showTab(t){
 // ===== ENTREGAS =====
 
 var buscarTimer=null;
+var enderecoSelecionado=null;
+
 async function buscarSugestoes(termo){
   clearTimeout(buscarTimer);
+  enderecoSelecionado=null;
   var el=document.getElementById('sugestoes');
   if(!termo||termo.length<2){el.style.display='none';return;}
   buscarTimer=setTimeout(async function(){
@@ -518,7 +525,7 @@ async function buscarSugestoes(termo){
       var local=JSON.parse(localStorage.getItem('el_regs')||'[]');
       resultados=local.filter(function(r){
         return r.nome.toLowerCase().includes(termo.toLowerCase())||
-               r.addr.toLowerCase().includes(termo.toLowerCase());
+               (r.addr&&r.addr.toLowerCase().includes(termo.toLowerCase()));
       }).slice(0,3);
     }catch(e){}
     // Busca no Supabase
@@ -529,9 +536,7 @@ async function buscarSugestoes(termo){
       var data=await res.json();
       if(data&&data.length>0){
         data.forEach(function(d){
-          if(!resultados.find(function(r){return r.addr===d.addr;})){
-            resultados.push(d);
-          }
+          if(!resultados.find(function(r){return r.addr===d.addr;})) resultados.push(d);
         });
       }
     }catch(e){}
@@ -540,17 +545,59 @@ async function buscarSugestoes(termo){
     resultados.slice(0,5).forEach(function(r){
       var item=document.createElement('div');
       item.className='sug-item';
-      item.innerHTML='<div class="sug-icon">📍</div><div><div class="sug-nome">'+r.nome+'</div><div class="sug-addr">'+r.addr+'</div>'+(r.nota?'<div class="sug-nota">💡 '+r.nota+'</div>':'')+'</div>';
+      item.innerHTML='<div class="sug-icon">📍</div><div style="flex:1;">'
+        +'<div class="sug-nome">'+r.nome+'</div>'
+        +'<div class="sug-addr">'+r.addr+'</div>'
+        +(r.nota?'<div class="sug-nota">💡 '+r.nota+'</div>':'')
+        +'</div>'
+        +'<div style="font-size:10px;color:#1D9E75;font-weight:600;padding:2px 6px;background:#E1F5EE;border-radius:6px;white-space:nowrap;">✅ Adicionar</div>';
       item.onclick=function(){
+        // Preenche e já adiciona direto na lista
+        enderecoSelecionado={nome:r.nome,addr:r.addr,lat:r.lat,lon:r.lon,nota:r.nota};
         document.getElementById('nome-input').value=r.nome;
         document.getElementById('end-input').value=r.addr;
         el.style.display='none';
+        // Mostra confirmação
+        var gs=document.getElementById('gps-end-status');
+        gs.style.display='block';
+        gs.textContent='✅ Endereço encontrado nos registros: '+r.addr+(r.nota?' · 💡 '+r.nota:'');
       };
       el.appendChild(item);
     });
     el.style.display='block';
   },400);
 }
+
+async function usarGPSAtual(){
+  var gs=document.getElementById('gps-end-status');
+  gs.style.display='block';
+  gs.textContent='⏳ Capturando localização...';
+  var pos=currentPos;
+  if(!pos){
+    try{
+      pos=await new Promise(function(resolve,reject){
+        navigator.geolocation.getCurrentPosition(function(p){resolve({lat:p.coords.latitude,lon:p.coords.longitude});},reject,{enableHighAccuracy:true,timeout:10000});
+      });
+    }catch(e){gs.textContent='❌ GPS indisponível.';return;}
+  }
+  // Geocodificação reversa
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.lat+'&lon='+pos.lon+'&format=json&zoom=18',{headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}});
+    var data=await res.json();
+    var nome=data.name||data.address.road||'Local atual';
+    var addr=[data.address.road,data.address.suburb,data.address.city].filter(Boolean).join(', ')||pos.lat.toFixed(5)+','+pos.lon.toFixed(5);
+    document.getElementById('end-input').value=addr;
+    if(!document.getElementById('nome-input').value) document.getElementById('nome-input').value=nome;
+    enderecoSelecionado={nome:nome,addr:addr,lat:pos.lat,lon:pos.lon};
+    gs.textContent='✅ '+addr;
+  }catch(e){
+    var coord=pos.lat.toFixed(6)+','+pos.lon.toFixed(6);
+    document.getElementById('end-input').value=coord;
+    enderecoSelecionado={nome:'Local atual',addr:coord,lat:pos.lat,lon:pos.lon};
+    gs.textContent='✅ Coordenadas: '+pos.lat.toFixed(5)+', '+pos.lon.toFixed(5);
+  }
+}
+
 // Fecha sugestões ao clicar fora
 document.addEventListener('click',function(e){
   if(!e.target.closest('#input-wrap')){
@@ -566,20 +613,27 @@ async function addEntrega(){
   if(!nome)return alert('Digite o nome.');
   var coords=null;
   var endFinal=end||'Endereço não informado';
-  // Busca no banco primeiro
-  if(nome||end){
+  var conhecido=false;
+  // Usa endereço selecionado das sugestões se disponível
+  if(enderecoSelecionado){
+    coords={lat:enderecoSelecionado.lat,lon:enderecoSelecionado.lon};
+    endFinal=enderecoSelecionado.addr||end;
+    conhecido=true;
+  } else if(end){
+    // Busca no banco
     try{
-      var q=nome||end;
-      var r=await fetch(SB_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+(end?end.split(',')[0]:nome)+'%')+'&limit=1',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+      var r=await fetch(SB_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+end.split(',')[0]+'%')+'&limit=1',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
       var d=await r.json();
-      if(d&&d.length>0){coords={lat:d[0].lat,lon:d[0].lon};endFinal=d[0].addr||end;}
+      if(d&&d.length>0){coords={lat:d[0].lat,lon:d[0].lon};endFinal=d[0].addr||end;conhecido=true;}
     }catch(e){}
+    if(!coords) coords=await geocode(end);
   }
-  if(!coords&&end) coords=await geocode(end);
-  entregas.push({id:Date.now(),nome:nome,addr:endFinal,tel:tel,lat:coords?coords.lat:null,lon:coords?coords.lon:null,entregue:false,conhecido:!!coords});
+  entregas.push({id:Date.now(),nome:nome,addr:endFinal,tel:tel,lat:coords?coords.lat:null,lon:coords?coords.lon:null,entregue:false,conhecido:conhecido});
   document.getElementById('nome-input').value='';
   document.getElementById('end-input').value='';
   document.getElementById('tel-input').value='';
+  document.getElementById('gps-end-status').style.display='none';
+  enderecoSelecionado=null;
   renderLista();
 }
 async function geocode(q){
