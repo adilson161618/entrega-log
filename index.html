@@ -1322,7 +1322,7 @@ async function processarOCR(event){
             role:'user',
             content:[
               {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
-              {type:'text',text:'Identifique enderecos de entrega nesta imagem (etiqueta, nota fiscal ou manuscrito). Responda SOMENTE em JSON: {"entregas":[{"nome":"destinatario","endereco":"rua numero bairro","cidade":"cidade","telefone":"tel ou vazio"}]}. Liste todos se houver multiplos. Responda apenas o JSON.'}
+              {type:'text',text:'Analise esta imagem e extraia TODOS os dados de entrega encontrados. Pode ser: etiqueta de pacote, nota fiscal, pedido de lanche/comida, lista de enderecos, papel manuscrito, print de tela, comprovante ou qualquer documento. Procure por: nomes de pessoas ou empresas, ruas, numeros, bairros, cidades, CEPs, telefones, pontos de referencia. Se encontrar lista de enderecos como farmaciasc ou estabelecimentos, liste cada um como uma entrega separada. Responda SOMENTE em JSON sem markdown: {"entregas":[{"nome":"nome do destinatario ou estabelecimento","endereco":"rua numero bairro ou referencia","cidade":"cidade se encontrar","telefone":"telefone se encontrar"}]}. Se nao encontrar nada responda: {"entregas":[]}.'}
             ]
           }]
         })
@@ -1342,7 +1342,7 @@ async function processarOCR(event){
       var lista=resultado.entregas||[];
       if(!lista.length&&(resultado.nome||resultado.endereco)) lista=[resultado];
       if(!lista.length){
-        loading.textContent='Não encontrei endereço. Tente outra foto.';
+        loading.textContent='Nao encontrei dados de entrega. Tente foto mais proxima do texto.';
         loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
         btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
         document.getElementById('ocr-input').value='';
