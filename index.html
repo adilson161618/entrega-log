@@ -1314,10 +1314,7 @@ async function processarOCR(event){
             role:'user',
             content:[
               {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
-              {type:'text',text:'Esta imagem pode conter um ou mais endereços de entrega — pode ser etiqueta impressa, nota fiscal, papel escrito à mão, tela de celular ou qualquer anotação. Identifique TODOS os destinatários e endereços presentes. Responda SOMENTE em JSON válido sem markdown:
-{"entregas":[{"nome":"nome do destinatario","endereco":"rua numero bairro","cidade":"cidade","telefone":"telefone ou vazio"}]}
-
-Se houver múltiplos destinatários liste todos. Se não encontrar algum campo deixe vazio. Responda apenas o JSON.'}
+              {type:'text',text:'Identifique enderecos de entrega nesta imagem (etiqueta, nota fiscal ou manuscrito). Responda SOMENTE em JSON: {"entregas":[{"nome":"destinatario","endereco":"rua numero bairro","cidade":"cidade","telefone":"tel ou vazio"}]}. Liste todos se houver multiplos. Responda apenas o JSON.'}
             ]
           }]
         })
