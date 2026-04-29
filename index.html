@@ -457,9 +457,23 @@ async function fazerLogin(){
 // ===== MAPA E GPS =====
 function initMap(){
   if(map) return;
-  var lat=currentPos?currentPos.lat:-27.09;
-  var lon=currentPos?currentPos.lon:-52.61;
-  map=L.map('leafmap',{zoomControl:true,attributionControl:true}).setView([lat,lon],16);
+  // Sempre busca GPS real primeiro
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(pos){
+      currentPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
+      criarMapa(pos.coords.latitude,pos.coords.longitude);
+    },function(){
+      // Fallback sem GPS — mapa do Brasil centralizado
+      criarMapa(-15.77,-47.92);
+    },{enableHighAccuracy:true,timeout:8000});
+  } else {
+    criarMapa(-15.77,-47.92);
+  }
+}
+
+function criarMapa(lat,lon){
+  if(map) return;
+  map=L.map('leafmap',{zoomControl:true,attributionControl:true}).setView([lat,lon],15);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   var icone=L.divIcon({html:'<div style="width:16px;height:16px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(249,115,22,0.3);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
   marker=L.marker([lat,lon],{icon:icone,zIndexOffset:1000}).addTo(map);
@@ -725,7 +739,7 @@ async function buscarEndereco(){
   }catch(e){}
   // Busca no Nominatim
   try{
-    var res=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Chapecó, Brasil')+'&format=json&limit=3&addressdetails=1',{
+    var res=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Brasil')+'&format=json&limit=3&addressdetails=1',{
       headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
     });
     var data=await res.json();
