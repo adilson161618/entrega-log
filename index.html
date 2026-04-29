@@ -306,7 +306,11 @@ body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
     <div id="entregas-wrap">
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
-        <p>Digite o nome e endereço. O app verifica se já foi registrado antes.</p>
+        <button id="ocr-btn" onclick="document.getElementById('ocr-input').click()">📷 Fotografar endereço — etiqueta, papel ou escrito à mão</button>
+        <input type="file" id="ocr-input" accept="image/*" capture="environment" style="display:none" onchange="processarOCR(event)"/>
+        <img id="ocr-preview" src="" alt="" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;"/>
+        <div id="ocr-loading" style="display:none;background:#EDE9FE;border:1px solid #7C3AED;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#5B21B6;text-align:center;"></div>
+        <p>ou digite o nome — o app busca nos registros salvos automaticamente.</p>
         <div id="input-wrap" style="position:relative;">
           <input class="mi" id="nome-input" placeholder="Nome do destinatário" oninput="buscarSugestoes(this.value)" autocomplete="off"/>
           <div id="sugestoes"></div>
