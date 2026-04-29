@@ -214,6 +214,19 @@ body.dark .ocr-entrega-item input{background:#1a1a1a;border-color:#444;color:#ee
 #ocr-add-all-btn{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
 #ocr-cancel-btn{background:#f5f5f5;color:#666;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
 body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
+
+#offline-bar{display:none;background:#F59E0B;color:#fff;padding:6px 14px;font-size:11px;text-align:center;font-weight:600;}
+#offline-bar.show{display:block;}
+#battery-bar{display:none;background:#DC2626;color:#fff;padding:5px 14px;font-size:11px;text-align:center;}
+#battery-bar.show{display:block;}
+#voice-fab{position:fixed;bottom:80px;right:16px;z-index:1000;width:52px;height:52px;border-radius:50%;background:#7C3AED;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,0.5);display:none;}
+#voice-fab.show{display:flex;align-items:center;justify-content:center;}
+#voice-listening{display:none;position:fixed;inset:0;background:rgba(124,58,237,0.9);z-index:5000;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
+#voice-listening.show{display:flex;}
+#voice-pulse{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:40px;animation:vpulse 1s ease-in-out infinite;}
+@keyframes vpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+#voice-text{font-size:16px;margin-top:20px;opacity:0.9;}
+#voice-cancel{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;cursor:pointer;margin-top:20px;font-family:inherit;}
 </style>
 </head>
 <body>
@@ -237,6 +250,8 @@ body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
 </div>
 
 <div id="shell">
+  <div id="offline-bar">📵 Sem internet — dados salvos localmente e serão sincronizados quando a conexão voltar</div>
+  <div id="battery-bar">🔋 Bateria baixa — modo econômico ativado</div>
   <div id="topbar">
     <div>
       <div id="app-title">📦 EntregaLog</div>
@@ -348,6 +363,14 @@ body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
       <div id="rotas-list"></div>
     </div>
   </div>
+</div>
+
+<button id="voice-fab" class="show" onclick="iniciarVoz()" title="Comando de voz">🎤</button>
+
+<div id="voice-listening">
+  <div id="voice-pulse">🎤</div>
+  <div id="voice-text">Diga o endereço ou comando...</div>
+  <button id="voice-cancel" onclick="cancelarVoz()">✕ Cancelar</button>
 </div>
 
 <!-- MODAL PARADA -->
@@ -981,7 +1004,7 @@ async function salvarRegistro(){
   var usr=usuarioAtual?usuarioAtual.nome:'auto';
   var reg={nome:nome,addr:end,nota:nota,foto:photoData||null,lat:coords?coords.lat:null,lon:coords?coords.lon:null,data:new Date().toLocaleString('pt-BR'),registrado_por:usr};
   try{var l=JSON.parse(localStorage.getItem('el_regs')||'[]');l.unshift(reg);localStorage.setItem('el_regs',JSON.stringify(l));}catch(e){}
-  try{await fetch(SB_URL+'/rest/v1/enderecos',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr})});}catch(e){}
+  try{await salvarSupabaseSafe('enderecos',{nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr});}catch(e){}
   document.getElementById('reg-nome').value='';document.getElementById('reg-end').value='';document.getElementById('reg-nota').value='';
   photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
   alert('✅ Registrado! Outros entregadores vão ver essa dica.');
@@ -1087,6 +1110,163 @@ function renderRotas(){
 }
 
 
+
+// ===== OFFLINE QUEUE =====
+var filaOffline=[];
+var onlineStatus=navigator.onLine;
+
+window.addEventListener('online',function(){
+  onlineStatus=true;
+  document.getElementById('offline-bar').classList.remove('show');
+  sincronizarFila();
+});
+window.addEventListener('offline',function(){
+  onlineStatus=false;
+  document.getElementById('offline-bar').classList.add('show');
+});
+
+function salvarNaFila(tipo,dados){
+  try{
+    var fila=JSON.parse(localStorage.getItem('el_fila')||'[]');
+    fila.push({tipo:tipo,dados:dados,ts:Date.now()});
+    localStorage.setItem('el_fila',JSON.stringify(fila));
+    filaOffline=fila;
+  }catch(e){}
+}
+
+async function sincronizarFila(){
+  try{
+    var fila=JSON.parse(localStorage.getItem('el_fila')||'[]');
+    if(!fila.length) return;
+    var sucesso=[];
+    for(var i=0;i<fila.length;i++){
+      var item=fila[i];
+      try{
+        if(item.tipo==='endereco'){
+          await fetch(SB_URL+'/rest/v1/enderecos',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
+        } else if(item.tipo==='rota'){
+          await fetch(SB_URL+'/rest/v1/rotas',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
+        }
+        sucesso.push(i);
+      }catch(e){}
+    }
+    // Remove os sincronizados
+    var novaFila=fila.filter(function(_,i){return sucesso.indexOf(i)===-1;});
+    localStorage.setItem('el_fila',JSON.stringify(novaFila));
+    if(sucesso.length>0) console.log('Sincronizados '+sucesso.length+' itens da fila offline');
+  }catch(e){}
+}
+
+// Wrapper para salvar com fallback offline
+async function salvarSupabaseSafe(tabela,dados){
+  if(!onlineStatus){
+    salvarNaFila(tabela,dados);
+    return false;
+  }
+  try{
+    var res=await fetch(SB_URL+'/rest/v1/'+tabela,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify(dados)
+    });
+    return res.ok;
+  }catch(e){
+    salvarNaFila(tabela,dados);
+    return false;
+  }
+}
+
+// ===== BATTERY MONITOR =====
+function monitorarBateria(){
+  if(!navigator.getBattery) return;
+  navigator.getBattery().then(function(battery){
+    function verificar(){
+      if(battery.level<0.2&&!battery.charging){
+        document.getElementById('battery-bar').classList.add('show');
+        // Modo econômico — reduz frequência GPS
+        if(watchId){
+          navigator.geolocation.clearWatch(watchId);
+          watchId=navigator.geolocation.watchPosition(
+            function(pos){
+              var la=pos.coords.latitude,lo=pos.coords.longitude;
+              currentPos={lat:la,lon:lo};
+              if(marker) marker.setLatLng([la,lo]);
+              document.getElementById('gps-coords').textContent=la.toFixed(4)+' '+lo.toFixed(4)+' ⚡';
+              rotaCoords.push([la,lo]);
+              rotaLine.setLatLngs(rotaCoords);
+              if(lastPos) distTotal+=haverDist(lastPos,{lat:la,lon:lo});
+              lastPos={lat:la,lon:lo};
+              var km=(distTotal/1000).toFixed(2);
+              var kb=document.getElementById('km-badge');
+              kb.style.display='block';kb.textContent=km+' km';
+              detectaParada(la,lo);
+              if(navAtivo) atualizarNavegacao();
+            },
+            function(){},{enableHighAccuracy:false,maximumAge:10000,timeout:30000}
+          );
+        }
+      } else {
+        document.getElementById('battery-bar').classList.remove('show');
+      }
+    }
+    verificar();
+    battery.addEventListener('levelchange',verificar);
+    battery.addEventListener('chargingchange',verificar);
+  });
+}
+
+// ===== COMANDO DE VOZ =====
+var recVoz=null;
+
+function iniciarVoz(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    alert('Comando de voz não suportado neste navegador. Use o Chrome.');
+    return;
+  }
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recVoz=new SR();
+  recVoz.lang='pt-BR';
+  recVoz.interimResults=false;
+  recVoz.maxAlternatives=1;
+  document.getElementById('voice-listening').classList.add('show');
+  recVoz.start();
+  recVoz.onresult=function(e){
+    var texto=e.results[0][0].transcript;
+    processarComandoVoz(texto);
+    cancelarVoz();
+  };
+  recVoz.onerror=function(){cancelarVoz();};
+  recVoz.onend=function(){document.getElementById('voice-listening').classList.remove('show');};
+}
+
+function cancelarVoz(){
+  if(recVoz){try{recVoz.stop();}catch(e){}}
+  document.getElementById('voice-listening').classList.remove('show');
+}
+
+function processarComandoVoz(texto){
+  texto=texto.toLowerCase().trim();
+  console.log('Voz:',texto);
+  // Comandos
+  if(texto.includes('entregue')||texto.includes('entreguei')||texto.includes('próxima')||texto.includes('proxima')){
+    marcarEntregue();
+    document.getElementById('voice-text').textContent='✅ Marcado como entregue!';
+    return;
+  }
+  if(texto.includes('navegar')||texto.includes('navega')||texto.includes('ir para')){
+    abrirNavegacao();
+    return;
+  }
+  if(texto.includes('registrar')||texto.includes('registra')||texto.includes('salvar ponto')){
+    abrirModalParada();
+    return;
+  }
+  // Se não for comando — trata como endereço
+  document.getElementById('map-search-input').value=texto;
+  buscarEndereco();
+  showTab('mapa');
+}
+
 // ===== AUTOCOMPLETE =====
 var buscarTimer=null;
 function buscarSugestoes(termo){
@@ -1157,6 +1337,9 @@ if(navigator.geolocation){
     currentPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
   },function(){},{enableHighAccuracy:true,timeout:10000});
 }
+monitorarBateria();
+if(!onlineStatus) document.getElementById("offline-bar").classList.add("show");
+sincronizarFila();
 setTimeout(function(){
   if(checkLogin()){
     initMap();
