@@ -195,6 +195,25 @@ body.dark .map-result-nome{color:#eee;}
 #ocr-btn:active{opacity:0.85;}
 #ocr-loading{display:none;background:#EDE9FE;border:1px solid #7C3AED;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#5B21B6;text-align:center;}
 #ocr-preview{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;}
+
+#modal-ocr{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;}
+#modal-ocr.open{display:flex;}
+#ocr-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #ocr-sheet{background:#1a1a1a;}
+#ocr-sheet h3{font-size:15px;font-weight:700;color:#111;margin-bottom:4px;}
+body.dark #ocr-sheet h3{color:#eee;}
+#ocr-sheet-sub{font-size:12px;color:#888;margin-bottom:14px;}
+.ocr-entrega-item{background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:10px;}
+body.dark .ocr-entrega-item{background:#222;border-color:#333;}
+.ocr-entrega-item input{width:100%;background:#fff;border:1px solid #ddd;color:#111;padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:12px;font-family:inherit;outline:none;}
+body.dark .ocr-entrega-item input{background:#1a1a1a;border-color:#444;color:#eee;}
+.ocr-entrega-item input:focus{border-color:#7C3AED;}
+.ocr-entrega-label{font-size:10px;color:#888;margin-bottom:3px;display:block;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
+.ocr-foto-thumb{width:100%;max-height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px;}
+.ocr-remove{background:none;border:none;color:#F87171;cursor:pointer;font-size:12px;font-family:inherit;padding:0;}
+#ocr-add-all-btn{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
+#ocr-cancel-btn{background:#f5f5f5;color:#666;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
 </style>
 </head>
 <body>
@@ -1168,6 +1187,17 @@ setTimeout(function(){
       <button class="chegada-btn nao" onclick="fecharChegada()">Não cheguei</button>
       <button class="chegada-btn sim" onclick="confirmarChegada()">✅ Sim, entreguei!</button>
     </div>
+  </div>
+</div>
+
+
+<div id="modal-ocr">
+  <div id="ocr-sheet">
+    <h3>📋 Entregas identificadas</h3>
+    <div id="ocr-sheet-sub">Confirme ou corrija antes de adicionar</div>
+    <div id="ocr-itens-lista"></div>
+    <button id="ocr-add-all-btn" onclick="confirmarOCR()">✅ Adicionar todas à lista</button>
+    <button id="ocr-cancel-btn" onclick="fecharModalOCR()">Cancelar</button>
   </div>
 </div>
 
