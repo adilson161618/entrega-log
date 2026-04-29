@@ -1312,9 +1312,9 @@ async function processarOCR(event){
     try{
       var imgData=base64.split(',')[1];
       var mediaType=file.type||'image/jpeg';
-      var response=await fetch('https://api.anthropic.com/v1/messages',{
+      var response=await fetch('https://willowy-shortbread-dd6bdb.netlify.app/.netlify/functions/ocr',{
         method:'POST',
-        headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','x-api-key':'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'},
+        headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           model:'claude-sonnet-4-20250514',
           max_tokens:1000,
