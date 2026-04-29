@@ -1322,7 +1322,7 @@ async function processarOCR(event){
             role:'user',
             content:[
               {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
-              {type:'text',text:'Analise esta imagem e extraia TODOS os dados de entrega encontrados. Pode ser: etiqueta de pacote, nota fiscal, pedido de lanche/comida, lista de enderecos, papel manuscrito, print de tela, comprovante ou qualquer documento. Procure por: nomes de pessoas ou empresas, ruas, numeros, bairros, cidades, CEPs, telefones, pontos de referencia. Se encontrar lista de enderecos como farmaciasc ou estabelecimentos, liste cada um como uma entrega separada. Responda SOMENTE em JSON sem markdown: {"entregas":[{"nome":"nome do destinatario ou estabelecimento","endereco":"rua numero bairro ou referencia","cidade":"cidade se encontrar","telefone":"telefone se encontrar"}]}. Se nao encontrar nada responda: {"entregas":[]}.'}
+              {type:'text',text:'Analise esta imagem e extraia TODOS os nomes e enderecos encontrados. Nao importa o tipo de documento - pode ser carteirinha, comprovante, documento, etiqueta, nota fiscal, pedido, papel manuscrito ou qualquer coisa. Procure por: nomes completos de pessoas ou empresas, logradouros, ruas, avenidas, numeros, bairros, cidades, estados, CEPs, telefones. Extraia TUDO que parecer ser um nome ou endereco. Responda SOMENTE em JSON sem markdown: {"entregas":[{"nome":"nome encontrado","endereco":"endereco completo encontrado","cidade":"cidade encontrada","telefone":"telefone encontrado"}]}. Liste cada pessoa ou endereco separadamente. Se encontrar multiplos nomes ou enderecos liste todos. Responda apenas o JSON.'}
             ]
           }]
         })
