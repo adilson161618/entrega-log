@@ -175,6 +175,21 @@ body.dark #chegada-nome-txt{color:#eee;}
 .chegada-btn.sim{background:#1D9E75;color:#fff;}
 .chegada-btn.nao{background:#f5f5f5;color:#666;}
 body.dark .chegada-btn.nao{background:#222;color:#aaa;}
+
+#map-search{position:absolute;top:8px;left:8px;right:8px;z-index:1002;display:flex;gap:6px;}
+#map-search-input{flex:1;background:rgba(255,255,255,0.95);border:1px solid #ddd;border-radius:12px;padding:10px 14px;font-size:13px;font-family:inherit;outline:none;color:#111;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+#map-search-input:focus{border-color:#F97316;}
+#map-search-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(249,115,22,0.4);white-space:nowrap;}
+#map-search-results{position:absolute;top:52px;left:8px;right:8px;z-index:1002;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:none;max-height:200px;overflow-y:auto;}
+body.dark #map-search-results{background:#1a1a1a;}
+.map-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:8px;}
+body.dark .map-result-item{border-color:#222;}
+.map-result-item:hover{background:#FFF7ED;}
+body.dark .map-result-item:hover{background:#2a1500;}
+.map-result-item:last-child{border-bottom:none;}
+.map-result-nome{font-size:13px;font-weight:600;color:#111;}
+body.dark .map-result-nome{color:#eee;}
+.map-result-addr{font-size:11px;color:#888;}
 </style>
 </head>
 <body>
@@ -222,6 +237,11 @@ body.dark .chegada-btn.nao{background:#222;color:#aaa;}
   <div id="screen-mapa" class="screen active">
     <div id="mapwrap">
       <div id="leafmap"></div>
+      <div id="map-search">
+        <input id="map-search-input" placeholder="🔍 Buscar endereço ou destino..." onkeydown="if(event.key==='Enter')buscarEndereco()"/>
+        <button id="map-search-btn" onclick="buscarEndereco()">Ir</button>
+      </div>
+      <div id="map-search-results"></div>
       <div id="gps-info">
         <div id="gps-coords">Aguardando GPS...</div>
         <div id="km-badge">0.00 km</div>
@@ -636,6 +656,109 @@ function marcarEntregue(){
   renderLista();
   proximaEntrega();
 }
+
+var searchMarker=null;
+var searchNavLine=null;
+
+async function buscarEndereco(){
+  var q=document.getElementById('map-search-input').value.trim();
+  if(!q) return;
+  var btn=document.getElementById('map-search-btn');
+  btn.textContent='...';
+  var resultados=[];
+  // Busca nos registros salvos primeiro
+  try{
+    var local=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    resultados=local.filter(function(r){
+      return (r.nome&&r.nome.toLowerCase().includes(q.toLowerCase()))||
+             (r.addr&&r.addr.toLowerCase().includes(q.toLowerCase()));
+    }).slice(0,3).map(function(r){
+      return{nome:r.nome,addr:r.addr,lat:r.lat,lon:r.lon,nota:r.nota,salvo:true};
+    });
+  }catch(e){}
+  // Busca no Nominatim
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q+', Chapecó, Brasil')+'&format=json&limit=3&addressdetails=1',{
+      headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
+    });
+    var data=await res.json();
+    data.forEach(function(d){
+      resultados.push({
+        nome:d.display_name.split(',')[0],
+        addr:d.display_name.slice(0,80),
+        lat:parseFloat(d.lat),
+        lon:parseFloat(d.lon),
+        salvo:false
+      });
+    });
+  }catch(e){}
+  btn.textContent='Ir';
+  if(!resultados.length){
+    alert('Endereço não encontrado. Tente ser mais específico.');
+    return;
+  }
+  if(resultados.length===1){
+    irParaLocal(resultados[0]);
+    return;
+  }
+  // Mostra lista de resultados
+  var el=document.getElementById('map-search-results');
+  el.innerHTML='';
+  resultados.forEach(function(r){
+    var item=document.createElement('div');
+    item.className='map-result-item';
+    item.innerHTML='<div style="font-size:16px;">'+( r.salvo?'📍':'🔍')+'</div>'
+      +'<div><div class="map-result-nome">'+r.nome+'</div>'
+      +'<div class="map-result-addr">'+r.addr+'</div>'
+      +(r.nota?'<div style="font-size:10px;color:#F97316;">💡 '+r.nota+'</div>':'')
+      +'</div>';
+    item.onclick=function(){
+      el.style.display='none';
+      document.getElementById('map-search-input').value=r.nome;
+      irParaLocal(r);
+    };
+    el.appendChild(item);
+  });
+  el.style.display='block';
+}
+
+function irParaLocal(r){
+  document.getElementById('map-search-results').style.display='none';
+  if(!map||!r.lat||!r.lon) return;
+  // Remove marcador anterior
+  if(searchMarker){searchMarker.remove();searchMarker=null;}
+  if(searchNavLine){searchNavLine.remove();searchNavLine=null;}
+  // Centraliza no local
+  map.setView([r.lat,r.lon],17);
+  // Pin no destino
+  var ic=L.divIcon({
+    html:'<div style="width:36px;height:36px;background:#F97316;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 10px rgba(0,0,0,0.3);">🎯</div>',
+    iconSize:[36,36],iconAnchor:[18,18],className:''
+  });
+  searchMarker=L.marker([r.lat,r.lon],{icon:ic}).addTo(map);
+  searchMarker.bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+  // Traça linha da posição atual até o destino
+  if(currentPos){
+    searchNavLine=L.polyline([[currentPos.lat,currentPos.lon],[r.lat,r.lon]],{
+      color:'#F97316',weight:5,opacity:0.8,dashArray:'10,6'
+    }).addTo(map);
+    // Mostra os dois pontos
+    var bounds=L.latLngBounds([[currentPos.lat,currentPos.lon],[r.lat,r.lon]]);
+    map.fitBounds(bounds,{padding:[60,60]});
+    // Mostra distância
+    var dist=haverDist(currentPos,{lat:r.lat,lon:r.lon});
+    var distStr=dist>1000?(dist/1000).toFixed(1)+' km':Math.round(dist)+' m';
+    document.getElementById('map-search-input').value=r.nome+' ('+distStr+')';
+  }
+}
+
+// Fecha resultados ao clicar fora
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#map-search')&&!e.target.closest('#map-search-results')){
+    document.getElementById('map-search-results').style.display='none';
+  }
+});
+
 var rotaNavLine=null;
 var navAtivo=false;
 var navDestino=null;
