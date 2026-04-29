@@ -477,6 +477,10 @@ function initMap(){
 
 function criarMapa(lat,lon){
   if(map) return;
+  if(typeof L==='undefined'){
+    setTimeout(function(){criarMapa(lat,lon);},300);
+    return;
+  }
   map=L.map('leafmap',{zoomControl:true,attributionControl:true}).setView([lat,lon],15);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   var icone=L.divIcon({html:'<div style="width:16px;height:16px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(249,115,22,0.3);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
