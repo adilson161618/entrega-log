@@ -149,6 +149,32 @@ body.dark .sug-item:active{background:#2a1500;}
 body.dark .sug-nome{color:#eee;}
 .sug-addr{font-size:11px;color:#888;margin-top:1px;}
 .sug-nota{font-size:11px;color:#F97316;font-style:italic;margin-top:2px;}
+
+#nav-mode{display:none;position:absolute;top:8px;left:8px;right:8px;z-index:1001;background:rgba(0,0,0,0.85);border-radius:14px;padding:12px 16px;}
+#nav-mode.active{display:block;}
+#nav-destino{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;}
+#nav-dist{font-size:22px;font-weight:800;color:#F97316;}
+#nav-addr{font-size:11px;color:#aaa;margin-top:2px;}
+#nav-chegou{display:none;background:#1D9E75;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;width:100%;}
+#nav-cancelar{background:rgba(255,255,255,0.1);color:#aaa;border:none;border-radius:10px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;margin-top:6px;width:100%;}
+#rota-nav-line{stroke:#378ADD;stroke-width:5;opacity:0.8;}
+
+#modal-chegada{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;}
+#modal-chegada.open{display:flex;}
+#chegada-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;}
+body.dark #chegada-sheet{background:#1a1a1a;}
+#chegada-title{font-size:18px;font-weight:800;color:#1D9E75;margin-bottom:4px;}
+#chegada-sub{font-size:12px;color:#888;margin-bottom:16px;}
+#chegada-nome-txt{font-size:14px;font-weight:700;color:#111;margin-bottom:4px;}
+body.dark #chegada-nome-txt{color:#eee;}
+#chegada-addr-atual{font-size:12px;color:#888;margin-bottom:12px;}
+#chegada-corrigir{display:none;margin-bottom:12px;}
+#btn-corrigir{font-size:12px;color:#F97316;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-decoration:underline;}
+#chegada-btns{display:flex;gap:10px;margin-top:8px;}
+.chegada-btn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.chegada-btn.sim{background:#1D9E75;color:#fff;}
+.chegada-btn.nao{background:#f5f5f5;color:#666;}
+body.dark .chegada-btn.nao{background:#222;color:#aaa;}
 </style>
 </head>
 <body>
@@ -201,6 +227,13 @@ body.dark .sug-nome{color:#eee;}
         <div id="km-badge">0.00 km</div>
       </div>
       <button id="parada-btn" onclick="abrirModalParada()">📍 Registrar este ponto</button>
+      <div id="nav-mode">
+        <div id="nav-destino">Navegando...</div>
+        <div id="nav-dist">-- km</div>
+        <div id="nav-addr"></div>
+        <button id="nav-chegou" onclick="chegarDestino()">✅ Cheguei — marcar como entregue</button>
+        <button id="nav-cancelar" onclick="cancelarNavegacao()">✕ Cancelar navegação</button>
+      </div>
     </div>
     <div id="map-btns">
       <button class="mabtn" onclick="proximaEntrega()">⏭ Próxima</button>
@@ -603,11 +636,182 @@ function marcarEntregue(){
   renderLista();
   proximaEntrega();
 }
+var rotaNavLine=null;
+var navAtivo=false;
+var navDestino=null;
+
+
+
+async function puxarEnderecoGPS(){
+  var status=document.getElementById('chegada-gps-status');
+  status.style.display='block';
+  status.textContent='⏳ Buscando endereço pelo GPS...';
+  var pos=currentPos;
+  if(!pos){
+    try{
+      pos=await new Promise(function(resolve,reject){
+        navigator.geolocation.getCurrentPosition(
+          function(p){resolve({lat:p.coords.latitude,lon:p.coords.longitude});},
+          reject,
+          {enableHighAccuracy:true,timeout:10000}
+        );
+      });
+    }catch(e){
+      status.textContent='❌ GPS indisponível.';
+      return;
+    }
+  }
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.lat+'&lon='+pos.lon+'&format=json&zoom=18',{
+      headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
+    });
+    var data=await res.json();
+    var addr=[data.address.road,data.address.house_number,data.address.suburb,data.address.city].filter(Boolean).join(', ');
+    document.getElementById('chegada-addr-input').value=addr;
+    status.textContent='✅ '+addr;
+    status.style.color='#1D9E75';
+  }catch(e){
+    var coord=pos.lat.toFixed(6)+','+pos.lon.toFixed(6);
+    document.getElementById('chegada-addr-input').value=coord;
+    status.textContent='✅ Coordenadas: '+pos.lat.toFixed(5)+', '+pos.lon.toFixed(5);
+  }
+}
+
+function abrirModalChegada(){
+  if(!navDestino) return;
+  document.getElementById('modal-chegada').classList.add('open');
+  document.getElementById('chegada-nome-txt').textContent=navDestino.nome;
+  document.getElementById('chegada-addr-atual').textContent=navDestino.addr||'';
+  document.getElementById('chegada-addr-input').value=navDestino.addr||'';
+  document.getElementById('chegada-dica').value=navDestino.dica||'';
+  document.getElementById('btn-corrigir').style.display='block';
+  document.getElementById('chegada-corrigir').style.display='none';
+}
+
+function mostrarCorrecao(){
+  document.getElementById('chegada-corrigir').style.display='block';
+  document.getElementById('btn-corrigir').style.display='none';
+}
+
+function fecharChegada(){
+  document.getElementById('modal-chegada').classList.remove('open');
+  window._chegadaMostrada=false;
+}
+
+async function confirmarChegada(){
+  if(!navDestino||!currentPos) return;
+  var addrCorrigido=document.getElementById('chegada-addr-input').value.trim();
+  var dica=document.getElementById('chegada-dica').value.trim();
+  var nome=navDestino.nome;
+  var lat=currentPos.lat;
+  var lon=currentPos.lon;
+  var usr=usuarioAtual?usuarioAtual.nome:'auto';
+  // Salva localização exata no banco colaborativo
+  try{
+    // Verifica se já existe
+    var res=await fetch(SB_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+addrCorrigido.split(',')[0]+'%')+'&limit=1',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var existe=await res.json();
+    if(existe&&existe.length>0){
+      // Atualiza com coordenadas corretas
+      await fetch(SB_URL+'/rest/v1/enderecos?id=eq.'+existe[0].id,{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},
+        body:JSON.stringify({lat:lat,lon:lon,addr:addrCorrigido,nota:dica||existe[0].nota,registrado_por:usr})
+      });
+    } else {
+      // Cria novo registro
+      await fetch(SB_URL+'/rest/v1/enderecos',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        body:JSON.stringify({nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr})
+      });
+    }
+  }catch(e){}
+  // Salva local
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    lista.unshift({nome:nome,addr:addrCorrigido,nota:dica,foto:null,lat:lat,lon:lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr});
+    localStorage.setItem('el_regs',JSON.stringify(lista));
+  }catch(e){}
+  // Marca entregue e cancela navegação
+  marcarEntregue();
+  cancelarNavegacao();
+  fecharChegada();
+  // Pin verde no mapa
+  if(map&&typeof L!=='undefined'){
+    var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">✅</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+    L.marker([lat,lon],{icon:ic}).addTo(map).bindPopup('<b>'+nome+'</b><br/>'+addrCorrigido+(dica?'<br/>Dica: '+dica:'')).openPopup();
+  }
+}
+
 function abrirNavegacao(){
   var e=entregas.find(function(x){return!x.entregue;});
-  if(!e)return;
-  var url=e.lat&&e.lon?'https://www.google.com/maps/dir/?api=1&destination='+e.lat+','+e.lon:'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(e.addr);
-  window.open(url,'_blank');
+  if(!e){alert('Nenhuma entrega pendente.');return;}
+  if(!e.lat||!e.lon){
+    // Sem coordenadas — abre Google Maps
+    window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(e.addr),'_blank');
+    return;
+  }
+  navDestino=e;
+  navAtivo=true;
+window._chegadaMostrada=false;
+  // Mostra painel de navegação
+  document.getElementById('nav-mode').classList.add('active');
+  document.getElementById('nav-destino').textContent='Para: '+e.nome;
+  document.getElementById('nav-addr').textContent=e.addr;
+  // Desenha linha até destino
+  if(map&&typeof L!=='undefined'){
+    if(rotaNavLine) rotaNavLine.remove();
+    var origem=currentPos||{lat:e.lat-0.01,lon:e.lon-0.01};
+    rotaNavLine=L.polyline([[origem.lat,origem.lon],[e.lat,e.lon]],{
+      color:'#378ADD',weight:5,opacity:0.8,dashArray:'10,6'
+    }).addTo(map);
+    // Pin destino
+    var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#378ADD;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
+    L.marker([e.lat,e.lon],{icon:ic}).addTo(map).bindPopup('<b>'+e.nome+'</b><br/>'+e.addr);
+    // Centraliza mapa entre origem e destino
+    var bounds=L.latLngBounds([[origem.lat,origem.lon],[e.lat,e.lon]]);
+    map.fitBounds(bounds,{padding:[60,60]});
+  }
+  atualizarNavegacao();
+}
+
+function atualizarNavegacao(){
+  if(!navAtivo||!navDestino) return;
+  if(currentPos&&navDestino.lat&&navDestino.lon){
+    var dist=haverDist(currentPos,{lat:navDestino.lat,lon:navDestino.lon});
+    var distStr=dist>1000?(dist/1000).toFixed(1)+' km':Math.round(dist)+' m';
+    document.getElementById('nav-dist').textContent=distStr;
+    // Atualiza linha de rota
+    if(rotaNavLine&&map){
+      rotaNavLine.setLatLngs([[currentPos.lat,currentPos.lon],[navDestino.lat,navDestino.lon]]);
+    }
+    // Chegou — menos de 50 metros
+    if(dist<50&&!window._chegadaMostrada){
+      window._chegadaMostrada=true;
+      document.getElementById('nav-dist').textContent='Voce chegou!';
+      document.getElementById('nav-dist').style.color='#1D9E75';
+      // Abre modal de chegada
+      setTimeout(function(){abrirModalChegada();},1000);
+    }
+  }
+  if(navAtivo) setTimeout(atualizarNavegacao,3000);
+}
+
+function chegarDestino(){
+  marcarEntregue();
+  cancelarNavegacao();
+}
+
+function cancelarNavegacao(){
+  navAtivo=false;
+  navDestino=null;
+  document.getElementById('nav-mode').classList.remove('active');
+  document.getElementById('nav-chegou').style.display='none';
+  document.getElementById('nav-dist').style.color='#F97316';
+  if(rotaNavLine){rotaNavLine.remove();rotaNavLine=null;}
 }
 
 // ===== REGISTRAR =====
@@ -814,5 +1018,30 @@ setTimeout(function(){
   }
 },2200);
 </script>
+
+<div id="modal-chegada">
+  <div id="chegada-sheet">
+    <div id="chegada-title">📍 Chegou ao destino?</div>
+    <div id="chegada-sub">O GPS detectou que você está próximo</div>
+    <div id="chegada-nome-txt"></div>
+    <div id="chegada-addr-atual"></div>
+    <button id="btn-corrigir" onclick="mostrarCorrecao()">✏️ Endereço está errado? Corrigir</button>
+    <div id="chegada-corrigir">
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:500;">Endereço correto</label>
+      <div style="position:relative;">
+        <input class="mi" id="chegada-addr-input" placeholder="Digite o endereço correto" style="padding-right:44px;"/>
+        <button onclick="puxarEnderecoGPS()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:20px;" title="Capturar endereço pelo GPS">📍</button>
+      </div>
+      <div id="chegada-gps-status" style="display:none;font-size:11px;color:#1D9E75;margin:-6px 0 8px;padding:0 2px;">⏳ Buscando endereço...</div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:500;">Dica para próximos entregadores</label>
+      <textarea class="mi" id="chegada-dica" placeholder="Ex: Portaria nos fundos..." style="height:56px;resize:none;"></textarea>
+    </div>
+    <div id="chegada-btns">
+      <button class="chegada-btn nao" onclick="fecharChegada()">Não cheguei</button>
+      <button class="chegada-btn sim" onclick="confirmarChegada()">✅ Sim, entreguei!</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
