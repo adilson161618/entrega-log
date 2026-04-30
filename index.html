@@ -1306,7 +1306,7 @@ async function processarOCR(event){
     try{
       var imgData=base64.split(',')[1];
       var mediaType=file.type||'image/jpeg';
-      var response=await fetch('https://dreamy-zabaione-29282d.netlify.app/.netlify/functions/ocr',{
+      var response=await fetch('https://psqtdivgmrnuxgdvymrh.supabase.co/functions/v1/bright-responder',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
