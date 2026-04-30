@@ -1304,8 +1304,24 @@ async function processarOCR(event){
     var btn=document.getElementById('ocr-btn');
     btn.disabled=true;btn.textContent='⏳ Processando...';
     try{
-      var imgData=base64.split(',')[1];
-      var mediaType=file.type||'image/jpeg';
+      // Comprime a imagem antes de enviar
+      var imgData='';
+      var mediaType='image/jpeg';
+      try{
+        var canvas=document.createElement('canvas');
+        var imgEl=new Image();
+        await new Promise(function(res){imgEl.onload=res;imgEl.src=base64;});
+        var maxW=800,maxH=800;
+        var w=imgEl.width,h=imgEl.height;
+        if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+        if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(imgEl,0,0,w,h);
+        var compressed=canvas.toDataURL('image/jpeg',0.7);
+        imgData=compressed.split(',')[1];
+      }catch(e){
+        imgData=base64.split(',')[1];
+      }
       var response=await fetch('https://psqtdivgmrnuxgdvymrh.supabase.co/functions/v1/bright-responder',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
