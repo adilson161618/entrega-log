@@ -1362,7 +1362,7 @@ async function processarOCR(event){
         lista=[resultado];
       }
       if(!lista.length){
-        loading.textContent='Nao encontrei enderecos. Tente foto mais proxima do texto.';
+        loading.textContent='Nao encontrei nenhum endereco na imagem. Tente uma foto mais proxima do texto.';
         loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
         btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
         document.getElementById('ocr-input').value='';
@@ -1411,8 +1411,9 @@ function confirmarOCR(){
     var nome=document.getElementById('ocr-nome-'+i).value.trim();
     var end=document.getElementById('ocr-end-'+i).value.trim();
     var tel=document.getElementById('ocr-tel-'+i).value.trim();
-    if(!nome&&!end) return;
-    entregas.push({id:Date.now()+i,nome:nome||'Destinatário',addr:end||'Endereço não informado',tel:tel,lat:null,lon:null,entregue:false,conhecido:false,foto:ocrFotoBase64});
+    // Endereço é obrigatório — nome e telefone são opcionais
+    if(!end) return;
+    entregas.push({id:Date.now()+i,nome:nome||'Destinatário',addr:end,tel:tel||'',lat:null,lon:null,entregue:false,conhecido:false,foto:ocrFotoBase64});
   });
   renderLista();
   fecharModalOCR();
