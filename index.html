@@ -1322,7 +1322,7 @@ async function processarOCR(event){
             role:'user',
             content:[
               {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
-              {type:'text',text:'Analise esta imagem e extraia TODOS os nomes e enderecos encontrados. Nao importa o tipo de documento - pode ser carteirinha, comprovante, documento, etiqueta, nota fiscal, pedido, papel manuscrito ou qualquer coisa. Procure por: nomes completos de pessoas ou empresas, logradouros, ruas, avenidas, numeros, bairros, cidades, estados, CEPs, telefones. Extraia TUDO que parecer ser um nome ou endereco. Responda SOMENTE em JSON sem markdown: {"entregas":[{"nome":"nome encontrado","endereco":"endereco completo encontrado","cidade":"cidade encontrada","telefone":"telefone encontrado"}]}. Liste cada pessoa ou endereco separadamente. Se encontrar multiplos nomes ou enderecos liste todos. Responda apenas o JSON.'}
+              {type:'text',text:'Leia esta imagem e extraia todos os enderecos encontrados. Um endereco pode ser: rua, avenida, travessa, alameda, rodovia, com ou sem numero, com ou sem bairro ou cidade. Tambem aceite CEP isolado ou coordenadas. Retorne SOMENTE este JSON sem markdown: {"enderecos":["endereco 1 completo","endereco 2 completo"]}. Se nao encontrar nenhum endereco retorne: {"enderecos":[]}.'}
             ]
           }]
         })
@@ -1339,10 +1339,20 @@ async function processarOCR(event){
       var texto=data.content&&data.content[0]&&data.content[0].text||'{"entregas":[]}';
       texto=texto.replace(/```json|```/g,'').trim();
       var resultado=JSON.parse(texto);
-      var lista=resultado.entregas||[];
-      if(!lista.length&&(resultado.nome||resultado.endereco)) lista=[resultado];
+      var lista=[];
+      // Novo formato simples
+      if(resultado.enderecos&&resultado.enderecos.length>0){
+        lista=resultado.enderecos.map(function(e){return{nome:'',endereco:e,cidade:'',telefone:''};});
+      }
+      // Formato antigo compativel
+      else if(resultado.entregas&&resultado.entregas.length>0){
+        lista=resultado.entregas;
+      }
+      else if(resultado.nome||resultado.endereco){
+        lista=[resultado];
+      }
       if(!lista.length){
-        loading.textContent='Nao encontrei dados de entrega. Tente foto mais proxima do texto.';
+        loading.textContent='Nao encontrei enderecos. Tente foto mais proxima do texto.';
         loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
         btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
         document.getElementById('ocr-input').value='';
