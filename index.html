@@ -475,7 +475,7 @@ function criarMapa(lat,lon){
   var icone=L.divIcon({html:'<div style="width:16px;height:16px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(249,115,22,0.3);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
   marker=L.marker([lat,lon],{icon:icone,zIndexOffset:1000}).addTo(map);
   rotaLine=L.polyline([],{color:'#F97316',weight:5,opacity:0.9}).addTo(map);
-  // GPS inicia somente quando usuario clica na aba Rota
+  setTimeout(startGPS, 500);
 }
 
 function startGPS(){
