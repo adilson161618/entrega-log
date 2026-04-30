@@ -461,18 +461,7 @@ async function fazerLogin(){
 // ===== MAPA E GPS =====
 function initMap(){
   if(map) return;
-  // Sempre busca GPS real primeiro
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(function(pos){
-      currentPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
-      criarMapa(pos.coords.latitude,pos.coords.longitude);
-    },function(){
-      // Fallback sem GPS — mapa do Brasil centralizado
-      criarMapa(-15.77,-47.92);
-    },{enableHighAccuracy:true,timeout:8000});
-  } else {
-    criarMapa(-15.77,-47.92);
-  }
+  criarMapa(-15.77,-47.92);
 }
 
 function criarMapa(lat,lon){
@@ -486,15 +475,14 @@ function criarMapa(lat,lon){
   var icone=L.divIcon({html:'<div style="width:16px;height:16px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(249,115,22,0.3);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
   marker=L.marker([lat,lon],{icon:icone,zIndexOffset:1000}).addTo(map);
   rotaLine=L.polyline([],{color:'#F97316',weight:5,opacity:0.9}).addTo(map);
-  startGPS();
+  // GPS inicia somente quando usuario clica na aba Rota
 }
 
 function startGPS(){
-  if(!navigator.geolocation){
-    document.getElementById('gps-coords').textContent='GPS não suportado';
-    return;
-  }
-  if(watchId) navigator.geolocation.clearWatch(watchId);
+  if(!navigator.geolocation) return;
+  if(watchId) return; // ja iniciado
+  // Tenta sem alta precisao primeiro para nao travar
+  try{
   watchId=navigator.geolocation.watchPosition(
     function(pos){
       var la=pos.coords.latitude, lo=pos.coords.longitude;
@@ -523,8 +511,9 @@ function startGPS(){
       var m={1:'Permissão negada',2:'Indisponível',3:'Timeout'};
       document.getElementById('gps-coords').textContent=m[err.code]||'Erro GPS';
     },
-    {enableHighAccuracy:true,maximumAge:0,timeout:30000}
+    {enableHighAccuracy:false,maximumAge:5000,timeout:15000}
   );
+  }catch(e){console.log('GPS erro:',e);}
 }
 
 function haverDist(a,b){
@@ -598,7 +587,12 @@ function showTab(t){
   var idx=tabs.indexOf(t);
   var btns=document.querySelectorAll('.ntab');
   if(btns[idx]) btns[idx].classList.add('active');
-  if(t==='mapa'){setTimeout(function(){if(map)map.invalidateSize();},100);}
+  if(t==='mapa'){
+    setTimeout(function(){
+      if(map) map.invalidateSize();
+      if(!watchId) startGPS();
+    },100);
+  }
   if(t==='historico') renderHistorico();
   if(t==='relatorio') renderRelatorio();
   if(t==='rotas') renderRotas();
@@ -1312,7 +1306,7 @@ async function processarOCR(event){
     try{
       var imgData=base64.split(',')[1];
       var mediaType=file.type||'image/jpeg';
-      var response=await fetch('https://willowy-shortbread-dd6bdb.netlify.app/.netlify/functions/ocr',{
+      var response=await fetch('https://dreamy-zabaione-29282d.netlify.app/.netlify/functions/ocr',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
@@ -1477,12 +1471,7 @@ document.addEventListener('click',function(e){
 // ===== INIT =====
 initDark();
 hideSplash();
-// Pré-carrega GPS
-if(navigator.geolocation){
-  navigator.geolocation.getCurrentPosition(function(pos){
-    currentPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
-  },function(){},{enableHighAccuracy:true,timeout:10000});
-}
+// GPS iniciado pelo mapa
 monitorarBateria();
 if(!onlineStatus) document.getElementById("offline-bar").classList.add("show");
 sincronizarFila();
