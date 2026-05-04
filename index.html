@@ -242,6 +242,10 @@ body.dark #premium-sheet{background:#1a1a1a;}
 .btn-fechar-prem{background:none;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;width:100%;font-family:inherit;}
 .prem-preco{font-size:28px;font-weight:800;color:#F97316;text-align:center;margin-bottom:4px;}
 .prem-sub{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:16px;}
+
+#btn-loc-atual{position:absolute;bottom:70px;right:12px;z-index:1001;width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid #F97316;color:#F97316;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+body.dark #btn-loc-atual{background:#1a1a1a;border-color:#F97316;}
+#loc-status{position:absolute;bottom:125px;right:12px;z-index:1001;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;padding:6px 10px;border-radius:8px;display:none;max-width:200px;text-align:center;}
 </style>
 </head>
 <body>
@@ -301,6 +305,8 @@ body.dark #premium-sheet{background:#1a1a1a;}
         <div id="km-badge">0.00 km</div>
       </div>
       <button id="parada-btn" onclick="abrirModalParada()">📍 Registrar este ponto</button>
+      <button id="btn-loc-atual" onclick="capturarLocalizacaoAtual()" title="Capturar minha localização agora">📍</button>
+      <div id="loc-status"></div>
       <div id="nav-mode">
         <div id="nav-destino">Navegando...</div>
         <div id="nav-dist">-- km</div>
