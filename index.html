@@ -227,6 +227,21 @@ body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
 @keyframes vpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
 #voice-text{font-size:16px;margin-top:20px;opacity:0.9;}
 #voice-cancel{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;cursor:pointer;margin-top:20px;font-family:inherit;}
+
+#modal-premium{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;align-items:flex-end;justify-content:center;}
+#modal-premium.open{display:flex;}
+#premium-sheet{background:#fff;border-radius:20px 20px 0 0;padding:24px 16px 36px;width:100%;max-width:430px;}
+body.dark #premium-sheet{background:#1a1a1a;}
+#premium-sheet h3{font-size:18px;font-weight:700;color:#F97316;margin-bottom:6px;}
+#premium-sheet p{font-size:13px;color:var(--color-text-secondary);margin-bottom:16px;line-height:1.6;}
+.prem-features{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.prem-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--color-text-primary);}
+.prem-feat-dot{width:20px;height:20px;border-radius:50%;background:#E1F5EE;color:#085041;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.btn-assinar{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.btn-indicar{background:#25D366;color:#fff;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.btn-fechar-prem{background:none;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;width:100%;font-family:inherit;}
+.prem-preco{font-size:28px;font-weight:800;color:#F97316;text-align:center;margin-bottom:4px;}
+.prem-sub{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -306,9 +321,10 @@ body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
     <div id="entregas-wrap">
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
-        <button id="ocr-btn" onclick="mostrarEmBreve()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);opacity:0.8;">
-          📷 Fotografar endereço — Em breve
+        <button id="ocr-btn" onclick="verificarEAbrirOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
+          📷 Fotografar endereço — etiqueta ou qualquer documento
         </button>
+        <div id="ocr-counter" style="font-size:11px;color:var(--color-text-secondary);text-align:center;margin-top:-4px;margin-bottom:6px;"></div>
         <input type="file" id="ocr-input" accept="image/*" capture="environment" style="display:none" onchange="processarOCR(event)"/>
         <img id="ocr-preview" src="" alt="" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;"/>
         <div id="ocr-loading" style="display:none;background:#EDE9FE;border:1px solid #7C3AED;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#5B21B6;text-align:center;"></div>
@@ -1030,7 +1046,16 @@ async function salvarRegistro(){
 
 // ===== HISTORICO =====
 function renderHistorico(){
-  var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+  var listaCompleta=JSON.parse(localStorage.getItem('el_regs')||'[]');
+  var lista=verificarHistorico7dias(listaCompleta);
+  if(!isPremium()&&listaCompleta.length>lista.length){
+    var bloqueados=listaCompleta.length-lista.length;
+    var aviso=document.createElement('div');
+    aviso.style.cssText='background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#C2410C;cursor:pointer;';
+    aviso.innerHTML='Voce tem '+bloqueados+' registro(s) com mais de 7 dias. <b>Assine o Premium</b> para ver tudo.';
+    aviso.onclick=function(){abrirPremium('Seu historico completo esta disponivel no Premium por R$ 9,90/mes.');};
+    document.getElementById('hist-list').before(aviso);
+  }
   var el=document.getElementById('hist-list');
   if(!lista.length){el.innerHTML='<div class="hist-empty">Nenhum endereço registrado.</div>';return;}
   el.innerHTML='';
@@ -1286,6 +1311,17 @@ function processarComandoVoz(texto){
 }
 
 
+function verificarEAbrirOCR(){
+  if(!verificarLimiteOCR()) return;
+  document.getElementById('ocr-input').click();
+  // Atualiza contador
+  var scans=getScansHoje();
+  var counter=document.getElementById('ocr-counter');
+  if(counter&&!isPremium()){
+    counter.textContent=(3-scans)+' scan(s) gratuito(s) restante(s) hoje';
+  }
+}
+
 function mostrarEmBreve(){
   var loading=document.getElementById('ocr-loading');
   loading.style.display='block';
@@ -1296,6 +1332,82 @@ function mostrarEmBreve(){
   setTimeout(function(){loading.style.display='none';},3000);
 }
 
+
+// ===== SISTEMA PREMIUM =====
+function isPremium(){
+  try{
+    var exp=localStorage.getItem('el_premium_exp');
+    if(!exp) return false;
+    return new Date(exp)>new Date();
+  }catch(e){return false;}
+}
+
+function getScansHoje(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var data=JSON.parse(localStorage.getItem('el_scans')||'{}');
+    if(data.dia!==hoje) return 0;
+    return data.count||0;
+  }catch(e){return 0;}
+}
+
+function incrementarScans(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var data=JSON.parse(localStorage.getItem('el_scans')||'{}');
+    if(data.dia!==hoje) data={dia:hoje,count:0};
+    data.count++;
+    localStorage.setItem('el_scans',JSON.stringify(data));
+  }catch(e){}
+}
+
+function verificarLimiteOCR(){
+  if(isPremium()) return true;
+  var scans=getScansHoje();
+  if(scans>=3){
+    abrirPremium('Voce usou seus 3 scans gratuitos de hoje. No premium sao ilimitados por R$ 9,90/mes — menos que 2 entregas!');
+    return false;
+  }
+  return true;
+}
+
+function abrirPremium(msg){
+  if(msg) document.getElementById('premium-msg').textContent=msg;
+  document.getElementById('modal-premium').classList.add('open');
+}
+
+function fecharPremium(){
+  document.getElementById('modal-premium').classList.remove('open');
+}
+
+function assinarPremium(){
+  fecharPremium();
+  // Redireciona para Play Store ou link de pagamento
+  alert('Em breve disponivel na Play Store! Por enquanto entre em contato pelo WhatsApp para assinar.');
+}
+
+function indicarAmigos(){
+  fecharPremium();
+  var nome=usuarioAtual?usuarioAtual.nome:'Entregador';
+  var msg='Ola! Estou usando o EntregaLog para organizar minhas entregas e ficou incrivel!\n\n'
+    +'Baixe gratuitamente:\nhttps://adilson161618.github.io/entrega-log\n\n'
+    +'Se voce baixar pelo meu link eu ganho 30 dias premium gratis! Valeu!';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+function verificarHistorico7dias(lista){
+  if(isPremium()) return lista;
+  var limite=new Date();
+  limite.setDate(limite.getDate()-7);
+  return lista.filter(function(r){
+    try{
+      var partes=r.data.split('/');
+      var data=new Date(partes[2].split(',')[0],partes[1]-1,partes[0]);
+      return data>=limite;
+    }catch(e){return true;}
+  });
+}
+
 // ===== OCR =====
 var ocrResultados=[];
 var ocrFotoBase64=null;
@@ -1303,6 +1415,12 @@ var ocrFotoBase64=null;
 async function processarOCR(event){
   var file=event.target.files[0];
   if(!file) return;
+  // Verifica limite de scans
+  if(!verificarLimiteOCR()){
+    document.getElementById('ocr-input').value='';
+    return;
+  }
+  incrementarScans();
   var reader=new FileReader();
   reader.onload=async function(e){
     var base64=e.target.result;
@@ -1502,6 +1620,14 @@ initDark();
 hideSplash();
 // GPS iniciado pelo mapa
 monitorarBateria();
+// Atualiza contador OCR
+setTimeout(function(){
+  var scans=getScansHoje();
+  var counter=document.getElementById('ocr-counter');
+  if(counter&&!isPremium()){
+    counter.textContent=(3-scans)+' scan(s) gratuito(s) restante(s) hoje';
+  }
+},2500);
 if(!onlineStatus) document.getElementById("offline-bar").classList.add("show");
 sincronizarFila();
 setTimeout(function(){
@@ -1556,6 +1682,26 @@ setTimeout(function(){
     <div id="ocr-itens-lista"></div>
     <button onclick="confirmarOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;">✅ Adicionar todas à lista</button>
     <button onclick="fecharModalOCR()" style="background:#f5f5f5;color:#666;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+
+
+<div id="modal-premium">
+  <div id="premium-sheet">
+    <h3>EntregaLog Premium</h3>
+    <p id="premium-msg">Desbloqueie todos os recursos e faça muito mais entregas por dia.</p>
+    <div class="prem-preco">R$ 9,90</div>
+    <div class="prem-sub">por mes — menos que 2 entregas</div>
+    <div class="prem-features">
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>OCR ilimitado — leia qualquer documento</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Historico completo sem limite de tempo</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Relatorio PDF mensal com ganhos</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Suporte prioritario por WhatsApp</div>
+    </div>
+    <button class="btn-assinar" onclick="assinarPremium()">Assinar por R$ 9,90/mes</button>
+    <button class="btn-indicar" onclick="indicarAmigos()">Indicar 3 amigos e ganhar 30 dias gratis</button>
+    <button class="btn-fechar-prem" onclick="fecharPremium()">Agora nao</button>
   </div>
 </div>
 
