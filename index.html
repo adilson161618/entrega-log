@@ -306,7 +306,9 @@ body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
     <div id="entregas-wrap">
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
-        <button id="ocr-btn" onclick="document.getElementById('ocr-input').click()">📷 Fotografar endereço — etiqueta, papel ou escrito à mão</button>
+        <button id="ocr-btn" onclick="mostrarEmBreve()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);opacity:0.8;">
+          📷 Fotografar endereço — Em breve
+        </button>
         <input type="file" id="ocr-input" accept="image/*" capture="environment" style="display:none" onchange="processarOCR(event)"/>
         <img id="ocr-preview" src="" alt="" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;"/>
         <div id="ocr-loading" style="display:none;background:#EDE9FE;border:1px solid #7C3AED;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#5B21B6;text-align:center;"></div>
@@ -1283,6 +1285,16 @@ function processarComandoVoz(texto){
   showTab('mapa');
 }
 
+
+function mostrarEmBreve(){
+  var loading=document.getElementById('ocr-loading');
+  loading.style.display='block';
+  loading.style.background='#EDE9FE';
+  loading.style.borderColor='#7C3AED';
+  loading.style.color='#5B21B6';
+  loading.textContent='🚀 Leitura de endereço por IA — disponível em breve!';
+  setTimeout(function(){loading.style.display='none';},3000);
+}
 
 // ===== OCR =====
 var ocrResultados=[];
