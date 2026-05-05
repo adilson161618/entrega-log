@@ -246,6 +246,27 @@ body.dark #premium-sheet{background:#1a1a1a;}
 #btn-loc-atual{position:absolute;bottom:70px;right:12px;z-index:1001;width:48px;height:48px;border-radius:50%;background:#fff;border:2px solid #F97316;color:#F97316;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
 body.dark #btn-loc-atual{background:#1a1a1a;border-color:#F97316;}
 #loc-status{position:absolute;bottom:125px;right:12px;z-index:1001;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;padding:6px 10px;border-radius:8px;display:none;max-width:200px;text-align:center;}
+
+#modal-feedback{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;align-items:flex-end;justify-content:center;}
+#modal-feedback.open{display:flex;}
+#feedback-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #feedback-sheet{background:#1a1a1a;}
+#feedback-sheet h3{font-size:16px;font-weight:700;color:#111;margin-bottom:4px;}
+body.dark #feedback-sheet h3{color:#eee;}
+#feedback-sheet p{font-size:12px;color:#888;margin-bottom:16px;}
+.nps-wrap{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.nps-btn{width:42px;height:42px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:#111;transition:all 0.15s;}
+body.dark .nps-btn{background:#222;border-color:#444;color:#eee;}
+.nps-btn:hover{border-color:#F97316;color:#F97316;}
+.nps-btn.selected{background:#F97316;color:#fff;border-color:#F97316;}
+.nps-labels{display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:-10px;margin-bottom:16px;}
+.feedback-categoria{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.cat-btn{padding:8px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:12px;cursor:pointer;font-family:inherit;color:#666;text-align:center;}
+body.dark .cat-btn{background:#222;border-color:#444;color:#aaa;}
+.cat-btn.selected{border-color:#F97316;color:#F97316;background:#FFF7ED;}
+.btn-enviar-fb{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn-fechar-fb{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
+#feedback-tab-btn{position:fixed;right:-32px;top:50%;transform:translateY(-50%) rotate(-90deg);z-index:999;background:#F97316;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(249,115,22,0.4);}
 </style>
 </head>
 <body>
@@ -740,6 +761,7 @@ function marcarEntregue(){
   entregas[i].entregue=true;
   if(currentPos&&(!entregas[i].lat||!entregas[i].lon)){entregas[i].lat=currentPos.lat;entregas[i].lon=currentPos.lon;}
   salvarEstatDia(1);
+  verificarMomentFeedback();
   renderLista();
   proximaEntrega();
 }
@@ -1339,6 +1361,94 @@ function mostrarEmBreve(){
 }
 
 
+
+// ===== FEEDBACK / NPS =====
+var npsScore=-1;
+var catSelecionada='';
+
+function abrirFeedback(){
+  npsScore=-1;
+  catSelecionada='';
+  document.querySelectorAll('.nps-btn').forEach(function(b){b.classList.remove('selected');});
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('selected');});
+  document.getElementById('feedback-texto').value='';
+  document.getElementById('modal-feedback').classList.add('open');
+}
+
+function fecharFeedback(){
+  document.getElementById('modal-feedback').classList.remove('open');
+}
+
+function selecionarNPS(n){
+  npsScore=n;
+  document.querySelectorAll('.nps-btn').forEach(function(b,i){
+    b.classList.toggle('selected',i===n);
+  });
+}
+
+function selecionarCat(btn,cat){
+  catSelecionada=cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('selected');});
+  btn.classList.add('selected');
+}
+
+async function enviarFeedback(){
+  var texto=document.getElementById('feedback-texto').value.trim();
+  if(npsScore===-1&&!texto){alert('Por favor selecione uma nota ou escreva uma sugestão!');return;}
+  var usuario=usuarioAtual?usuarioAtual.nome:'Anonimo';
+  var whats=usuarioAtual?usuarioAtual.whatsapp:'';
+  var dados={
+    usuario_nome:usuario,
+    usuario_whatsapp:whats,
+    nps:npsScore,
+    funcionalidade_favorita:catSelecionada,
+    sugestao:texto,
+    data:new Date().toLocaleString('pt-BR')
+  };
+  // Salva no Supabase
+  try{
+    await fetch(SB_URL+'/rest/v1/feedbacks',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify(dados)
+    });
+  }catch(e){}
+  // Salva local
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_feedbacks')||'[]');
+    lista.push(dados);
+    localStorage.setItem('el_feedbacks',JSON.stringify(lista));
+  }catch(e){}
+  fecharFeedback();
+  alert('Obrigado pelo feedback! Isso ajuda muito a melhorar o app. 🙏');
+  // Se NPS >= 9 convida para avaliar na Play Store
+  if(npsScore>=9){
+    setTimeout(function(){
+      if(confirm('Que ótimo! Você toparia avaliar o EntregaLog na Play Store? Leva 30 segundos e ajuda muito!')){
+        window.open('https://play.google.com/store/apps/details?id=com.entregalog','_blank');
+      }
+    },500);
+  }
+}
+
+// Mostra feedback após 10 entregas ou 7 dias de uso
+function verificarMomentFeedback(){
+  try{
+    var mostrou=localStorage.getItem('el_fb_mostrou');
+    if(mostrou) return;
+    var stats=JSON.parse(localStorage.getItem('el_stats')||'{}');
+    var total=Object.values(stats).reduce(function(a,b){return a+b;},0);
+    if(total>=10){
+      localStorage.setItem('el_fb_mostrou','1');
+      setTimeout(function(){
+        if(confirm('Você já fez '+total+' entregas com o EntregaLog! Pode dar uma opinião rápida para melhorarmos o app?')){
+          abrirFeedback();
+        }
+      },2000);
+    }
+  }catch(e){}
+}
+
 // ===== SISTEMA PREMIUM =====
 function isPremium(){
   try{
@@ -1708,6 +1818,46 @@ setTimeout(function(){
     <button class="btn-assinar" onclick="assinarPremium()">Assinar por R$ 9,90/mes</button>
     <button class="btn-indicar" onclick="indicarAmigos()">Indicar 3 amigos e ganhar 30 dias gratis</button>
     <button class="btn-fechar-prem" onclick="fecharPremium()">Agora nao</button>
+  </div>
+</div>
+
+
+<button id="feedback-tab-btn" onclick="abrirFeedback()">💬 Feedback</button>
+
+<div id="modal-feedback">
+  <div id="feedback-sheet">
+    <h3>💬 Sua opinião importa!</h3>
+    <p>Ajude a melhorar o EntregaLog. Leva menos de 1 minuto!</p>
+    
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:8px;">De 0 a 10 quanto você indicaria o EntregaLog para outro entregador?</label>
+    <div class="nps-wrap" id="nps-wrap">
+      <button class="nps-btn" onclick="selecionarNPS(0)">0</button>
+      <button class="nps-btn" onclick="selecionarNPS(1)">1</button>
+      <button class="nps-btn" onclick="selecionarNPS(2)">2</button>
+      <button class="nps-btn" onclick="selecionarNPS(3)">3</button>
+      <button class="nps-btn" onclick="selecionarNPS(4)">4</button>
+      <button class="nps-btn" onclick="selecionarNPS(5)">5</button>
+      <button class="nps-btn" onclick="selecionarNPS(6)">6</button>
+      <button class="nps-btn" onclick="selecionarNPS(7)">7</button>
+      <button class="nps-btn" onclick="selecionarNPS(8)">8</button>
+      <button class="nps-btn" onclick="selecionarNPS(9)">9</button>
+      <button class="nps-btn" onclick="selecionarNPS(10)">10</button>
+    </div>
+    <div class="nps-labels"><span>Não indicaria</span><span>Indicaria com certeza</span></div>
+
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:8px;">O que você mais usa no app?</label>
+    <div class="feedback-categoria">
+      <button class="cat-btn" onclick="selecionarCat(this,'GPS e rota')">🗺 GPS e rota</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Banco de endereços')">📍 Banco de endereços</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'OCR câmera')">📷 OCR câmera</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Histórico')">📁 Histórico</button>
+    </div>
+
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:6px;">O que poderia melhorar ou sua ideia para o app?</label>
+    <textarea class="mi" id="feedback-texto" placeholder="Escreva aqui sua sugestão, ideia ou reclamação..." style="height:80px;resize:none;margin-bottom:12px;"></textarea>
+
+    <button class="btn-enviar-fb" onclick="enviarFeedback()">Enviar feedback</button>
+    <button class="btn-fechar-fb" onclick="fecharFeedback()">Agora não</button>
   </div>
 </div>
 
