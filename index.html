@@ -267,6 +267,30 @@ body.dark .cat-btn{background:#222;border-color:#444;color:#aaa;}
 .btn-enviar-fb{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
 .btn-fechar-fb{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
 #feedback-tab-btn{position:fixed;right:-32px;top:50%;transform:translateY(-50%) rotate(-90deg);z-index:999;background:#F97316;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(249,115,22,0.4);}
+
+#modal-ranking{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;align-items:flex-end;justify-content:center;}
+#modal-ranking.open{display:flex;}
+#ranking-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #ranking-sheet{background:#1a1a1a;}
+#ranking-sheet h3{font-size:16px;font-weight:700;color:#F97316;margin-bottom:4px;}
+#ranking-sheet p{font-size:12px;color:#888;margin-bottom:14px;}
+.rank-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:8px;background:var(--color-background-secondary);}
+.rank-pos{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.rank-pos.ouro{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;}
+.rank-pos.prata{background:linear-gradient(135deg,#9CA3AF,#6B7280);color:#fff;}
+.rank-pos.bronze{background:linear-gradient(135deg,#CD7C2F,#A16207);color:#fff;}
+.rank-pos.normal{background:#F97316;color:#fff;}
+.rank-info{flex:1;}
+.rank-nome{font-size:13px;font-weight:600;color:var(--color-text-primary);}
+.rank-end{font-size:11px;color:var(--color-text-secondary);}
+.rank-pts{font-size:13px;font-weight:700;color:#F97316;}
+.rank-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.badge-ouro{background:#FEF3C7;color:#D97706;}
+.badge-prata{background:#F3F4F6;color:#6B7280;}
+.badge-bronze{background:#FEF9EE;color:#CD7C2F;}
+.rank-minha-pos{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.btn-fechar-rank{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
+#btn-ranking{position:fixed;left:-28px;top:40%;transform:translateY(-50%) rotate(90deg);z-index:999;background:#1D9E75;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(29,158,117,0.4);}
 </style>
 </head>
 <body>
@@ -1449,6 +1473,118 @@ function verificarMomentFeedback(){
   }catch(e){}
 }
 
+
+// ===== SISTEMA DE RANKING =====
+function abrirRanking(){
+  document.getElementById('modal-ranking').classList.add('open');
+  carregarRanking();
+}
+
+function fecharRanking(){
+  document.getElementById('modal-ranking').classList.remove('open');
+}
+
+async function carregarRanking(){
+  var lista=document.getElementById('ranking-lista');
+  try{
+    // Busca top contribuidores do Supabase
+    var res=await fetch(SB_URL+'/rest/v1/enderecos?select=usuario_nome,usuario_whatsapp&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var data=await res.json();
+    
+    // Conta endereços por usuário
+    var contagem={};
+    data.forEach(function(e){
+      var nome=e.usuario_nome||'Anonimo';
+      contagem[nome]=(contagem[nome]||0)+1;
+    });
+    
+    // Ordena por quantidade
+    var ranking=Object.entries(contagem)
+      .sort(function(a,b){return b[1]-a[1];})
+      .slice(0,10);
+    
+    if(ranking.length===0){
+      lista.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#888;">Ainda nao ha contribuidores. Seja o primeiro!</div>';
+      return;
+    }
+    
+    var html='';
+    var medalhas=['🥇','🥈','🥉'];
+    var posClasses=['ouro','prata','bronze'];
+    var badgeClasses=['badge-ouro','badge-prata','badge-bronze'];
+    var badgeTextos=['Ouro','Prata','Bronze'];
+    
+    ranking.forEach(function(item,i){
+      var pos=i+1;
+      var nome=item[0];
+      var pts=item[1];
+      var posClass=i<3?posClasses[i]:'normal';
+      var medal=i<3?medalhas[i]:pos;
+      
+      html+='<div class="rank-item">';
+      html+='<div class="rank-pos '+posClass+'">'+medal+'</div>';
+      html+='<div class="rank-info">';
+      html+='<div class="rank-nome">'+nome+'</div>';
+      html+='<div class="rank-end">'+pts+' endereco'+(pts>1?'s':'')+' registrado'+(pts>1?'s':'')+'</div>';
+      html+='</div>';
+      if(i<3) html+='<span class="rank-badge '+badgeClasses[i]+'">'+badgeTextos[i]+'</span>';
+      html+='<div class="rank-pts">+'+pts+'</div>';
+      html+='</div>';
+      
+      // Verifica se e o usuario atual
+      if(usuarioAtual&&nome===usuarioAtual.nome){
+        document.getElementById('minha-posicao').style.display='flex';
+        document.getElementById('rank-meu-nome').textContent=nome;
+        document.getElementById('rank-meu-pts').textContent=pts+' endereco'+(pts>1?'s':'')+' registrado'+(pts>1?'s':'');
+        document.getElementById('rank-minha-pos-num').textContent='#'+pos;
+      }
+    });
+    
+    lista.innerHTML=html;
+    
+    // Mostra posicao do usuario se nao esta no top 10
+    if(usuarioAtual){
+      var meuIndex=ranking.findIndex(function(r){return r[0]===usuarioAtual.nome;});
+      if(meuIndex===-1){
+        document.getElementById('minha-posicao').style.display='flex';
+        document.getElementById('rank-meu-nome').textContent=usuarioAtual.nome;
+        document.getElementById('rank-meu-pts').textContent='0 enderecos registrados';
+        document.getElementById('rank-minha-pos-num').textContent='#-';
+      }
+    }
+    
+  }catch(e){
+    lista.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#888;">Erro ao carregar ranking. Tente novamente.</div>';
+  }
+}
+
+// Notifica quando entregador registra endereco novo
+function notificarContribuicao(){
+  try{
+    var total=parseInt(localStorage.getItem('el_contrib')||'0')+1;
+    localStorage.setItem('el_contrib',total);
+    // Marcos de conquista
+    var marcos=[1,5,10,25,50,100];
+    if(marcos.includes(total)){
+      setTimeout(function(){
+        var msgs={
+          1:'Parabens! Voce registrou seu 1o endereco! Continue contribuindo!',
+          5:'Incrivel! 5 enderecos registrados! Voce ja esta ajudando outros entregadores!',
+          10:'Top 10 contribuicoes! Voce e um colaborador essencial da comunidade!',
+          25:'25 enderecos! Voce ja esta no caminho para o ranking de ouro!',
+          50:'50 enderecos! Que conquista incrivel! Voce e referencia na comunidade!',
+          100:'100 enderecos! Lendario! Voce transformou o EntregaLog em Chapeco!'
+        };
+        if(confirm(msgs[total]+'\n\nVer seu ranking?')){
+          abrirRanking();
+        }
+      },1000);
+    }
+  }catch(e){}
+}
+
 // ===== SISTEMA PREMIUM =====
 function isPremium(){
   try{
@@ -1858,6 +1994,31 @@ setTimeout(function(){
 
     <button class="btn-enviar-fb" onclick="enviarFeedback()">Enviar feedback</button>
     <button class="btn-fechar-fb" onclick="fecharFeedback()">Agora não</button>
+  </div>
+</div>
+
+
+<button id="btn-ranking" onclick="abrirRanking()">🏆 Ranking</button>
+
+<div id="modal-ranking">
+  <div id="ranking-sheet">
+    <h3>🏆 Top Colaboradores</h3>
+    <p>Entregadores que mais registraram endereços difíceis e ajudaram a comunidade!</p>
+    
+    <div class="rank-minha-pos" id="minha-posicao" style="display:none;">
+      <div style="font-size:24px;">📍</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);" id="rank-meu-nome">Você</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);" id="rank-meu-pts">0 endereços registrados</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#F97316;" id="rank-minha-pos-num">#-</div>
+    </div>
+    
+    <div id="ranking-lista">
+      <div style="text-align:center;padding:20px;font-size:13px;color:#888;">Carregando ranking...</div>
+    </div>
+    
+    <button class="btn-fechar-rank" onclick="fecharRanking()">Fechar</button>
   </div>
 </div>
 
