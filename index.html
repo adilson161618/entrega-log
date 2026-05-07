@@ -482,7 +482,21 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var map=null,marker=null,rotaLine=null,watchId=null;
 var rotaCoords=[],distTotal=0,lastPos=null;
 var entregas=[],currentPos=null,usuarioAtual=null,photoData=null;
-var paradaTimer=0,paradaPos=null,paradaRef=null;
+var paradaTimer=0,paradaPos=null,paradaRef=null,paradaFotoBase64=null;
+
+function previewFotoParada(event){
+  var file=event.target.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    paradaFotoBase64=e.target.result;
+    var preview=document.getElementById('parada-foto-preview');
+    var status=document.getElementById('parada-foto-status');
+    if(preview){preview.src=e.target.result;preview.style.display='block';}
+    if(status) status.textContent='Foto capturada!';
+  };
+  reader.readAsDataURL(file);
+}
 
 // ===== DARK MODE =====
 function toggleDark(){
