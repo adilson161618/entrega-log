@@ -1183,9 +1183,7 @@ function renderHistorico(){
             if(currentPos){
               var linhaNav=L.polyline([[currentPos.lat,currentPos.lon],[r.lat,r.lon]],{color:'#1D9E75',weight:4,dashArray:'8,6'}).addTo(map);
             }
-            alert('🧭 Navegando para: '+(r.nome||r.addr)+'
-
-Siga a linha verde no mapa!');
+            alert('Navegando para: '+(r.nome||r.addr)+'. Siga a linha verde no mapa!');
           }
         },400);
       };
