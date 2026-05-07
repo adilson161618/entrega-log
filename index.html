@@ -1140,6 +1140,7 @@ function renderHistorico(){
       +'<div class="hist-meta">'+(r.data||'')+(r.registrado_por?' · '+r.registrado_por:'')+'</div>'
       +'<div style="display:flex;gap:8px;margin-top:10px;">'
         +'<button id="btn-rota-'+idx+'" style="flex:1;background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Rota</button>'
+        +(r.lat&&r.lon?'<button id="btn-ir-'+idx+'" style="flex:1;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🧭 Ir</button>':'')
         +(r.lat&&r.lon?'<button id="btn-mapa-'+idx+'" style="flex:1;background:#E1F5EE;color:#085041;border:1px solid #1D9E75;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗺 Ver</button>':'')
         +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'
       +'</div>';
