@@ -633,8 +633,18 @@ async function confirmarParada(){
   var nota=document.getElementById('parada-nota').value.trim();
   var usr=usuarioAtual?usuarioAtual.nome:'auto';
   var reg={nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr};
-  // Local
-  try{var l=JSON.parse(localStorage.getItem('el_regs')||'[]');l.unshift(reg);localStorage.setItem('el_regs',JSON.stringify(l));}catch(e){}
+  // Salva no historico de enderecos salvos
+  try{
+    var l=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    l.unshift(reg);
+    localStorage.setItem('el_regs',JSON.stringify(l));
+  }catch(e){}
+  // Salva tambem no banco local de enderecos para autocomplete
+  try{
+    var bancol=JSON.parse(localStorage.getItem('el_banco_local')||'[]');
+    bancol.unshift({addr:paradaRef.addr,lat:paradaRef.lat,lon:paradaRef.lon,nota:nota});
+    localStorage.setItem('el_banco_local',JSON.stringify(bancol.slice(0,500)));
+  }catch(e){}
   // Supabase
   try{await fetch(SB_URL+'/rest/v1/enderecos',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,registrado_por:usr})});}catch(e){}
   // Pin verde
@@ -642,8 +652,9 @@ async function confirmarParada(){
     var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">📍</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
     L.marker([paradaRef.lat,paradaRef.lon],{icon:ic}).addTo(map).bindPopup('<b>'+paradaRef.nome+'</b>'+(nota?'<br/>'+nota:''));
   }
+  notificarContribuicao();
   fecharModalParada();
-  alert('✅ Ponto registrado e salvo!');
+  alert('✅ Ponto registrado e salvo no historico e no banco colaborativo!');
 }
 
 // ===== TABS =====
