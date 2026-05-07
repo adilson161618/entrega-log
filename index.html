@@ -1162,6 +1162,34 @@ function renderHistorico(){
       },400);
     };
 
+    // Ir direto — navega para o endereco
+    if(r.lat&&r.lon){
+      document.getElementById('btn-ir-'+idx).onclick=function(){
+        // Adiciona como entrega e inicia navegacao
+        var nova={id:Date.now(),nome:r.nome||'Local',addr:r.addr||'',tel:'',lat:r.lat,lon:r.lon,entregue:false,conhecido:true,dica:r.nota||''};
+        entregas.unshift(nova);
+        renderLista();
+        showTab('mapa');
+        setTimeout(function(){
+          if(map&&typeof L!=='undefined'){
+            map.setView([r.lat,r.lon],17);
+            // Inicia navegacao interna
+            navegandoPara=nova;
+            destLat=r.lat;destLon=r.lon;
+            var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#1D9E75;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+            // Desenha linha de rota ate o destino
+            if(currentPos){
+              var linhaNav=L.polyline([[currentPos.lat,currentPos.lon],[r.lat,r.lon]],{color:'#1D9E75',weight:4,dashArray:'8,6'}).addTo(map);
+            }
+            alert('🧭 Navegando para: '+(r.nome||r.addr)+'
+
+Siga a linha verde no mapa!');
+          }
+        },400);
+      };
+    }
+
     // Ver mapa
     if(r.lat&&r.lon){
       document.getElementById('btn-mapa-'+idx).onclick=function(){
