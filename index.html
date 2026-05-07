@@ -458,17 +458,17 @@ body.dark #ranking-sheet{background:#1a1a1a;}
     </div>
     <label class="ml">Dica - opcional</label>
     <textarea class="mi" id="parada-nota" placeholder="Ex: Portaria nos fundos..."></textarea>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:6px;">📷 Foto do local — opcional</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+        <button onclick="document.getElementById('parada-foto-input').click()" style="background:#7C3AED;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;cursor:pointer;font-family:inherit;width:100%;">📷 Tirar foto do local</button>
+      </div>
+      <span id="parada-foto-status" style="font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:6px;">Nenhuma foto tirada</span>
+      <input type="file" id="parada-foto-input" accept="image/*" capture="environment" style="display:none" onchange="previewFotoParada(event)"/>
+      <img id="parada-foto-preview" style="display:none;width:100%;border-radius:10px;margin-bottom:8px;max-height:150px;object-fit:cover;" />
+    </div>
     <div class="mbtn-row">
       <button class="mbtn" onclick="fecharModalParada()">Cancelar</button>
-      <div style="margin-bottom:10px;">
-        <label style="font-size:12px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:6px;">📷 Foto do local — opcional</label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button onclick="document.getElementById('parada-foto-input').click()" style="background:#7C3AED;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;cursor:pointer;font-family:inherit;">📷 Tirar foto</button>
-          <span id="parada-foto-status" style="font-size:11px;color:var(--color-text-secondary);">Nenhuma foto</span>
-        </div>
-        <input type="file" id="parada-foto-input" accept="image/*" capture="environment" style="display:none" onchange="previewFotoParada(event)"/>
-        <img id="parada-foto-preview" style="display:none;width:100%;border-radius:10px;margin-top:8px;max-height:150px;object-fit:cover;" />
-      </div>
       <button class="mbtn ok" onclick="confirmarParada()">💾 Salvar</button>
     </div>
   </div>
