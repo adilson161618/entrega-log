@@ -1572,8 +1572,13 @@ async function capturarLocalizacaoAtual(){
         document.getElementById('parada-nome').textContent='Local atual';
         document.getElementById('parada-addr').textContent=addr;
         document.getElementById('parada-coords-txt').textContent=pos.lat.toFixed(5)+', '+pos.lon.toFixed(5);
-        document.getElementById('parada-status').textContent='✓ Localização capturada';
+        document.getElementById('parada-status').textContent='Localizacao capturada';
         document.getElementById('parada-nota').value='';
+        paradaFotoBase64=null;
+        var prev=document.getElementById('parada-foto-preview');
+        var stat=document.getElementById('parada-foto-status');
+        if(prev){prev.style.display='none';prev.src='';}
+        if(stat) stat.textContent='Nenhuma foto tirada';
         document.getElementById('modal-parada').classList.add('open');
       }
       if(status) status.style.display='none';
