@@ -291,6 +291,12 @@ body.dark #ranking-sheet{background:#1a1a1a;}
 .rank-minha-pos{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
 .btn-fechar-rank{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
 #btn-ranking{position:fixed;left:-28px;top:40%;transform:translateY(-50%) rotate(90deg);z-index:999;background:#1D9E75;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(29,158,117,0.4);}
+
+#modal-foto-full{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center;flex-direction:column;}
+#modal-foto-full.open{display:flex;}
+#foto-full-img{max-width:95%;max-height:85vh;border-radius:12px;object-fit:contain;}
+#btn-fechar-foto{color:#fff;background:none;border:none;font-size:16px;margin-top:16px;cursor:pointer;font-family:inherit;padding:8px 20px;background:rgba(255,255,255,0.15);border-radius:20px;}
+.hist-photo{cursor:pointer;border-radius:10px;width:100%;max-height:150px;object-fit:cover;margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -483,6 +489,16 @@ var map=null,marker=null,rotaLine=null,watchId=null;
 var rotaCoords=[],distTotal=0,lastPos=null;
 var entregas=[],currentPos=null,usuarioAtual=null,photoData=null;
 var paradaTimer=0,paradaPos=null,paradaRef=null,paradaFotoBase64=null;
+
+
+function abrirFotoFull(src){
+  document.getElementById('foto-full-img').src=src;
+  document.getElementById('modal-foto-full').classList.add('open');
+}
+function fecharFotoFull(){
+  document.getElementById('modal-foto-full').classList.remove('open');
+  document.getElementById('foto-full-img').src='';
+}
 
 function previewFotoParada(event){
   var file=event.target.files[0];
@@ -1150,13 +1166,13 @@ function renderHistorico(){
     c.innerHTML='<div class="hist-nome">'+(r.nome||'Local')+'</div>'
       +'<div class="hist-addr">'+(r.addr||'')+'</div>'
       +(r.nota?'<div class="hist-nota">💡 '+r.nota+'</div>':'')
-      +(r.foto?'<img class="hist-photo" src="'+r.foto+'"/>':'')
+      +(r.foto?'<img class="hist-photo" src="'+r.foto+'" onclick="abrirFotoFull(this.src)" title="Toque para ampliar"/>':'')
       +'<div class="hist-meta">'+(r.data||'')+(r.registrado_por?' · '+r.registrado_por:'')+'</div>'
       +'<div style="display:flex;gap:8px;margin-top:10px;">'
         +'<button id="btn-rota-'+idx+'" style="flex:1;background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Rota</button>'
         +(r.lat&&r.lon?'<button id="btn-ir-'+idx+'" style="flex:1;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🧭 Ir</button>':'')
         +(r.lat&&r.lon?'<button id="btn-mapa-'+idx+'" style="flex:1;background:#E1F5EE;color:#085041;border:1px solid #1D9E75;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗺 Ver</button>':'')
-        +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'
+        +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'        +'<button id="btn-del-'+idx+'" style="background:#FEE2E2;color:#DC2626;border:none;border-radius:8px;padding:8px 10px;font-size:14px;cursor:pointer;">🗑</button>'
       +'</div>';
     el.appendChild(c);
 
@@ -2156,6 +2172,12 @@ setTimeout(function(){
     
     <button class="btn-fechar-rank" onclick="fecharRanking()">Fechar</button>
   </div>
+</div>
+
+
+<div id="modal-foto-full">
+  <img id="foto-full-img" src="" alt="Foto do local"/>
+  <button id="btn-fechar-foto" onclick="fecharFotoFull()">✕ Fechar</button>
 </div>
 
 </body>
