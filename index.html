@@ -475,7 +475,7 @@ body.dark #ranking-sheet{background:#1a1a1a;}
     </div>
     <div class="mbtn-row">
       <button class="mbtn" onclick="fecharModalParada()">Cancelar</button>
-      <button class="mbtn ok" onclick="confirmarParada()">💾 Salvar</button>
+      <button class="mbtn ok" onclick="confirmarParadaComVerificacao()">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -1735,6 +1735,85 @@ function notificarContribuicao(){
       },1000);
     }
   }catch(e){}
+}
+
+
+// ===== DETECCAO DE DUPLICATAS =====
+async function verificarDuplicata(lat, lon, addr){
+  try{
+    // Busca enderecos proximos no Supabase
+    var res = await fetch(SB_URL+'/rest/v1/enderecos?select=id,addr,lat,lon,nota&limit=500',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var data = await res.json();
+    if(!Array.isArray(data)) return null;
+
+    // Verifica proximidade de 50 metros
+    var RAIO = 0.05; // 50 metros em km
+    var proximos = data.filter(function(e){
+      if(!e.lat||!e.lon) return false;
+      var R=6371;
+      var dLat=(e.lat-lat)*Math.PI/180;
+      var dLon=(e.lon-lon)*Math.PI/180;
+      var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+        Math.cos(lat*Math.PI/180)*Math.cos(e.lat*Math.PI/180)*
+        Math.sin(dLon/2)*Math.sin(dLon/2);
+      var dist=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      return dist <= RAIO;
+    });
+
+    if(proximos.length > 0) return proximos[0];
+    return null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function confirmarParadaComVerificacao(){
+  var nota = document.getElementById('parada-nota').value.trim();
+  var lat = paradaRef.lat;
+  var lon = paradaRef.lon;
+  var addr = paradaRef.addr;
+
+  // Verifica duplicata antes de salvar
+  var duplicata = await verificarDuplicata(lat, lon, addr);
+  
+  if(duplicata){
+    var opcao = confirm(
+      'Ja existe um registro proximo daqui:\n\n' +
+      '"' + duplicata.addr + '"\n' +
+      (duplicata.nota ? 'Dica: ' + duplicata.nota : '') +
+      '\n\nDeseja atualizar o existente ou salvar como novo?\n\n' +
+      'OK = Atualizar existente\nCancelar = Salvar como novo'
+    );
+    if(opcao){
+      // Atualiza o registro existente
+      try{
+        await fetch(SB_URL+'/rest/v1/enderecos?id=eq.'+duplicata.id,{
+          method:'PATCH',
+          headers:{
+            'Content-Type':'application/json',
+            'apikey':SB_KEY,
+            'Authorization':'Bearer '+SB_KEY,
+            'Prefer':'return=minimal'
+          },
+          body: JSON.stringify({
+            nota: nota||duplicata.nota,
+            foto: paradaFotoBase64||null,
+            updated_at: new Date().toISOString()
+          })
+        });
+        fecharModalParada();
+        alert('Registro atualizado com sucesso!');
+        return;
+      }catch(e){
+        // Se falhar atualização — salva como novo
+      }
+    }
+  }
+  
+  // Salva normalmente
+  confirmarParada();
 }
 
 // ===== SISTEMA PREMIUM =====
