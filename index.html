@@ -1626,6 +1626,96 @@ async function capturarLocalizacaoAtual(){
   }
 }
 
+
+// ===== CRIPTOGRAFIA =====
+var CRYPTO_KEY = 'EntregaLog@2026#Chapeco';
+
+function strToBytes(str){
+  return new TextEncoder().encode(str);
+}
+
+function bytesToStr(bytes){
+  return new TextDecoder().decode(bytes);
+}
+
+async function getKey(){
+  var keyMaterial = await window.crypto.subtle.importKey(
+    'raw', strToBytes(CRYPTO_KEY), {name:'PBKDF2'}, false, ['deriveKey']
+  );
+  return window.crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:strToBytes('EntregaLogSalt'), iterations:100000, hash:'SHA-256'},
+    keyMaterial,
+    {name:'AES-GCM', length:256},
+    false,
+    ['encrypt','decrypt']
+  );
+}
+
+async function criptografar(texto){
+  try{
+    if(!texto) return texto;
+    var key = await getKey();
+    var iv = window.crypto.getRandomValues(new Uint8Array(12));
+    var encrypted = await window.crypto.subtle.encrypt(
+      {name:'AES-GCM', iv:iv},
+      key,
+      strToBytes(texto)
+    );
+    var result = new Uint8Array(iv.length + encrypted.byteLength);
+    result.set(iv, 0);
+    result.set(new Uint8Array(encrypted), iv.length);
+    return btoa(String.fromCharCode(...result));
+  }catch(e){
+    return texto;
+  }
+}
+
+async function descriptografar(textoEncriptado){
+  try{
+    if(!textoEncriptado) return textoEncriptado;
+    // Verifica se é texto criptografado ou texto simples
+    if(!textoEncriptado.match(/^[A-Za-z0-9+/=]+$/)) return textoEncriptado;
+    var key = await getKey();
+    var bytes = Uint8Array.from(atob(textoEncriptado), c => c.charCodeAt(0));
+    var iv = bytes.slice(0, 12);
+    var data = bytes.slice(12);
+    var decrypted = await window.crypto.subtle.decrypt(
+      {name:'AES-GCM', iv:iv},
+      key,
+      data
+    );
+    return bytesToStr(decrypted);
+  }catch(e){
+    return textoEncriptado;
+  }
+}
+
+// Criptografa dados do usuario antes de salvar
+async function salvarUsuarioCriptografado(nome, whatsapp){
+  try{
+    var nomeCript = await criptografar(nome);
+    var whatsappCript = await criptografar(whatsapp);
+    return {nome_cript: nomeCript, whatsapp_cript: whatsappCript, nome_display: nome};
+  }catch(e){
+    return {nome_cript: nome, whatsapp_cript: whatsapp, nome_display: nome};
+  }
+}
+
+// Descriptografa dados do usuario ao carregar
+async function carregarUsuarioDescriptografado(dados){
+  try{
+    if(dados.nome_cript){
+      dados.nome = await descriptografar(dados.nome_cript);
+    }
+    if(dados.whatsapp_cript){
+      dados.whatsapp = await descriptografar(dados.whatsapp_cript);
+    }
+    return dados;
+  }catch(e){
+    return dados;
+  }
+}
+
 // ===== SISTEMA DE RANKING =====
 function abrirRanking(){
   document.getElementById('modal-ranking').classList.add('open');
