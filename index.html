@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="theme-color" content="#F97316"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" type="image/png" sizes="192x192" href="entregalog-icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="entregalog-icon-512.png"/>
+<link rel="apple-touch-icon" href="entregalog-icon-192.png"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <title>EntregaLog</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
@@ -291,12 +296,6 @@ body.dark #ranking-sheet{background:#1a1a1a;}
 .rank-minha-pos{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
 .btn-fechar-rank{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
 #btn-ranking{position:fixed;left:-28px;top:40%;transform:translateY(-50%) rotate(90deg);z-index:999;background:#1D9E75;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(29,158,117,0.4);}
-
-#modal-foto-full{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;align-items:center;justify-content:center;flex-direction:column;}
-#modal-foto-full.open{display:flex;}
-#foto-full-img{max-width:95%;max-height:85vh;border-radius:12px;object-fit:contain;}
-#btn-fechar-foto{color:#fff;background:none;border:none;font-size:16px;margin-top:16px;cursor:pointer;font-family:inherit;padding:8px 20px;background:rgba(255,255,255,0.15);border-radius:20px;}
-.hist-photo{cursor:pointer;border-radius:10px;width:100%;max-height:150px;object-fit:cover;margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -330,6 +329,7 @@ body.dark #ranking-sheet{background:#1a1a1a;}
     <div id="topbar-right">
       <div id="user-badge"></div>
       <button id="dark-btn" onclick="toggleDark()">🌙</button>
+      <button id="config-btn" onclick="abrirConfig()" title="Configurações" style="background:none;border:none;font-size:18px;cursor:pointer;">⚙️</button>
       <div id="status-badge">0 entregas</div>
     </div>
   </div>
@@ -475,7 +475,7 @@ body.dark #ranking-sheet{background:#1a1a1a;}
     </div>
     <div class="mbtn-row">
       <button class="mbtn" onclick="fecharModalParada()">Cancelar</button>
-      <button class="mbtn ok" onclick="confirmarParadaComVerificacao()">💾 Salvar</button>
+      <button class="mbtn ok" onclick="confirmarParada()">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -484,35 +484,13 @@ body.dark #ranking-sheet{background:#1a1a1a;}
 <script>
 const SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
+const APP_VERSION='1.0.1';
+const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
 var map=null,marker=null,rotaLine=null,watchId=null;
 var rotaCoords=[],distTotal=0,lastPos=null;
 var entregas=[],currentPos=null,usuarioAtual=null,photoData=null;
-var paradaTimer=0,paradaPos=null,paradaRef=null,paradaFotoBase64=null;
-
-
-function abrirFotoFull(src){
-  document.getElementById('foto-full-img').src=src;
-  document.getElementById('modal-foto-full').classList.add('open');
-}
-function fecharFotoFull(){
-  document.getElementById('modal-foto-full').classList.remove('open');
-  document.getElementById('foto-full-img').src='';
-}
-
-function previewFotoParada(event){
-  var file=event.target.files[0];
-  if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    paradaFotoBase64=e.target.result;
-    var preview=document.getElementById('parada-foto-preview');
-    var status=document.getElementById('parada-foto-status');
-    if(preview){preview.src=e.target.result;preview.style.display='block';}
-    if(status) status.textContent='Foto capturada!';
-  };
-  reader.readAsDataURL(file);
-}
+var paradaTimer=0,paradaPos=null,paradaRef=null;
 
 // ===== DARK MODE =====
 function toggleDark(){
@@ -1166,13 +1144,13 @@ function renderHistorico(){
     c.innerHTML='<div class="hist-nome">'+(r.nome||'Local')+'</div>'
       +'<div class="hist-addr">'+(r.addr||'')+'</div>'
       +(r.nota?'<div class="hist-nota">💡 '+r.nota+'</div>':'')
-      +(r.foto?'<img class="hist-photo" src="'+r.foto+'" onclick="abrirFotoFull(this.src)" title="Toque para ampliar"/>':'')
+      +(r.foto?'<img class="hist-photo" src="'+r.foto+'"/>':'')
       +'<div class="hist-meta">'+(r.data||'')+(r.registrado_por?' · '+r.registrado_por:'')+'</div>'
       +'<div style="display:flex;gap:8px;margin-top:10px;">'
         +'<button id="btn-rota-'+idx+'" style="flex:1;background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Rota</button>'
         +(r.lat&&r.lon?'<button id="btn-ir-'+idx+'" style="flex:1;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🧭 Ir</button>':'')
         +(r.lat&&r.lon?'<button id="btn-mapa-'+idx+'" style="flex:1;background:#E1F5EE;color:#085041;border:1px solid #1D9E75;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗺 Ver</button>':'')
-        +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'        +'<button id="btn-del-'+idx+'" style="background:#FEE2E2;color:#DC2626;border:none;border-radius:8px;padding:8px 10px;font-size:14px;cursor:pointer;">🗑</button>'
+        +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'
       +'</div>';
     el.appendChild(c);
 
@@ -1602,13 +1580,8 @@ async function capturarLocalizacaoAtual(){
         document.getElementById('parada-nome').textContent='Local atual';
         document.getElementById('parada-addr').textContent=addr;
         document.getElementById('parada-coords-txt').textContent=pos.lat.toFixed(5)+', '+pos.lon.toFixed(5);
-        document.getElementById('parada-status').textContent='Localizacao capturada';
+        document.getElementById('parada-status').textContent='✓ Localização capturada';
         document.getElementById('parada-nota').value='';
-        paradaFotoBase64=null;
-        var prev=document.getElementById('parada-foto-preview');
-        var stat=document.getElementById('parada-foto-status');
-        if(prev){prev.style.display='none';prev.src='';}
-        if(stat) stat.textContent='Nenhuma foto tirada';
         document.getElementById('modal-parada').classList.add('open');
       }
       if(status) status.style.display='none';
@@ -1623,96 +1596,6 @@ async function capturarLocalizacaoAtual(){
       var inp=document.getElementById('end-input');
       if(inp) inp.value=pos.lat.toFixed(6)+','+pos.lon.toFixed(6);
     },300);
-  }
-}
-
-
-// ===== CRIPTOGRAFIA =====
-var CRYPTO_KEY = 'EntregaLog@2026#Chapeco';
-
-function strToBytes(str){
-  return new TextEncoder().encode(str);
-}
-
-function bytesToStr(bytes){
-  return new TextDecoder().decode(bytes);
-}
-
-async function getKey(){
-  var keyMaterial = await window.crypto.subtle.importKey(
-    'raw', strToBytes(CRYPTO_KEY), {name:'PBKDF2'}, false, ['deriveKey']
-  );
-  return window.crypto.subtle.deriveKey(
-    {name:'PBKDF2', salt:strToBytes('EntregaLogSalt'), iterations:100000, hash:'SHA-256'},
-    keyMaterial,
-    {name:'AES-GCM', length:256},
-    false,
-    ['encrypt','decrypt']
-  );
-}
-
-async function criptografar(texto){
-  try{
-    if(!texto) return texto;
-    var key = await getKey();
-    var iv = window.crypto.getRandomValues(new Uint8Array(12));
-    var encrypted = await window.crypto.subtle.encrypt(
-      {name:'AES-GCM', iv:iv},
-      key,
-      strToBytes(texto)
-    );
-    var result = new Uint8Array(iv.length + encrypted.byteLength);
-    result.set(iv, 0);
-    result.set(new Uint8Array(encrypted), iv.length);
-    return btoa(String.fromCharCode(...result));
-  }catch(e){
-    return texto;
-  }
-}
-
-async function descriptografar(textoEncriptado){
-  try{
-    if(!textoEncriptado) return textoEncriptado;
-    // Verifica se é texto criptografado ou texto simples
-    if(!textoEncriptado.match(/^[A-Za-z0-9+/=]+$/)) return textoEncriptado;
-    var key = await getKey();
-    var bytes = Uint8Array.from(atob(textoEncriptado), c => c.charCodeAt(0));
-    var iv = bytes.slice(0, 12);
-    var data = bytes.slice(12);
-    var decrypted = await window.crypto.subtle.decrypt(
-      {name:'AES-GCM', iv:iv},
-      key,
-      data
-    );
-    return bytesToStr(decrypted);
-  }catch(e){
-    return textoEncriptado;
-  }
-}
-
-// Criptografa dados do usuario antes de salvar
-async function salvarUsuarioCriptografado(nome, whatsapp){
-  try{
-    var nomeCript = await criptografar(nome);
-    var whatsappCript = await criptografar(whatsapp);
-    return {nome_cript: nomeCript, whatsapp_cript: whatsappCript, nome_display: nome};
-  }catch(e){
-    return {nome_cript: nome, whatsapp_cript: whatsapp, nome_display: nome};
-  }
-}
-
-// Descriptografa dados do usuario ao carregar
-async function carregarUsuarioDescriptografado(dados){
-  try{
-    if(dados.nome_cript){
-      dados.nome = await descriptografar(dados.nome_cript);
-    }
-    if(dados.whatsapp_cript){
-      dados.whatsapp = await descriptografar(dados.whatsapp_cript);
-    }
-    return dados;
-  }catch(e){
-    return dados;
   }
 }
 
@@ -1827,85 +1710,6 @@ function notificarContribuicao(){
   }catch(e){}
 }
 
-
-// ===== DETECCAO DE DUPLICATAS =====
-async function verificarDuplicata(lat, lon, addr){
-  try{
-    // Busca enderecos proximos no Supabase
-    var res = await fetch(SB_URL+'/rest/v1/enderecos?select=id,addr,lat,lon,nota&limit=500',{
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-    });
-    var data = await res.json();
-    if(!Array.isArray(data)) return null;
-
-    // Verifica proximidade de 50 metros
-    var RAIO = 0.05; // 50 metros em km
-    var proximos = data.filter(function(e){
-      if(!e.lat||!e.lon) return false;
-      var R=6371;
-      var dLat=(e.lat-lat)*Math.PI/180;
-      var dLon=(e.lon-lon)*Math.PI/180;
-      var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
-        Math.cos(lat*Math.PI/180)*Math.cos(e.lat*Math.PI/180)*
-        Math.sin(dLon/2)*Math.sin(dLon/2);
-      var dist=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-      return dist <= RAIO;
-    });
-
-    if(proximos.length > 0) return proximos[0];
-    return null;
-  }catch(e){
-    return null;
-  }
-}
-
-async function confirmarParadaComVerificacao(){
-  var nota = document.getElementById('parada-nota').value.trim();
-  var lat = paradaRef.lat;
-  var lon = paradaRef.lon;
-  var addr = paradaRef.addr;
-
-  // Verifica duplicata antes de salvar
-  var duplicata = await verificarDuplicata(lat, lon, addr);
-  
-  if(duplicata){
-    var opcao = confirm(
-      'Ja existe um registro proximo daqui:\n\n' +
-      '"' + duplicata.addr + '"\n' +
-      (duplicata.nota ? 'Dica: ' + duplicata.nota : '') +
-      '\n\nDeseja atualizar o existente ou salvar como novo?\n\n' +
-      'OK = Atualizar existente\nCancelar = Salvar como novo'
-    );
-    if(opcao){
-      // Atualiza o registro existente
-      try{
-        await fetch(SB_URL+'/rest/v1/enderecos?id=eq.'+duplicata.id,{
-          method:'PATCH',
-          headers:{
-            'Content-Type':'application/json',
-            'apikey':SB_KEY,
-            'Authorization':'Bearer '+SB_KEY,
-            'Prefer':'return=minimal'
-          },
-          body: JSON.stringify({
-            nota: nota||duplicata.nota,
-            foto: paradaFotoBase64||null,
-            updated_at: new Date().toISOString()
-          })
-        });
-        fecharModalParada();
-        alert('Registro atualizado com sucesso!');
-        return;
-      }catch(e){
-        // Se falhar atualização — salva como novo
-      }
-    }
-  }
-  
-  // Salva normalmente
-  confirmarParada();
-}
-
 // ===== SISTEMA PREMIUM =====
 function isPremium(){
   try{
@@ -1954,9 +1758,9 @@ function fecharPremium(){
 }
 
 function assinarPremium(){
+  // Premium estara disponivel via Google Play Billing apos aprovacao na Play Store
   fecharPremium();
-  // Redireciona para Play Store ou link de pagamento
-  alert('Em breve disponivel na Play Store! Por enquanto entre em contato pelo WhatsApp para assinar.');
+  alert('Em breve disponivel! O Premium sera lancado junto com o app na Play Store.');
 }
 
 function indicarAmigos(){
@@ -2188,7 +1992,159 @@ document.addEventListener('click',function(e){
   }
 });
 
+// ===== CONFIGURAÇÕES =====
+function abrirConfig(){
+  try{
+    var u=usuarioAtual||JSON.parse(localStorage.getItem('el_user')||'null');
+    if(u){
+      document.getElementById('config-nome').textContent=u.nome||'--';
+      var w=u.whatsapp||'';
+      if(w.length>=10){w='('+w.slice(0,2)+') '+w.slice(2,7)+'-'+w.slice(7);}
+      document.getElementById('config-whats').textContent=w||'--';
+    }
+  }catch(e){}
+  var au=localStorage.getItem('el_auto_update');
+  document.getElementById('toggle-autoupdate').checked=(au==null||au==='1');
+  document.getElementById('toggle-dark').checked=document.body.classList.contains('dark');
+  document.getElementById('config-versao').textContent=APP_VERSION;
+  document.getElementById('config-update-status').style.display='none';
+  document.getElementById('modal-config').classList.add('open');
+}
+
+function fecharConfig(){
+  document.getElementById('modal-config').classList.remove('open');
+}
+
+function toggleAutoUpdate(el){
+  try{localStorage.setItem('el_auto_update',el.checked?'1':'0');}catch(e){}
+  var s=document.getElementById('config-update-status');
+  s.style.display='block';
+  s.style.color='#1D9E75';
+  s.textContent=el.checked
+    ? '✅ Atualizações automáticas ligadas'
+    : '⏸ Atualizações automáticas desligadas — só ao tocar em "Verificar agora"';
+}
+
+function toggleDarkFromConfig(el){
+  var jaEscuro=document.body.classList.contains('dark');
+  if(el.checked && !jaEscuro) toggleDark();
+  if(!el.checked && jaEscuro) toggleDark();
+}
+
+async function verificarAtualizacao(manual){
+  var s=document.getElementById('config-update-status');
+  if(manual){
+    s.style.display='block';
+    s.style.color='#666';
+    s.textContent='⏳ Verificando...';
+  }
+  try{
+    var r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error('http '+r.status);
+    var d=await r.json();
+    var nova=d.version||d.latest||'';
+    if(nova && nova!==APP_VERSION){
+      if(manual){
+        s.style.color='#F97316';
+        s.innerHTML='🆕 Versão <b>'+nova+'</b> disponível! '+
+          '<button onclick="aplicarAtualizacao()" style="background:#F97316;color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;margin-left:4px;">Atualizar</button>';
+      } else {
+        mostrarBannerUpdate(nova);
+      }
+    } else if(manual){
+      s.style.color='#1D9E75';
+      s.textContent='✅ Você já está na versão mais recente ('+APP_VERSION+')';
+    }
+  }catch(e){
+    if(manual){
+      s.style.color='#DC2626';
+      s.textContent='⚠️ Não foi possível verificar (sem internet?)';
+    }
+  }
+}
+
+function aplicarAtualizacao(){
+  try{
+    // Pede pro Service Worker pular a espera e ativar nova versao
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
+      navigator.serviceWorker.controller.postMessage({type:'CLEAR_CACHES'});
+    }
+    if('caches' in window){
+      caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});
+    }
+  }catch(e){}
+  setTimeout(function(){location.reload(true);},500);
+}
+
+function mostrarBannerUpdate(nova){
+  if(document.getElementById('update-banner')) return;
+  var bar=document.createElement('div');
+  bar.id='update-banner';
+  bar.style.cssText='background:#F97316;color:#fff;padding:8px 14px;font-size:12px;text-align:center;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;';
+  bar.innerHTML='🆕 Nova versão '+nova+' disponível '+
+    '<button onclick="aplicarAtualizacao()" style="background:#fff;color:#F97316;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">Atualizar</button>'+
+    '<button onclick="this.parentNode.remove()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">Depois</button>';
+  var shell=document.getElementById('shell');
+  shell.insertBefore(bar,shell.firstChild);
+}
+
+function fazerLogout(){
+  if(!confirm('Sair da conta? Suas entregas do dia ficam salvas no celular.')) return;
+  try{localStorage.removeItem('el_user');}catch(e){}
+  fecharConfig();
+  location.reload();
+}
+
+async function excluirConta(){
+  if(!confirm('⚠️ Tem certeza? Isso vai apagar TODOS seus dados (entregas, histórico, configurações). Não dá pra desfazer.')) return;
+  if(!confirm('Última confirmação: realmente excluir conta?')) return;
+  try{
+    var u=usuarioAtual||JSON.parse(localStorage.getItem('el_user')||'null');
+    if(u && u.whatsapp){
+      try{
+        await fetch(SB_URL+'/rest/v1/usuarios?whatsapp=eq.'+encodeURIComponent(u.whatsapp),{
+          method:'DELETE',
+          headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+        });
+      }catch(e){}
+    }
+    var chaves=['el_user','el_regs','el_stats','el_rotas','el_fila','el_banco_local','el_scans','el_premium_exp','el_auto_update','el_dark'];
+    chaves.forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});
+  }catch(e){}
+  alert('Conta excluída. Até logo!');
+  location.reload();
+}
+
+function abrirPrivacidade(){
+  window.open('https://adilson161618.github.io/entrega-log/privacidade.html','_blank');
+}
+
+function abrirSuporte(){
+  var msg='Olá! Preciso de ajuda com o EntregaLog (versão '+APP_VERSION+').';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
 // ===== INIT =====
+// Registra Service Worker (PWA + cache offline)
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('service-worker.js').then(function(reg){
+      // Se já tem um SW esperando, deixa o app decidir quando ativar
+      if(reg.waiting){ console.log('[App] SW atualizado pronto'); }
+      reg.addEventListener('updatefound',function(){
+        var nw=reg.installing;
+        if(nw){
+          nw.addEventListener('statechange',function(){
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              console.log('[App] Nova versao do SW instalada');
+            }
+          });
+        }
+      });
+    }).catch(function(err){console.warn('[App] SW falhou:',err);});
+  });
+}
 initDark();
 hideSplash();
 // GPS iniciado pelo mapa
@@ -2210,6 +2166,30 @@ setTimeout(function(){
     document.getElementById('login-screen').classList.add('show');
   }
 },2200);
+
+// Verificacao automatica de atualizacao (respeita preferencia do usuario)
+setTimeout(function(){
+  try{
+    var au=localStorage.getItem('el_auto_update');
+    if(au==null || au==='1'){ // default ligado
+      verificarAtualizacao(false);
+    }
+  }catch(e){}
+},4000);
+
+// Hash routing - permite atalhos do manifest (#entregas, #mapa, etc) funcionarem
+function aplicarHashRoute(){
+  try{
+    var h=(window.location.hash||'').replace('#','').trim();
+    if(!h) return;
+    var tabsValidas=['mapa','entregas','registrar','historico','relatorio','rotas'];
+    if(tabsValidas.indexOf(h)>=0){
+      showTab(h);
+    }
+  }catch(e){}
+}
+window.addEventListener('hashchange',aplicarHashRoute);
+setTimeout(aplicarHashRoute,2300);
 </script>
 
 <div id="modal-chegada">
@@ -2272,7 +2252,7 @@ setTimeout(function(){
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Suporte prioritario por WhatsApp</div>
     </div>
-    <button class="btn-assinar" onclick="assinarPremium()">Assinar por R$ 9,90/mes</button>
+    <button class="btn-assinar" onclick="assinarPremium()" style="opacity:0.85;">Em breve — disponivel no lancamento</button>
     <button class="btn-indicar" onclick="indicarAmigos()">Indicar 3 amigos e ganhar 30 dias gratis</button>
     <button class="btn-fechar-prem" onclick="fecharPremium()">Agora nao</button>
   </div>
@@ -2344,10 +2324,76 @@ setTimeout(function(){
 </div>
 
 
-<div id="modal-foto-full">
-  <img id="foto-full-img" src="" alt="Foto do local"/>
-  <button id="btn-fechar-foto" onclick="fecharFotoFull()">✕ Fechar</button>
+<!-- ========== MODAL CONFIGURACOES ========== -->
+<div class="overlay" id="modal-config">
+  <div class="modal-sheet">
+    <h3>⚙️ Configurações</h3>
+
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;color:#9A3412;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Conta</div>
+      <div id="config-nome" style="font-size:14px;font-weight:700;color:#111;">--</div>
+      <div id="config-whats" style="font-size:12px;color:#888;margin-top:2px;">--</div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Verificar atualizações automaticamente</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Ao abrir o app, checa se há uma versão nova</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-autoupdate" onchange="toggleAutoUpdate(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
+        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.1</b></div>
+        <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
+      </div>
+      <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Modo escuro</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Reduz brilho da tela</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-dark" onchange="toggleDarkFromConfig(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
+      <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
+      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
+    </div>
+
+    <button onclick="fazerLogout()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚪 Sair / Trocar conta</button>
+
+    <button onclick="excluirConta()" style="background:none;color:#888;border:none;width:100%;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:8px;">Excluir minha conta e meus dados</button>
+
+    <div class="mbtn-row">
+      <button class="mbtn ok" onclick="fecharConfig()" style="flex:1;">Fechar</button>
+    </div>
+  </div>
 </div>
+
+<style>
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.switch input:checked + .slider{background:#F97316;}
+.switch input:checked + .slider:before{transform:translateX(20px);}
+body.dark .slider{background:#444;}
+body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
+body.dark #modal-config .cfg-label{color:#eee !important;}
+body.dark #modal-config .cfg-link{color:#eee !important;}
+body.dark #config-nome{color:#eee !important;}
+</style>
 
 </body>
 </html>
