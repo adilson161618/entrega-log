@@ -1,0 +1,6 @@
+{
+  "version": "1.0.1",
+  "released_at": "2026-05-13",
+  "notes": "Tela de Configurações com toggle de atualização automática, logout, política de privacidade e exclusão de conta (LGPD).",
+  "min_supported": "1.0.0"
+}
