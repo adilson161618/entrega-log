@@ -1,12 +1,1 @@
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.entregalog.app",
-      "sha256_cert_fingerprints": [
-        "PREENCHER_APOS_GERAR_AAB"
-      ]
-    }
-  }
-]
+38:5B:DE:36:44:57:E2:33:A1:24:7F:CD:8B:09:C1:A6:32:08:F2:CD:01:26:19:B2:7C:17:F1:DF:07:40:8C:DD
