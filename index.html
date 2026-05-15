@@ -484,7 +484,46 @@ body.dark #ranking-sheet{background:#1a1a1a;}
 <script>
 const SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
-const APP_VERSION='1.0.1';
+
+// ===== Supabase helper com surfacing de erros (não engolir mais nada!) =====
+function _toastErro(msg){
+  try{
+    var t=document.getElementById('sync-erro-toast');
+    if(!t){
+      t=document.createElement('div');
+      t.id='sync-erro-toast';
+      t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#c0392b;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:92vw;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;line-height:1.3;';
+      document.body.appendChild(t);
+    }
+    t.textContent='⚠ '+msg;
+    t.style.display='block';
+    clearTimeout(t._h);
+    t._h=setTimeout(function(){t.style.display='none';},6000);
+  }catch(e){}
+}
+async function supaFetch(path,options){
+  options=options||{};
+  options.headers=Object.assign({
+    'Content-Type':'application/json',
+    'apikey':SB_KEY,
+    'Authorization':'Bearer '+SB_KEY
+  },options.headers||{});
+  var res,txt;
+  try{
+    res=await fetch(SB_URL+path,options);
+    txt=await res.text();
+  }catch(e){
+    console.error('[Supabase] erro de rede em '+path,e);
+    throw new Error('rede: '+e.message);
+  }
+  if(!res.ok){
+    console.error('[Supabase] HTTP '+res.status+' em '+path+': '+txt);
+    _toastErro('Supabase '+res.status+': '+(txt||'').slice(0,90));
+    throw new Error('HTTP '+res.status+': '+txt);
+  }
+  return txt?JSON.parse(txt):null;
+}
+const APP_VERSION='1.0.2';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
 var map=null,marker=null,rotaLine=null,watchId=null;
@@ -663,7 +702,15 @@ async function confirmarParada(){
     localStorage.setItem('el_banco_local',JSON.stringify(bancol.slice(0,500)));
   }catch(e){}
   // Supabase
-  try{await fetch(SB_URL+'/rest/v1/enderecos',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,registrado_por:usr})});}catch(e){}
+  var syncOk=false;
+  var payload={nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,registrado_por:usr};
+  try{
+    await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(payload)});
+    syncOk=true;
+  }catch(e){
+    console.error('[confirmarParada] falha no Supabase, salvando na fila offline:',e.message);
+    salvarNaFila('endereco',payload);
+  }
   // Pin verde
   if(map&&L){
     var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">📍</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
@@ -671,7 +718,7 @@ async function confirmarParada(){
   }
   notificarContribuicao();
   fecharModalParada();
-  alert('✅ Ponto registrado e salvo no historico e no banco colaborativo!');
+  alert(syncOk?'✅ Ponto registrado e salvo no banco colaborativo!':'⚠ Salvo localmente. Não consegui enviar pro banco — veja o aviso vermelho com o motivo.');
 }
 
 // ===== TABS =====
@@ -993,26 +1040,25 @@ async function confirmarChegada(){
   // Salva localização exata no banco colaborativo
   try{
     // Verifica se já existe
-    var res=await fetch(SB_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+addrCorrigido.split(',')[0]+'%')+'&limit=1',{
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-    });
-    var existe=await res.json();
+    var existe=await supaFetch('/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+addrCorrigido.split(',')[0]+'%')+'&limit=1',{method:'GET'});
     if(existe&&existe.length>0){
       // Atualiza com coordenadas corretas
-      await fetch(SB_URL+'/rest/v1/enderecos?id=eq.'+existe[0].id,{
+      await supaFetch('/rest/v1/enderecos?id=eq.'+existe[0].id,{
         method:'PATCH',
-        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},
         body:JSON.stringify({lat:lat,lon:lon,addr:addrCorrigido,nota:dica||existe[0].nota,registrado_por:usr})
       });
     } else {
       // Cria novo registro
-      await fetch(SB_URL+'/rest/v1/enderecos',{
+      await supaFetch('/rest/v1/enderecos',{
         method:'POST',
-        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        headers:{'Prefer':'return=minimal'},
         body:JSON.stringify({nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr})
       });
     }
-  }catch(e){}
+  }catch(e){
+    console.error('[confirmarChegada] falha no Supabase, salvando na fila offline:',e.message);
+    salvarNaFila('endereco',{nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr});
+  }
   // Salva local
   try{
     var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
@@ -1293,12 +1339,15 @@ async function sincronizarFila(){
       var item=fila[i];
       try{
         if(item.tipo==='endereco'){
-          await fetch(SB_URL+'/rest/v1/enderecos',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
+          await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
         } else if(item.tipo==='rota'){
-          await fetch(SB_URL+'/rest/v1/rotas',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
+          await supaFetch('/rest/v1/rotas',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
         }
         sucesso.push(i);
-      }catch(e){}
+      }catch(e){
+        console.error('[sincronizarFila] item '+i+' ('+item.tipo+') falhou, mantém na fila:',e.message);
+        // NÃO marca como sucesso — item fica na fila pra tentar de novo
+      }
     }
     // Remove os sincronizados
     var novaFila=fila.filter(function(_,i){return sucesso.indexOf(i)===-1;});
@@ -1310,18 +1359,19 @@ async function sincronizarFila(){
 // Wrapper para salvar com fallback offline
 async function salvarSupabaseSafe(tabela,dados){
   if(!onlineStatus){
-    salvarNaFila(tabela,dados);
+    salvarNaFila(tabela==='enderecos'?'endereco':(tabela==='rotas'?'rota':tabela),dados);
     return false;
   }
   try{
-    var res=await fetch(SB_URL+'/rest/v1/'+tabela,{
+    await supaFetch('/rest/v1/'+tabela,{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      headers:{'Prefer':'return=minimal'},
       body:JSON.stringify(dados)
     });
-    return res.ok;
+    return true;
   }catch(e){
-    salvarNaFila(tabela,dados);
+    console.error('[salvarSupabaseSafe] falhou em '+tabela+', indo pra fila:',e.message);
+    salvarNaFila(tabela==='enderecos'?'endereco':(tabela==='rotas'?'rota':tabela),dados);
     return false;
   }
 }
@@ -2368,32 +2418,4 @@ setTimeout(aplicarHashRoute,2300);
 
     <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
       <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
-      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
-    </div>
-
-    <button onclick="fazerLogout()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚪 Sair / Trocar conta</button>
-
-    <button onclick="excluirConta()" style="background:none;color:#888;border:none;width:100%;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:8px;">Excluir minha conta e meus dados</button>
-
-    <div class="mbtn-row">
-      <button class="mbtn ok" onclick="fecharConfig()" style="flex:1;">Fechar</button>
-    </div>
-  </div>
-</div>
-
-<style>
-.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
-.switch input{opacity:0;width:0;height:0;}
-.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
-.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
-.switch input:checked + .slider{background:#F97316;}
-.switch input:checked + .slider:before{transform:translateX(20px);}
-body.dark .slider{background:#444;}
-body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
-body.dark #modal-config .cfg-label{color:#eee !important;}
-body.dark #modal-config .cfg-link{color:#eee !important;}
-body.dark #config-nome{color:#eee !important;}
-</style>
-
-</body>
-</html>
+      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;bo
