@@ -1,5 +1,8 @@
 {
   "version": "1.0.2",
+  "released_at": "2026-05-15",{
+  "version": "1.0.3",
   "released_at": "2026-05-15",
+  "notes": "Corrige bug do botao Salvar (variavel paradaFotoBase64 nao declarada quebrava o fluxo). Adiciona previewFotoParada. Service Worker agora e network-first para 
   "notes": "Diagnostico: surfacing de erros do Supabase. Endereços agora avisam quando a sincronizacao com o banco falha (antes eram engolidos em silencio).",
   "min_sup
