@@ -485,7 +485,7 @@ body.dark #ranking-sheet{background:#1a1a1a;}
 const SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 
-// ===== Supabase helper com surfacing de erros (não engolir mais nada!) =====
+// ===== Helper Supabase com surfacing de erros =====
 function _toastErro(msg){
   try{
     var t=document.getElementById('sync-erro-toast');
@@ -503,33 +503,44 @@ function _toastErro(msg){
 }
 async function supaFetch(path,options){
   options=options||{};
-  options.headers=Object.assign({
-    'Content-Type':'application/json',
-    'apikey':SB_KEY,
-    'Authorization':'Bearer '+SB_KEY
-  },options.headers||{});
+  options.headers=Object.assign({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},options.headers||{});
   var res,txt;
   try{
     res=await fetch(SB_URL+path,options);
     txt=await res.text();
   }catch(e){
-    console.error('[Supabase] erro de rede em '+path,e);
+    console.error('[Supabase] erro de rede:',path,e);
     throw new Error('rede: '+e.message);
   }
   if(!res.ok){
-    console.error('[Supabase] HTTP '+res.status+' em '+path+': '+txt);
+    console.error('[Supabase] HTTP',res.status,'em',path,':',txt);
     _toastErro('Supabase '+res.status+': '+(txt||'').slice(0,90));
     throw new Error('HTTP '+res.status+': '+txt);
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.2';
+const APP_VERSION='1.0.3';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
 var map=null,marker=null,rotaLine=null,watchId=null;
 var rotaCoords=[],distTotal=0,lastPos=null;
 var entregas=[],currentPos=null,usuarioAtual=null,photoData=null;
-var paradaTimer=0,paradaPos=null,paradaRef=null;
+var paradaTimer=0,paradaPos=null,paradaRef=null,paradaFotoBase64=null;
+function previewFotoParada(ev){
+  try{
+    var f=ev.target.files&&ev.target.files[0];
+    if(!f) return;
+    var r=new FileReader();
+    r.onload=function(e){
+      paradaFotoBase64=e.target.result;
+      var img=document.getElementById('parada-foto-preview');
+      if(img){img.src=paradaFotoBase64;img.style.display='block';}
+      var st=document.getElementById('parada-foto-status');
+      if(st) st.textContent='Foto pronta';
+    };
+    r.readAsDataURL(f);
+  }catch(e){console.error('previewFotoParada erro:',e);}
+}
 
 // ===== DARK MODE =====
 function toggleDark(){
@@ -708,7 +719,7 @@ async function confirmarParada(){
     await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(payload)});
     syncOk=true;
   }catch(e){
-    console.error('[confirmarParada] falha no Supabase, salvando na fila offline:',e.message);
+    console.error('[confirmarParada] falha Supabase:',e.message);
     salvarNaFila('endereco',payload);
   }
   // Pin verde
@@ -718,7 +729,7 @@ async function confirmarParada(){
   }
   notificarContribuicao();
   fecharModalParada();
-  alert(syncOk?'✅ Ponto registrado e salvo no banco colaborativo!':'⚠ Salvo localmente. Não consegui enviar pro banco — veja o aviso vermelho com o motivo.');
+  alert(syncOk?'✅ Ponto registrado e salvo no banco colaborativo!':'⚠ Salvo localmente. Nao consegui enviar pro banco - veja o aviso vermelho.');
 }
 
 // ===== TABS =====
@@ -1039,24 +1050,14 @@ async function confirmarChegada(){
   var usr=usuarioAtual?usuarioAtual.nome:'auto';
   // Salva localização exata no banco colaborativo
   try{
-    // Verifica se já existe
     var existe=await supaFetch('/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+addrCorrigido.split(',')[0]+'%')+'&limit=1',{method:'GET'});
     if(existe&&existe.length>0){
-      // Atualiza com coordenadas corretas
-      await supaFetch('/rest/v1/enderecos?id=eq.'+existe[0].id,{
-        method:'PATCH',
-        body:JSON.stringify({lat:lat,lon:lon,addr:addrCorrigido,nota:dica||existe[0].nota,registrado_por:usr})
-      });
+      await supaFetch('/rest/v1/enderecos?id=eq.'+existe[0].id,{method:'PATCH',body:JSON.stringify({lat:lat,lon:lon,addr:addrCorrigido,nota:dica||existe[0].nota,registrado_por:usr})});
     } else {
-      // Cria novo registro
-      await supaFetch('/rest/v1/enderecos',{
-        method:'POST',
-        headers:{'Prefer':'return=minimal'},
-        body:JSON.stringify({nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr})
-      });
+      await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr})});
     }
   }catch(e){
-    console.error('[confirmarChegada] falha no Supabase, salvando na fila offline:',e.message);
+    console.error('[confirmarChegada] falha Supabase:',e.message);
     salvarNaFila('endereco',{nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr});
   }
   // Salva local
@@ -1344,10 +1345,7 @@ async function sincronizarFila(){
           await supaFetch('/rest/v1/rotas',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
         }
         sucesso.push(i);
-      }catch(e){
-        console.error('[sincronizarFila] item '+i+' ('+item.tipo+') falhou, mantém na fila:',e.message);
-        // NÃO marca como sucesso — item fica na fila pra tentar de novo
-      }
+      }catch(e){console.error('[fila] item',i,'falhou:',e.message);}
     }
     // Remove os sincronizados
     var novaFila=fila.filter(function(_,i){return sucesso.indexOf(i)===-1;});
@@ -1358,20 +1356,14 @@ async function sincronizarFila(){
 
 // Wrapper para salvar com fallback offline
 async function salvarSupabaseSafe(tabela,dados){
-  if(!onlineStatus){
-    salvarNaFila(tabela==='enderecos'?'endereco':(tabela==='rotas'?'rota':tabela),dados);
-    return false;
-  }
+  var tipo=tabela==='enderecos'?'endereco':(tabela==='rotas'?'rota':tabela);
+  if(!onlineStatus){salvarNaFila(tipo,dados);return false;}
   try{
-    await supaFetch('/rest/v1/'+tabela,{
-      method:'POST',
-      headers:{'Prefer':'return=minimal'},
-      body:JSON.stringify(dados)
-    });
+    await supaFetch('/rest/v1/'+tabela,{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(dados)});
     return true;
   }catch(e){
-    console.error('[salvarSupabaseSafe] falhou em '+tabela+', indo pra fila:',e.message);
-    salvarNaFila(tabela==='enderecos'?'endereco':(tabela==='rotas'?'rota':tabela),dados);
+    console.error('[salvarSupabaseSafe]',tabela,'falhou:',e.message);
+    salvarNaFila(tipo,dados);
     return false;
   }
 }
@@ -2113,18 +2105,28 @@ async function verificarAtualizacao(manual){
   }
 }
 
-function aplicarAtualizacao(){
+async function aplicarAtualizacao(){
+  var s=document.getElementById('config-update-status');
+  if(s){s.style.display='block';s.style.color='#F97316';s.textContent='⏳ Atualizando...';}
   try{
-    // Pede pro Service Worker pular a espera e ativar nova versao
-    if(navigator.serviceWorker && navigator.serviceWorker.controller){
-      navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
-      navigator.serviceWorker.controller.postMessage({type:'CLEAR_CACHES'});
-    }
     if('caches' in window){
-      caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});});
+      var ks=await caches.keys();
+      await Promise.all(ks.map(function(k){return caches.delete(k);}));
     }
-  }catch(e){}
-  setTimeout(function(){location.reload(true);},500);
+    if(navigator.serviceWorker){
+      var reg=await navigator.serviceWorker.getRegistration();
+      if(reg){
+        try{await reg.update();}catch(e){}
+        if(reg.waiting){reg.waiting.postMessage({type:'SKIP_WAITING'});}
+        if(reg.installing){reg.installing.postMessage({type:'SKIP_WAITING'});}
+        if(navigator.serviceWorker.controller){
+          navigator.serviceWorker.controller.postMessage({type:'CLEAR_CACHES'});
+          navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
+        }
+      }
+    }
+  }catch(e){console.error('aplicarAtualizacao erro:',e);}
+  setTimeout(function(){location.replace(location.pathname+'?v='+Date.now());},800);
 }
 
 function mostrarBannerUpdate(nova){
@@ -2418,4 +2420,32 @@ setTimeout(aplicarHashRoute,2300);
 
     <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
       <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
-      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;bo
+      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
+    </div>
+
+    <button onclick="fazerLogout()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚪 Sair / Trocar conta</button>
+
+    <button onclick="excluirConta()" style="background:none;color:#888;border:none;width:100%;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:8px;">Excluir minha conta e meus dados</button>
+
+    <div class="mbtn-row">
+      <button class="mbtn ok" onclick="fecharConfig()" style="flex:1;">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.switch input:checked + .slider{background:#F97316;}
+.switch input:checked + .slider:before{transform:translateX(20px);}
+body.dark .slider{background:#444;}
+body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
+body.dark #modal-config .cfg-label{color:#eee !important;}
+body.dark #modal-config .cfg-link{color:#eee !important;}
+body.dark #config-nome{color:#eee !important;}
+</style>
+
+</body>
+</html>
