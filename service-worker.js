@@ -1,10 +1,8 @@
 // ============================================================
-// EntregaLog — Service Worker
-// Estrategia:
-//   - version.json + index.html + manifest.json: NETWORK-FIRST (sempre puxa fresco)
-//   - APIs (supabase, nominatim, viacep, tiles): NETWORK-FIRST
-//   - Demais estaticos (icons, leaflet, etc): CACHE-FIRST
-//   - skipWaiting() no install + clients.claim() no activate = atualizacao sem intervencao manual
+// EntregaLog Service Worker v1.0.3
+// version.json + index.html: NETWORK-FIRST (atualizacao em tempo real)
+// APIs externas: NETWORK-FIRST
+// Demais estaticos: CACHE-FIRST
 // ============================================================
 
 const SW_VERSION = '1.0.3';
@@ -49,9 +47,7 @@ self.addEventListener('activate', function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(keys.map(function (k) {
-        if (k !== STATIC_CACHE && k !== RUNTIME_CACHE) {
-          return caches.delete(k);
-        }
+        if (k !== STATIC_CACHE && k !== RUNTIME_CACHE) return caches.delete(k);
       }));
     }).then(function () { return self.clients.claim(); })
   );
@@ -117,4 +113,15 @@ self.addEventListener('fetch', function (event) {
   );
 });
 
-self.add
+self.addEventListener('message', function (event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.type === 'CLEAR_CACHES') {
+    event.waitUntil(
+      caches.keys().then(function (keys) {
+        return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+      })
+    );
+  }
+});
