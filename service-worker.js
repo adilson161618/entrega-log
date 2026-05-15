@@ -4,7 +4,7 @@
 // Atualizacao: SKIP_WAITING via postMessage do app
 // ============================================================
 
-const SW_VERSION = '1.0.1';
+const SW_VERSION = '1.0.2';
 const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
 const RUNTIME_CACHE = 'entregalog-runtime';
 
