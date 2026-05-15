@@ -1,6 +1,5 @@
 {
-  "version": "1.0.1",
-  "released_at": "2026-05-13",
-  "notes": "Tela de Configurações com toggle de atualização automática, logout, política de privacidade e exclusão de conta (LGPD).",
-  "min_supported": "1.0.0"
-}
+  "version": "1.0.2",
+  "released_at": "2026-05-15",
+  "notes": "Diagnostico: surfacing de erros do Supabase. Endereços agora avisam quando a sincronizacao com o banco falha (antes eram engolidos em silencio).",
+  "min_sup
