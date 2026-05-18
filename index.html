@@ -4,746 +4,2562 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#F97316"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" type="image/png" sizes="192x192" href="entregalog-icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="entregalog-icon-512.png"/>
+<link rel="apple-touch-icon" href="entregalog-icon-192.png"/>
 <meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="TravelLog"/>
-<meta name="theme-color" content="#1D9E75"/>
-<meta name="description" content="Rastreador de viagens com GPS, mapa e controle de gastos"/>
-<link rel="manifest" id="manifest-link"/>
-<link rel="apple-touch-icon" id="apple-icon"/>
-<title>TravelLog</title>
+<title>EntregaLog</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
-body{background:#f5f5f5;}
-body.dark{background:#111;}
-body.dark #shell{background:#1a1a1a;}
-body.dark #topbar,body.dark #nav,body.dark #actions,body.dark #statusbar{background:#1a1a1a;border-color:#333;}
-body.dark .ntab{color:#888;}
-body.dark .ntab.active{color:#eee;border-bottom-color:#1D9E75;}
-body.dark .abtn{background:#222;color:#eee;border-color:#444;}
-body.dark .abtn.primary{background:#1D9E75;color:#fff;}
-body.dark .abtn.danger{background:#3a1111;color:#f87171;border-color:#7a2020;}
-body.dark #statusbar{background:#222;}
-body.dark .fchip{background:#222;color:#aaa;border-color:#444;}
-body.dark .fchip.on{background:#0F6E56;color:#9FE1CB;border-color:#1D9E75;}
-body.dark #totals-box{background:#222;border-color:#333;}
-body.dark #grand-total,body.dark #tripname{color:#eee;}
-body.dark .detail-card,body.dark .hist-card{background:#222;border-color:#333;}
-body.dark .dc-place,body.dark .dc-val,body.dark .hist-name,body.dark .tl-place{color:#eee;}
-body.dark .dc-meta,body.dark .hist-meta,body.dark .tl-meta,body.dark .cat-name{color:#888;}
-body.dark .dc-note,body.dark .tl-note{background:#2a2a2a;color:#aaa;}
+body{background:#0f0f0f;}
+body.dark #shell{background:#111;}
+body.dark #topbar,body.dark #nav{background:#1a1a1a;border-color:#333;}
+body.dark .ntab{color:#666;}
+body.dark .ntab.active{color:#F97316;border-bottom-color:#F97316;}
+body.dark .mi{background:#1a1a1a;border-color:#333;color:#eee;}
+body.dark .entrega-card{background:#1a1a1a;border-color:#333;}
+body.dark .entrega-nome{color:#eee;}
+body.dark .entrega-addr{color:#888;}
+body.dark #input-area{background:#1a1a1a;border-color:#333;}
+body.dark .hist-card{background:#1a1a1a;border-color:#333;}
+body.dark .hist-nome{color:#eee;}
+body.dark .hist-addr{color:#888;}
 body.dark .modal-sheet{background:#1a1a1a;}
 body.dark .modal-sheet h3{color:#eee;}
-body.dark #gps-card{background:#222;border-color:#444;}
-body.dark .mi{background:#222;color:#eee;border-color:#444;}
-body.dark .mbtn{background:#222;color:#aaa;border-color:#444;}
-body.dark .copt{background:#222;color:#aaa;border-color:#444;}
-body.dark .copt.sel{background:#0F4D3A;color:#9FE1CB;border-color:#1D9E75;}
 body.dark .ml{color:#aaa;}
-body.dark #gps-search-text,body.dark #gps-place-addr,body.dark #gps-coords{color:#aaa;}
-body.dark #gps-place-name{color:#eee;}
-body.dark #override-toggle,body.dark #gps-change,body.dark .nav-btn{color:#5DCAA5;}
-body.dark .nav-btn{background:#0F4D3A;}
-body.dark .back-btn{background:#222;color:#aaa;border-color:#444;}
-body.dark #total-badge{background:#0F4D3A;color:#9FE1CB;}
-body.dark #grand-total-label{color:#888;}
-body.dark #photo-upload-area{border-color:#444;color:#666;}
-body.dark .hist-badge{background:#333;color:#aaa;}
 
-#splash{position:fixed;inset:0;background:#1D9E75;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s ease;}
+#splash{position:fixed;inset:0;background:#F97316;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;}
 #splash.hide{opacity:0;pointer-events:none;}
-#splash-logo{width:90px;height:90px;background:rgba(255,255,255,0.15);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:20px;animation:pulse 1.5s ease-in-out infinite;}
-@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
-#splash h1{font-size:32px;font-weight:700;color:#fff;letter-spacing:-0.5px;}
-#splash p{font-size:14px;color:rgba(255,255,255,0.8);margin-top:6px;}
-#splash-bar{width:180px;height:3px;background:rgba(255,255,255,0.2);border-radius:2px;margin-top:40px;overflow:hidden;}
-#splash-progress{height:100%;background:#fff;border-radius:2px;animation:load 2.2s ease forwards;}
-@keyframes load{0%{width:0;}100%{width:100%;}}
+#splash h1{font-size:36px;font-weight:800;color:#fff;margin-top:16px;}
+#splash p{font-size:14px;color:rgba(255,255,255,0.8);margin-top:8px;}
+#splash-bar{width:160px;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;margin-top:40px;overflow:hidden;}
+#splash-prog{height:100%;background:#fff;animation:load 2s ease forwards;}
+@keyframes load{0%{width:0}100%{width:100%}}
 
-#shell{max-width:430px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column;box-shadow:0 0 20px rgba(0,0,0,0.08);}
-#topbar{padding:12px 16px 10px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;background:#fff;}
-#tripname{font-size:16px;font-weight:600;color:#111;}
-#tripkm{font-size:12px;color:#888;margin-top:2px;}
+#login-screen{position:fixed;inset:0;background:#fff;z-index:8000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+#login-screen.show{display:flex;}
+body.dark #login-screen{background:#111;}
+#login-screen h2{font-size:22px;font-weight:700;margin-bottom:8px;}
+body.dark #login-screen h2{color:#eee;}
+#login-screen p{font-size:13px;color:#888;margin-bottom:24px;text-align:center;}
+#login-form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;}
+
+#shell{max-width:430px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column;}
+#topbar{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;background:#fff;}
+#app-title{font-size:17px;font-weight:700;color:#F97316;}
+#app-sub{font-size:10px;color:#aaa;}
 #topbar-right{display:flex;align-items:center;gap:8px;}
-#total-badge{background:#E1F5EE;color:#085041;font-size:13px;font-weight:600;padding:5px 12px;border-radius:20px;white-space:nowrap;}
-#dark-toggle{background:none;border:none;font-size:20px;cursor:pointer;padding:2px;}
-#nav{display:flex;border-bottom:1px solid #eee;background:#fff;}
-.ntab{flex:1;padding:9px 2px;font-size:11px;text-align:center;cursor:pointer;color:#888;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit;}
-.ntab.active{color:#111;border-bottom-color:#1D9E75;font-weight:600;}
+#user-badge{background:#FFF7ED;border:1px solid #FED7AA;border-radius:20px;padding:4px 10px;font-size:11px;color:#C2410C;font-weight:600;display:none;}
+#dark-btn{background:none;border:none;font-size:18px;cursor:pointer;}
+#status-badge{background:#FFF7ED;color:#C2410C;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;}
+
+#nav{display:flex;border-bottom:1px solid #eee;background:#fff;overflow-x:auto;}
+.ntab{flex-shrink:0;padding:9px 10px;font-size:10px;text-align:center;cursor:pointer;color:#aaa;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit;white-space:nowrap;}
+.ntab.active{color:#F97316;border-bottom-color:#F97316;font-weight:600;}
+
 .screen{display:none;flex:1;overflow-y:auto;}.screen.active{display:block;}
-#mapwrap{position:relative;height:67vh;min-height:300px;}
+
+/* MAPA */
+#mapwrap{position:relative;height:calc(100vh - 180px);min-height:300px;}
 #leafmap{width:100%;height:100%;}
-#gps-overlay{position:absolute;bottom:8px;left:8px;z-index:1000;background:rgba(255,255,255,0.92);border:1px solid #ddd;border-radius:8px;padding:4px 10px;font-size:10px;color:#666;font-family:monospace;pointer-events:none;}
-#cpkm-overlay{position:absolute;bottom:8px;right:8px;z-index:1000;background:rgba(29,158,117,0.92);border-radius:8px;padding:4px 10px;font-size:10px;color:#fff;font-weight:700;pointer-events:none;display:none;}
-#wake-bar{display:none;background:#0F6E56;color:#fff;padding:6px 16px;font-size:11px;text-align:center;}
-#voice-bar{display:none;background:#7C3AED;color:#fff;padding:8px 16px;font-size:12px;text-align:center;}
-#voice-result-bar{display:none;background:#5B21B6;color:#fff;padding:8px 16px;font-size:12px;text-align:center;}
-#statusbar{display:flex;align-items:center;gap:8px;padding:7px 14px;background:#f9f9f9;border-bottom:1px solid #eee;}
-#recbadge{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;}
-#statustext{font-size:12px;color:#666;flex:1;}
-#actions{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid #eee;background:#fff;}
-.abtn{flex:1;padding:9px 4px;border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;font-family:inherit;min-width:56px;}
-.abtn.primary{background:#1D9E75;color:#fff;border-color:#1D9E75;}
-.abtn.danger{background:#fff5f5;color:#A32D2D;border-color:#fcc;}
-.abtn.new{background:#378ADD;color:#fff;border-color:#378ADD;}
-.abtn:disabled{opacity:0.4;cursor:not-allowed;}
-#install-bar{display:none;background:#1D9E75;color:#fff;padding:10px 16px;font-size:13px;align-items:center;justify-content:space-between;gap:10px;}
-#install-bar.show{display:flex;}
-#install-btn{background:#fff;color:#1D9E75;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
-#install-close{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;}
+#gps-info{position:absolute;bottom:8px;left:8px;right:8px;z-index:1000;display:flex;justify-content:space-between;pointer-events:none;}
+#gps-coords{background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:4px 8px;border-radius:8px;font-family:monospace;}
+#km-badge{background:#F97316;color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:none;}
+#parada-btn{display:none;position:absolute;bottom:60px;left:50%;transform:translateX(-50%);z-index:1001;background:#F97316;color:#fff;border:none;border-radius:50px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(249,115,22,0.5);white-space:nowrap;animation:pulsar 1.5s ease-in-out infinite;}
+@keyframes pulsar{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.06);}}
+#map-btns{display:flex;gap:8px;padding:8px 12px;border-top:1px solid #eee;background:#fff;}
+body.dark #map-btns{background:#1a1a1a;border-color:#333;}
+.mabtn{flex:1;padding:14px 6px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;font-family:inherit;}
+body.dark .mabtn{background:#222;color:#eee;border-color:#444;}
+.mabtn.primary{background:#F97316;color:#fff;border-color:#F97316;}
 
-#tl-wrap{padding:14px 16px;}
-#tl-label{font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;}
-.tl-row{display:flex;gap:10px;padding-bottom:14px;}
-.tl-spine{display:flex;flex-direction:column;align-items:center;}
-.dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;}
-.dot.start{background:#378ADD;}
-.tl-vline{width:2px;flex:1;background:#eee;margin-top:4px;}
-.tl-place{font-size:14px;font-weight:600;color:#111;}
-.tl-meta{font-size:11px;color:#888;margin-top:2px;}
-.cat-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin-left:4px;font-weight:600;}
-.tl-note{font-size:12px;color:#666;margin-top:5px;padding:6px 10px;background:#f7f7f7;border-left:2px solid #1D9E75;border-radius:0 8px 8px 0;}
-.tl-photo{width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-top:8px;}
-.nav-btn{font-size:11px;color:#1D9E75;background:#E1F5EE;border:none;border-radius:8px;padding:4px 10px;margin-top:6px;cursor:pointer;font-weight:600;font-family:inherit;}
+/* ENTREGAS */
+#entregas-wrap{padding:14px 16px;}
+.sec-title{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;font-weight:600;}
+#input-area{background:#f9f9f9;border-radius:14px;padding:14px;margin-bottom:14px;border:1px solid #eee;}
+#input-area p{font-size:12px;color:#888;margin-bottom:10px;line-height:1.5;}
+.mi{width:100%;background:#fff;border:1px solid #ddd;color:#111;padding:11px 12px;border-radius:10px;margin-bottom:8px;font-size:13px;font-family:inherit;outline:none;}
+.mi:focus{border-color:#F97316;}
+.mi::placeholder{color:#aaa;}
+.add-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.hint{font-size:10px;color:#aaa;margin:-4px 0 8px;padding:0 2px;}
+#lista-entregas{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.entrega-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;}
+.e-num{width:28px;height:28px;border-radius:50%;background:#FFF7ED;color:#F97316;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.e-num.known{background:#DCFCE7;color:#166534;}
+.e-num.done{background:#D1FAE5;color:#059669;}
+.entrega-info{flex:1;}
+.entrega-nome{font-size:13px;font-weight:600;color:#111;}
+.entrega-addr{font-size:11px;color:#888;margin-top:1px;}
+.e-status{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;}
+.e-status.conhecido{background:#DCFCE7;color:#166534;}
+.e-status.novo{background:#FEF9C3;color:#854D0E;}
+.e-status.entregue{background:#D1FAE5;color:#059669;}
+.e-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:2px;}
+#rota-btn{background:linear-gradient(135deg,#F97316,#EA580C);color:#fff;border:none;border-radius:14px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:none;}
+#rota-btn.show{display:block;}
 
-#gastos-wrap{padding:14px 16px;}
-#filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
-.fchip{font-size:11px;padding:5px 11px;border-radius:20px;cursor:pointer;border:1px solid #ddd;background:#f5f5f5;color:#666;font-weight:600;}
-.fchip.on{color:#085041;background:#E1F5EE;border-color:#5DCAA5;}
-#totals-box{background:#f7f7f7;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid #eee;}
-#grand-total-label{font-size:11px;color:#888;margin-bottom:4px;}
-#grand-total{font-size:28px;font-weight:700;color:#111;}
-#cpkm-box{display:none;margin-top:10px;padding:10px;background:#E1F5EE;border-radius:10px;}
-#cpkm-label{font-size:11px;color:#085041;margin-bottom:2px;}
-#cpkm-val{font-size:20px;font-weight:700;color:#0F6E56;}
-#cat-rows{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
-.cat-row{display:flex;align-items:center;gap:10px;}
-.cat-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.cat-info{flex:1;}.cat-name{font-size:12px;color:#666;}.cat-count{font-size:10px;color:#aaa;}.cat-val{font-size:13px;font-weight:600;color:#111;}
-.cat-bar-wrap{height:3px;background:#e5e5e5;border-radius:2px;margin-top:3px;}
-.cat-bar{height:3px;border-radius:2px;transition:width 0.4s;}
-#detail-list{display:flex;flex-direction:column;gap:10px;}
-.detail-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;}
-.dc-top{display:flex;align-items:center;justify-content:space-between;}
-.dc-place{font-size:13px;font-weight:600;color:#111;}.dc-val{font-size:13px;font-weight:600;color:#111;}
-.dc-meta{font-size:11px;color:#888;margin-top:3px;}
-.dc-note{font-size:11px;color:#666;margin-top:6px;padding:5px 10px;background:#f7f7f7;border-radius:8px;}
-.dc-photo{width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-top:8px;}
+/* REGISTRAR */
+#reg-wrap{padding:14px 16px;}
+#reg-info{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;}
+#reg-info p{font-size:12px;color:#9A3412;line-height:1.5;}
+.ml{font-size:11px;color:#666;margin-bottom:4px;display:block;font-weight:500;}
+textarea.mi{height:72px;resize:none;line-height:1.5;}
+#photo-area{border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-bottom:12px;font-size:12px;color:#aaa;}
+#photo-prev{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;}
+.save-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
 
+/* HISTORICO */
 #hist-wrap{padding:14px 16px;}
-.hist-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer;}
-.hist-name{font-size:14px;font-weight:600;color:#111;}.hist-meta{font-size:11px;color:#888;margin-top:3px;}
-.hist-badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
-.hist-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:#f0f0f0;color:#666;font-weight:600;}
+.hist-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:8px;}
+.hist-nome{font-size:13px;font-weight:700;color:#111;}
+.hist-addr{font-size:11px;color:#888;margin-top:2px;}
+.hist-nota{font-size:11px;color:#666;margin-top:6px;padding:6px 10px;background:#FFF7ED;border-left:2px solid #F97316;border-radius:0 8px 8px 0;}
+.hist-photo{width:100%;max-height:100px;object-fit:cover;border-radius:8px;margin-top:7px;}
+.hist-meta{font-size:10px;color:#aaa;margin-top:4px;}
 .hist-empty{text-align:center;padding:32px 0;font-size:13px;color:#aaa;}
-.back-btn{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 12px;font-size:13px;color:#666;cursor:pointer;font-family:inherit;}
-.share-btn{background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;margin-top:10px;}
 
+/* RELATORIO */
+#rel-wrap{padding:14px 16px;}
+#rotas-wrap{padding:14px 16px;}
+
+/* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:flex-end;justify-content:center;}
 .overlay.open{display:flex;}
 .modal-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;}
 .modal-sheet h3{font-size:15px;font-weight:700;color:#111;margin-bottom:14px;}
-#gps-card{border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;background:#fafafa;}
-#gps-searching{display:flex;align-items:center;gap:10px;}
-#gps-spinner{width:18px;height:18px;border:2px solid #eee;border-top-color:#1D9E75;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
-@keyframes spin{to{transform:rotate(360deg);}}
-#gps-search-text{font-size:13px;color:#666;}
-#gps-result{display:none;}
-#gps-result-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-#gps-cat-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-#gps-place-name{font-size:14px;font-weight:700;color:#111;}
-#gps-place-addr{font-size:11px;color:#888;margin-top:2px;}
-#gps-coords{font-size:10px;color:#aaa;font-family:monospace;margin-top:6px;}
-#gps-change{font-size:12px;color:#1D9E75;cursor:pointer;margin-top:6px;display:inline-block;font-weight:600;}
-#gps-error{display:none;font-size:12px;color:#A32D2D;background:#fff5f5;border-radius:8px;padding:8px 12px;margin-top:8px;}
-#override-toggle{font-size:12px;color:#1D9E75;cursor:pointer;display:block;margin-bottom:10px;font-weight:600;}
-#override-fields{display:none;margin-bottom:12px;}
-.ml{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:500;}
-.mi{width:100%;margin-bottom:12px;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:14px;background:#fff;color:#111;font-family:inherit;}
-.mi:focus{outline:none;border-color:#1D9E75;}
-textarea.mi{height:64px;resize:none;line-height:1.5;}
-#cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.copt{padding:10px 4px;border-radius:10px;border:1px solid #eee;font-size:11px;text-align:center;cursor:pointer;color:#666;background:#fafafa;font-weight:500;}
-.copt.sel{border-color:#1D9E75;background:#E1F5EE;color:#085041;font-weight:700;}
-.mbtns{display:flex;gap:10px;margin-top:6px;}
-.mbtn{flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#888;font-family:inherit;}
-.mbtn.save{background:#1D9E75;color:#fff;border-color:#1D9E75;}
-#photo-upload-area{border:2px dashed #ddd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;margin-bottom:12px;font-size:13px;color:#aaa;}
-#photo-preview-img{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:none;}
+.mbtn-row{display:flex;gap:10px;margin-top:8px;}
+.mbtn{flex:1;padding:12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #ddd;background:#fff;color:#888;font-family:inherit;}
+.mbtn.ok{background:#F97316;color:#fff;border-color:#F97316;}
+#parada-info{background:#f9f9f9;border-radius:12px;padding:12px;margin-bottom:12px;}
+#parada-nome{font-size:14px;font-weight:700;color:#111;margin-bottom:2px;}
+#parada-addr{font-size:12px;color:#888;}
+#parada-coords-txt{font-size:10px;color:#aaa;font-family:monospace;margin-top:4px;}
+#parada-status{font-size:11px;color:#1D9E75;font-weight:600;margin-top:6px;}
+body.dark #parada-info{background:#222;}
+body.dark #parada-nome{color:#eee;}
+
+#input-wrap{position:relative;}
+#sugestoes{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid #F97316;border-radius:0 0 12px 12px;z-index:100;max-height:220px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+body.dark #sugestoes{background:#1a1a1a;border-color:#F97316;}
+.sug-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;display:flex;align-items:flex-start;gap:8px;}
+body.dark .sug-item{border-color:#222;}
+.sug-item:active{background:#FFF7ED;}
+body.dark .sug-item:active{background:#2a1500;}
+.sug-nome{font-size:13px;font-weight:600;color:#111;}
+body.dark .sug-nome{color:#eee;}
+.sug-addr{font-size:11px;color:#888;margin-top:1px;}
+.sug-nota{font-size:11px;color:#F97316;font-style:italic;margin-top:2px;}
+
+#nav-mode{display:none;position:absolute;top:8px;left:8px;right:8px;z-index:1001;background:rgba(0,0,0,0.85);border-radius:14px;padding:12px 16px;}
+#nav-mode.active{display:block;}
+#nav-destino{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;}
+#nav-dist{font-size:22px;font-weight:800;color:#F97316;}
+#nav-addr{font-size:11px;color:#aaa;margin-top:2px;}
+#nav-chegou{display:none;background:#1D9E75;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;width:100%;}
+#nav-cancelar{background:rgba(255,255,255,0.1);color:#aaa;border:none;border-radius:10px;padding:6px 12px;font-size:11px;cursor:pointer;font-family:inherit;margin-top:6px;width:100%;}
+#rota-nav-line{stroke:#378ADD;stroke-width:5;opacity:0.8;}
+
+#modal-chegada{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;}
+#modal-chegada.open{display:flex;}
+#chegada-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;}
+body.dark #chegada-sheet{background:#1a1a1a;}
+#chegada-title{font-size:18px;font-weight:800;color:#1D9E75;margin-bottom:4px;}
+#chegada-sub{font-size:12px;color:#888;margin-bottom:16px;}
+#chegada-nome-txt{font-size:14px;font-weight:700;color:#111;margin-bottom:4px;}
+body.dark #chegada-nome-txt{color:#eee;}
+#chegada-addr-atual{font-size:12px;color:#888;margin-bottom:12px;}
+#chegada-corrigir{display:none;margin-bottom:12px;}
+#btn-corrigir{font-size:12px;color:#F97316;background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-decoration:underline;}
+#chegada-btns{display:flex;gap:10px;margin-top:8px;}
+.chegada-btn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+.chegada-btn.sim{background:#1D9E75;color:#fff;}
+.chegada-btn.nao{background:#f5f5f5;color:#666;}
+body.dark .chegada-btn.nao{background:#222;color:#aaa;}
+
+#map-search{position:absolute;top:8px;left:8px;right:8px;z-index:1002;display:flex;gap:6px;}
+#map-search-input{flex:1;background:rgba(255,255,255,0.95);border:1px solid #ddd;border-radius:12px;padding:10px 14px;font-size:13px;font-family:inherit;outline:none;color:#111;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+#map-search-input:focus{border-color:#F97316;}
+#map-search-btn{background:#F97316;color:#fff;border:none;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(249,115,22,0.4);white-space:nowrap;}
+#map-search-results{position:absolute;top:52px;left:8px;right:8px;z-index:1002;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.15);display:none;max-height:200px;overflow-y:auto;}
+body.dark #map-search-results{background:#1a1a1a;}
+.map-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:8px;}
+body.dark .map-result-item{border-color:#222;}
+.map-result-item:hover{background:#FFF7ED;}
+body.dark .map-result-item:hover{background:#2a1500;}
+.map-result-item:last-child{border-bottom:none;}
+.map-result-nome{font-size:13px;font-weight:600;color:#111;}
+body.dark .map-result-nome{color:#eee;}
+.map-result-addr{font-size:11px;color:#888;}
+
+#ocr-btn{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+#ocr-btn:active{opacity:0.85;}
+#ocr-loading{display:none;background:#EDE9FE;border:1px solid #7C3AED;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#5B21B6;text-align:center;}
+#ocr-preview{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;}
+
+#modal-ocr{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;}
+#modal-ocr.open{display:flex;}
+#ocr-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #ocr-sheet{background:#1a1a1a;}
+#ocr-sheet h3{font-size:15px;font-weight:700;color:#111;margin-bottom:4px;}
+body.dark #ocr-sheet h3{color:#eee;}
+#ocr-sheet-sub{font-size:12px;color:#888;margin-bottom:14px;}
+.ocr-entrega-item{background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:10px;}
+body.dark .ocr-entrega-item{background:#222;border-color:#333;}
+.ocr-entrega-item input{width:100%;background:#fff;border:1px solid #ddd;color:#111;padding:8px 10px;border-radius:8px;margin-bottom:6px;font-size:12px;font-family:inherit;outline:none;}
+body.dark .ocr-entrega-item input{background:#1a1a1a;border-color:#444;color:#eee;}
+.ocr-entrega-item input:focus{border-color:#7C3AED;}
+.ocr-entrega-label{font-size:10px;color:#888;margin-bottom:3px;display:block;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;}
+.ocr-foto-thumb{width:100%;max-height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px;}
+.ocr-remove{background:none;border:none;color:#F87171;cursor:pointer;font-size:12px;font-family:inherit;padding:0;}
+#ocr-add-all-btn{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
+#ocr-cancel-btn{background:#f5f5f5;color:#666;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+body.dark #ocr-cancel-btn{background:#222;color:#aaa;}
+
+#offline-bar{display:none;background:#F59E0B;color:#fff;padding:6px 14px;font-size:11px;text-align:center;font-weight:600;}
+#offline-bar.show{display:block;}
+#battery-bar{display:none;background:#DC2626;color:#fff;padding:5px 14px;font-size:11px;text-align:center;}
+#battery-bar.show{display:block;}
+#voice-fab{position:fixed;bottom:80px;right:16px;z-index:1000;width:52px;height:52px;border-radius:50%;background:#7C3AED;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(124,58,237,0.5);display:none;}
+#voice-fab.show{display:flex;align-items:center;justify-content:center;}
+#voice-listening{display:none;position:fixed;inset:0;background:rgba(124,58,237,0.9);z-index:5000;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
+#voice-listening.show{display:flex;}
+#voice-pulse{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:40px;animation:vpulse 1s ease-in-out infinite;}
+@keyframes vpulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+#voice-text{font-size:16px;margin-top:20px;opacity:0.9;}
+#voice-cancel{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;cursor:pointer;margin-top:20px;font-family:inherit;}
+
+#modal-premium{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;align-items:flex-end;justify-content:center;}
+#modal-premium.open{display:flex;}
+#premium-sheet{background:#fff;border-radius:20px 20px 0 0;padding:24px 16px 36px;width:100%;max-width:430px;}
+body.dark #premium-sheet{background:#1a1a1a;}
+#premium-sheet h3{font-size:18px;font-weight:700;color:#F97316;margin-bottom:6px;}
+#premium-sheet p{font-size:13px;color:var(--color-text-secondary);margin-bottom:16px;line-height:1.6;}
+.prem-features{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.prem-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--color-text-primary);}
+.prem-feat-dot{width:20px;height:20px;border-radius:50%;background:#E1F5EE;color:#085041;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.btn-assinar{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.btn-indicar{background:#25D366;color:#fff;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.btn-fechar-prem{background:none;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;width:100%;font-family:inherit;}
+.prem-preco{font-size:28px;font-weight:800;color:#F97316;text-align:center;margin-bottom:4px;}
+.prem-sub{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:16px;}
+
+#btn-loc-atual{position:fixed;bottom:175px;right:12px;z-index:9999;width:52px;height:52px;border-radius:50%;background:#fff;border:3px solid #F97316;color:#F97316;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(249,115,22,0.4);}
+body.dark #btn-loc-atual{background:#1a1a1a;border-color:#F97316;}
+#loc-status{position:fixed;bottom:235px;right:12px;z-index:9999;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;padding:6px 10px;border-radius:8px;display:none;max-width:200px;text-align:center;}
+
+#modal-feedback{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;align-items:flex-end;justify-content:center;}
+#modal-feedback.open{display:flex;}
+#feedback-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #feedback-sheet{background:#1a1a1a;}
+#feedback-sheet h3{font-size:16px;font-weight:700;color:#111;margin-bottom:4px;}
+body.dark #feedback-sheet h3{color:#eee;}
+#feedback-sheet p{font-size:12px;color:#888;margin-bottom:16px;}
+.nps-wrap{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.nps-btn{width:42px;height:42px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:#111;transition:all 0.15s;}
+body.dark .nps-btn{background:#222;border-color:#444;color:#eee;}
+.nps-btn:hover{border-color:#F97316;color:#F97316;}
+.nps-btn.selected{background:#F97316;color:#fff;border-color:#F97316;}
+.nps-labels{display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:-10px;margin-bottom:16px;}
+.feedback-categoria{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.cat-btn{padding:8px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:12px;cursor:pointer;font-family:inherit;color:#666;text-align:center;}
+body.dark .cat-btn{background:#222;border-color:#444;color:#aaa;}
+.cat-btn.selected{border-color:#F97316;color:#F97316;background:#FFF7ED;}
+.btn-enviar-fb{background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn-fechar-fb{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
+#feedback-tab-btn{position:fixed;right:-32px;top:50%;transform:translateY(-50%) rotate(-90deg);z-index:999;background:#F97316;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(249,115,22,0.4);}
+
+#modal-ranking{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;align-items:flex-end;justify-content:center;}
+#modal-ranking.open{display:flex;}
+#ranking-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #ranking-sheet{background:#1a1a1a;}
+#ranking-sheet h3{font-size:16px;font-weight:700;color:#F97316;margin-bottom:4px;}
+#ranking-sheet p{font-size:12px;color:#888;margin-bottom:14px;}
+.rank-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;margin-bottom:8px;background:var(--color-background-secondary);}
+.rank-pos{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;}
+.rank-pos.ouro{background:linear-gradient(135deg,#F59E0B,#D97706);color:#fff;}
+.rank-pos.prata{background:linear-gradient(135deg,#9CA3AF,#6B7280);color:#fff;}
+.rank-pos.bronze{background:linear-gradient(135deg,#CD7C2F,#A16207);color:#fff;}
+.rank-pos.normal{background:#F97316;color:#fff;}
+.rank-info{flex:1;}
+.rank-nome{font-size:13px;font-weight:600;color:var(--color-text-primary);}
+.rank-end{font-size:11px;color:var(--color-text-secondary);}
+.rank-pts{font-size:13px;font-weight:700;color:#F97316;}
+.rank-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.badge-ouro{background:#FEF3C7;color:#D97706;}
+.badge-prata{background:#F3F4F6;color:#6B7280;}
+.badge-bronze{background:#FEF9EE;color:#CD7C2F;}
+.rank-minha-pos{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.btn-fechar-rank{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
+#btn-ranking{position:fixed;left:-28px;top:40%;transform:translateY(-50%) rotate(90deg);z-index:999;background:#1D9E75;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(29,158,117,0.4);}
 </style>
 </head>
 <body>
 
 <div id="splash">
-  <div id="splash-logo">🗺</div>
-  <h1>TravelLog</h1>
-  <p>Seu companheiro de viagem</p>
-  <div id="splash-bar"><div id="splash-progress"></div></div>
+  <div style="font-size:60px;">📦</div>
+  <h1>EntregaLog</h1>
+  <p>Rotas inteligentes para entregadores</p>
+  <div id="splash-bar"><div id="splash-prog"></div></div>
+</div>
+
+<div id="login-screen">
+  <div style="font-size:48px;margin-bottom:12px;">📦</div>
+  <h2>Bem-vindo!</h2>
+  <p>Crie sua conta gratuita para salvar seu histórico em qualquer celular</p>
+  <div id="login-form">
+    <input class="mi" id="login-nome" placeholder="Seu nome completo"/>
+    <input class="mi" id="login-whats" type="tel" placeholder="WhatsApp com DDD"/>
+    <button class="add-btn" onclick="fazerLogin()">Entrar / Criar conta</button>
+  </div>
 </div>
 
 <div id="shell">
-  <div id="install-bar">
-    <span>📲 Instale o TravelLog!</span>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <button id="install-btn" onclick="installPWA()">Instalar</button>
-      <button id="install-close" onclick="document.getElementById('install-bar').classList.remove('show')">✕</button>
-    </div>
-  </div>
+  <div id="offline-bar">📵 Sem internet — dados salvos localmente e serão sincronizados quando a conexão voltar</div>
+  <div id="battery-bar">🔋 Bateria baixa — modo econômico ativado</div>
   <div id="topbar">
-    <div><div id="tripname">TravelLog</div><div id="tripkm">Aguardando GPS...</div></div>
+    <div>
+      <div id="app-title">📦 EntregaLog</div>
+      <div id="app-sub">Rotas inteligentes para entregadores</div>
+    </div>
     <div id="topbar-right">
-      <div id="total-badge">R$ 0,00</div>
-      <button id="dark-toggle" onclick="toggleDark()">🌙</button>
+      <div id="user-badge"></div>
+      <button id="dark-btn" onclick="toggleDark()">🌙</button>
+      <button id="config-btn" onclick="abrirConfig()" title="Configurações" style="background:none;border:none;font-size:18px;cursor:pointer;">⚙️</button>
+      <div id="status-badge">0 entregas</div>
     </div>
   </div>
   <div id="nav">
-    <button class="ntab active" onclick="showScreen('mapa')">Mapa</button>
-    <button class="ntab" onclick="showScreen('timeline')">Rota</button>
-    <button class="ntab" onclick="showScreen('gastos')">Gastos</button>
-    <button class="ntab" onclick="showScreen('historico')">Viagens</button>
+    <button class="ntab active" onclick="showTab('mapa')">🗺 Rota</button>
+    <button class="ntab" onclick="showTab('entregas')">📋 Entregas</button>
+    <button class="ntab" onclick="showTab('registrar')">📍 Registrar</button>
+    <button class="ntab" onclick="showTab('historico')">📁 Histórico</button>
+    <button class="ntab" onclick="showTab('relatorio')">📊 Relatório</button>
+    <button class="ntab" onclick="showTab('rotas')">🛣 Rotas</button>
   </div>
 
+  <!-- MAPA -->
   <div id="screen-mapa" class="screen active">
     <div id="mapwrap">
       <div id="leafmap"></div>
-      <div id="gps-overlay">Aguardando GPS...</div>
-      <div id="cpkm-overlay"></div>
-    </div>
-    <div id="wake-bar">🔆 Tela sempre ligada ativa</div>
-    <div id="voice-bar">🎤 Ouvindo... fale a categoria e o valor</div>
-    <div id="voice-result-bar"></div>
-    <div id="statusbar"><div id="recbadge"></div><div id="statustext">Solicitando localização...</div></div>
-    <div id="actions">
-      <button class="abtn primary" id="markbtn" onclick="openModal()" disabled>+ Ponto</button>
-      <button class="abtn" id="voicebtn" onclick="startVoice()" disabled style="background:#7C3AED;color:#fff;border-color:#7C3AED;">🎤 Voz</button>
-      <button class="abtn" onclick="pauseTrip()" id="pausebtn" disabled>Pausar</button>
-      <button class="abtn danger" onclick="endTrip()" id="endbtn" disabled>Encerrar</button>
-    </div>
-  </div>
-
-  <div id="screen-timeline" class="screen">
-    <div id="tl-wrap">
-      <div id="tl-label">Pontos da viagem atual</div>
-      <div id="tl-list">
-        <div class="tl-row">
-          <div class="tl-spine"><div class="dot start"></div><div class="tl-vline"></div></div>
-          <div><div class="tl-place">Partida</div><div class="tl-meta" id="start-coords">Aguardando GPS...</div></div>
-        </div>
+      <div id="map-search">
+        <input id="map-search-input" placeholder="🔍 Buscar endereço ou destino..." onkeydown="if(event.key==='Enter')buscarEndereco()"/>
+        <button id="map-search-btn" onclick="buscarEndereco()">Ir</button>
+      </div>
+      <div id="map-search-results"></div>
+      <div id="gps-info">
+        <div id="gps-coords">Aguardando GPS...</div>
+        <div id="km-badge">0.00 km</div>
+      </div>
+      <button id="parada-btn" onclick="abrirModalParada()">📍 Registrar este ponto</button>
+      <button id="btn-loc-atual" onclick="capturarLocalizacaoAtual()" title="Capturar minha localização agora">📍</button>
+      <div id="loc-status"></div>
+      <div id="nav-mode">
+        <div id="nav-destino">Navegando...</div>
+        <div id="nav-dist">-- km</div>
+        <div id="nav-addr"></div>
+        <button id="nav-chegou" onclick="chegarDestino()">✅ Cheguei — marcar como entregue</button>
+        <button id="nav-cancelar" onclick="cancelarNavegacao()">✕ Cancelar navegação</button>
       </div>
     </div>
-  </div>
-
-  <div id="screen-gastos" class="screen">
-    <div id="gastos-wrap">
-      <div id="filter-row"></div>
-      <div id="totals-box">
-        <div id="grand-total-label">Total selecionado</div>
-        <div id="grand-total">R$ 0,00</div>
-        <div id="cpkm-box">
-          <div id="cpkm-label">Custo por km</div>
-          <div id="cpkm-val">R$ 0,00 / km</div>
-        </div>
-        <div id="cat-rows"></div>
-      </div>
-      <div id="detail-list"><div style="text-align:center;padding:32px 0;font-size:13px;color:#aaa;">Nenhum ponto marcado ainda.</div></div>
+    <div id="map-btns">
+      <button class="mabtn" onclick="proximaEntrega()">⏭ Próxima</button>
+      <button class="mabtn primary" onclick="marcarEntregue()">✅ Entregue</button>
+      <button class="mabtn" onclick="abrirNavegacao()">🗺 Navegar</button>
     </div>
   </div>
 
+  <!-- ENTREGAS -->
+  <div id="screen-entregas" class="screen">
+    <div id="entregas-wrap">
+      <div class="sec-title">Adicionar entregas do dia</div>
+      <div id="input-area">
+        <button id="ocr-btn" onclick="verificarEAbrirOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
+          📷 Fotografar endereço — etiqueta ou qualquer documento
+        </button>
+        <div id="ocr-counter" style="font-size:11px;color:var(--color-text-secondary);text-align:center;margin-top:-4px;margin-bottom:6px;"></div>
+        <input type="file" id="ocr-input" accept="image/*" capture="environment" style="display:none" onchange="processarOCR(event)"/>
+        <img id="ocr-preview" src="" alt="" style="width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none;"/>
+        <div id="ocr-loading" style="display:none;background:#EDE9FE;border:1px solid #7C3AED;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:#5B21B6;text-align:center;"></div>
+        <p>ou digite o nome — o app busca nos registros salvos automaticamente.</p>
+        <div id="input-wrap" style="position:relative;">
+          <input class="mi" id="nome-input" placeholder="Nome do destinatário" oninput="buscarSugestoes(this.value)" autocomplete="off"/>
+          <div id="sugestoes"></div>
+        </div>
+        <input class="mi" id="end-input" placeholder="Endereço, CEP ou coordenadas - opcional"/>
+        <div class="hint">Ex: Rua das Flores 123 · 89801-000 · -27.1234,-52.6789</div>
+        <input class="mi" id="tel-input" type="tel" placeholder="Telefone do cliente - opcional"/>
+        <button class="add-btn" onclick="addEntrega()">+ Adicionar</button>
+      </div>
+      <div class="sec-title">Lista de hoje</div>
+      <div id="lista-entregas"><div style="text-align:center;padding:20px;font-size:13px;color:#aaa;">Nenhuma entrega adicionada.</div></div>
+      <button id="rota-btn" onclick="gerarRota()">🗺 Gerar rota otimizada</button>
+    </div>
+  </div>
+
+  <!-- REGISTRAR -->
+  <div id="screen-registrar" class="screen">
+    <div id="reg-wrap">
+      <div class="sec-title">Registrar endereço difícil</div>
+      <div id="reg-info"><p>📍 Registre aqui endereços difíceis com foto e dica para ajudar outros entregadores!</p></div>
+      <label class="ml">Nome ou referência</label>
+      <input class="mi" id="reg-nome" placeholder="Ex: Condomínio Solar, bloco B"/>
+      <label class="ml">Endereço</label>
+      <input class="mi" id="reg-end" placeholder="Rua, número, bairro"/>
+      <label class="ml">Dica para encontrar</label>
+      <textarea class="mi" id="reg-nota" placeholder="Ex: Portaria nos fundos, entra pela Rua das Flores..."></textarea>
+      <label class="ml">Foto - opcional</label>
+      <img id="photo-prev" src="" alt=""/>
+      <div id="photo-area" onclick="document.getElementById('ph-input').click()">📷 Tirar foto ou escolher da galeria<input type="file" id="ph-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)"/></div>
+      <button class="save-btn" onclick="salvarRegistro()">💾 Salvar para todos os entregadores</button>
+    </div>
+  </div>
+
+  <!-- HISTORICO -->
   <div id="screen-historico" class="screen">
     <div id="hist-wrap">
-      <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Viagens salvas</div>
+      <div class="sec-title">Endereços registrados</div>
       <div id="hist-list"></div>
+    </div>
+  </div>
+
+  <!-- RELATORIO -->
+  <div id="screen-relatorio" class="screen">
+    <div id="rel-wrap">
+      <div class="sec-title">Histórico por dia</div>
+      <div id="rel-list"></div>
+    </div>
+  </div>
+
+  <!-- ROTAS -->
+  <div id="screen-rotas" class="screen">
+    <div id="rotas-wrap">
+      <div class="sec-title">Rotas percorridas</div>
+      <div id="rotas-list"></div>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="modal-overlay">
+<button id="voice-fab" class="show" onclick="iniciarVoz()" title="Comando de voz">🎤</button>
+
+<div id="voice-listening">
+  <div id="voice-pulse">🎤</div>
+  <div id="voice-text">Diga o endereço ou comando...</div>
+  <button id="voice-cancel" onclick="cancelarVoz()">✕ Cancelar</button>
+</div>
+
+<!-- MODAL PARADA -->
+<div class="overlay" id="modal-parada">
   <div class="modal-sheet">
-    <h3>Marcar ponto</h3>
-    <div id="gps-card">
-      <div id="gps-searching"><div id="gps-spinner"></div><div id="gps-search-text">Identificando local pelo GPS...</div></div>
-      <div id="gps-result">
-        <div id="gps-result-top"><div id="gps-cat-icon"></div><div><div id="gps-place-name"></div><div id="gps-place-addr"></div></div></div>
-        <div id="gps-coords"></div>
-        <span id="gps-change" onclick="doReverseGeo()">Atualizar localização</span>
+    <h3>📍 Registrar ponto</h3>
+    <div id="parada-info">
+      <div id="parada-nome">Identificando...</div>
+      <div id="parada-addr"></div>
+      <div id="parada-coords-txt"></div>
+      <div id="parada-status">Buscando endereço...</div>
+    </div>
+    <label class="ml">Dica - opcional</label>
+    <textarea class="mi" id="parada-nota" placeholder="Ex: Portaria nos fundos..."></textarea>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;font-weight:600;color:var(--color-text-secondary);display:block;margin-bottom:6px;">📷 Foto do local — opcional</label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+        <button onclick="document.getElementById('parada-foto-input').click()" style="background:#7C3AED;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:13px;cursor:pointer;font-family:inherit;width:100%;">📷 Tirar foto do local</button>
       </div>
-      <div id="gps-error">Não foi possível identificar. Edite manualmente abaixo.</div>
+      <span id="parada-foto-status" style="font-size:11px;color:var(--color-text-secondary);display:block;margin-bottom:6px;">Nenhuma foto tirada</span>
+      <input type="file" id="parada-foto-input" accept="image/*" capture="environment" style="display:none" onchange="previewFotoParada(event)"/>
+      <img id="parada-foto-preview" style="display:none;width:100%;border-radius:10px;margin-bottom:8px;max-height:150px;object-fit:cover;" />
     </div>
-    <span id="override-toggle" onclick="toggleOverride()">Editar nome ou categoria manualmente</span>
-    <div id="override-fields">
-      <label class="ml">Nome do local</label>
-      <input class="mi" id="m-place" placeholder="Ex: Posto BR km 142"/>
-      <label class="ml">Categoria</label>
-      <div id="cat-grid"></div>
-    </div>
-    <label class="ml">Valor gasto (R$) — opcional</label>
-    <input class="mi" id="m-val" type="number" placeholder="0,00" min="0" step="0.01"/>
-    <label class="ml">Foto — opcional</label>
-    <img id="photo-preview-img" src="" alt="foto"/>
-    <div id="photo-upload-area" onclick="document.getElementById('photo-input').click()">
-      📷 Toque para tirar foto ou escolher da galeria
-      <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)"/>
-    </div>
-    <label class="ml">Anotação</label>
-    <textarea class="mi" id="m-note" placeholder="Observação opcional..."></textarea>
-    <div class="mbtns">
-      <button class="mbtn" onclick="closeModal()">Cancelar</button>
-      <button class="mbtn save" onclick="savePoint()">Salvar ponto</button>
+    <div class="mbtn-row">
+      <button class="mbtn" onclick="fecharModalParada()">Cancelar</button>
+      <button class="mbtn ok" onclick="confirmarParada()">💾 Salvar</button>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const CATS=[
-  {id:'pedagio',    label:'Pedágio',     icon:'🚧',bg:'#FAEEDA',color:'#633806'},
-  {id:'posto',      label:'Posto',       icon:'⛽',bg:'#E6F1FB',color:'#0C447C'},
-  {id:'restaurante',label:'Restaurante', icon:'🍽',bg:'#FBEAF0',color:'#72243E'},
-  {id:'borracharia',label:'Borracharia', icon:'🔧',bg:'#F1EFE8',color:'#444441'},
-  {id:'hospedagem', label:'Hospedagem',  icon:'🏨',bg:'#EEEDFE',color:'#3C3489'},
-  {id:'outros',     label:'Outros',      icon:'📌',bg:'#EAF3DE',color:'#27500A'},
-];
-const OSM_TAGS={toll_booth:'pedagio',fuel:'posto',restaurant:'restaurante',fast_food:'restaurante',cafe:'restaurante',bar:'restaurante',tyre:'borracharia',car_repair:'borracharia',hotel:'hospedagem',hostel:'hospedagem',motel:'hospedagem',guest_house:'hospedagem'};
-let map=null,gpsMarker=null,routeLine=null,routeCoords=[];
-let points=[],paused=false,ended=false,watching=false;
-let currentPos=null,currentGPS=null,selModal=null,overrideOpen=false;
-let watchId=null,totalDist=0,lastPos=null,tripStart=null;
-let wakeLock=null,deferredPrompt=null,currentPhotoData=null,darkMode=false;
-window._selCats=new Set(CATS.map(c=>c.id));
+const SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 
-function fmt(v){return'R$ '+v.toFixed(2).replace('.',',');}
+// ===== Helper Supabase com surfacing de erros =====
+function _toastErro(msg){
+  try{
+    var t=document.getElementById('sync-erro-toast');
+    if(!t){
+      t=document.createElement('div');
+      t.id='sync-erro-toast';
+      t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#c0392b;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:92vw;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;line-height:1.3;';
+      document.body.appendChild(t);
+    }
+    t.textContent='⚠ '+msg;
+    t.style.display='block';
+    clearTimeout(t._h);
+    t._h=setTimeout(function(){t.style.display='none';},6000);
+  }catch(e){}
+}
+async function supaFetch(path,options){
+  options=options||{};
+  options.headers=Object.assign({'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY},options.headers||{});
+  var res,txt;
+  try{
+    res=await fetch(SB_URL+path,options);
+    txt=await res.text();
+  }catch(e){
+    console.error('[Supabase] erro de rede:',path,e);
+    throw new Error('rede: '+e.message);
+  }
+  if(!res.ok){
+    console.error('[Supabase] HTTP',res.status,'em',path,':',txt);
+    _toastErro('Supabase '+res.status+': '+(txt||'').slice(0,90));
+    throw new Error('HTTP '+res.status+': '+txt);
+  }
+  return txt?JSON.parse(txt):null;
+}
+const APP_VERSION='1.0.5';
+const OSRM_URL='https://router.project-osrm.org';
+const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
+
+var map=null,marker=null,rotaLine=null,watchId=null;
+var rotaCoords=[],distTotal=0,lastPos=null;
+var entregas=[],currentPos=null,usuarioAtual=null,photoData=null;
+var paradaTimer=0,paradaPos=null,paradaRef=null,paradaFotoBase64=null;
+function previewFotoParada(ev){
+  try{
+    var f=ev.target.files&&ev.target.files[0];
+    if(!f) return;
+    var r=new FileReader();
+    r.onload=function(e){
+      paradaFotoBase64=e.target.result;
+      var img=document.getElementById('parada-foto-preview');
+      if(img){img.src=paradaFotoBase64;img.style.display='block';}
+      var st=document.getElementById('parada-foto-status');
+      if(st) st.textContent='Foto pronta';
+    };
+    r.readAsDataURL(f);
+  }catch(e){console.error('previewFotoParada erro:',e);}
+}
+
+// ===== DARK MODE =====
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  document.getElementById('dark-btn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
+  try{localStorage.setItem('el_dark',document.body.classList.contains('dark')?'1':'0');}catch(e){}
+}
+function initDark(){
+  if(localStorage.getItem('el_dark')==='1'||(!localStorage.getItem('el_dark')&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.body.classList.add('dark');
+    document.getElementById('dark-btn').textContent='☀️';
+  }
+}
+
+// ===== SPLASH =====
+function hideSplash(){
+  setTimeout(function(){
+    var s=document.getElementById('splash');
+    s.classList.add('hide');
+    setTimeout(function(){s.style.display='none';},500);
+  },2000);
+}
+
+// ===== LOGIN =====
+function checkLogin(){
+  try{
+    var u=JSON.parse(localStorage.getItem('el_user')||'null');
+    if(u){usuarioAtual=u;showUserBadge();return true;}
+  }catch(e){}
+  return false;
+}
+function showUserBadge(){
+  if(!usuarioAtual) return;
+  var b=document.getElementById('user-badge');
+  b.textContent='👤 '+usuarioAtual.nome.split(' ')[0];
+  b.style.display='block';
+}
+async function fazerLogin(){
+  var nome=document.getElementById('login-nome').value.trim();
+  var whats=document.getElementById('login-whats').value.trim().replace(/\D/g,'');
+  if(!nome)return alert('Digite seu nome.');
+  if(whats.length<10)return alert('Digite seu WhatsApp com DDD.');
+  usuarioAtual={nome:nome,whatsapp:whats};
+  try{localStorage.setItem('el_user',JSON.stringify(usuarioAtual));}catch(e){}
+  // Salva no Supabase
+  try{
+    await fetch(SB_URL+'/rest/v1/usuarios',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,whatsapp:whats})});
+  }catch(e){}
+  document.getElementById('login-screen').classList.remove('show');
+  showUserBadge();
+  initMap();
+}
+
+// ===== MAPA E GPS =====
+function initMap(){
+  if(map) return;
+  criarMapa(-15.77,-47.92);
+}
+
+function criarMapa(lat,lon){
+  if(map) return;
+  if(typeof L==='undefined'){
+    setTimeout(function(){criarMapa(lat,lon);},300);
+    return;
+  }
+  map=L.map('leafmap',{zoomControl:true,attributionControl:true}).setView([lat,lon],15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  var icone=L.divIcon({html:'<div style="width:16px;height:16px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(249,115,22,0.3);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
+  marker=L.marker([lat,lon],{icon:icone,zIndexOffset:1000}).addTo(map);
+  rotaLine=L.polyline([],{color:'#F97316',weight:5,opacity:0.9}).addTo(map);
+  setTimeout(startGPS, 500);
+}
+
+function startGPS(){
+  if(!navigator.geolocation) return;
+  if(watchId) return; // ja iniciado
+  // Tenta sem alta precisao primeiro para nao travar
+  try{
+  watchId=navigator.geolocation.watchPosition(
+    function(pos){
+      var la=pos.coords.latitude, lo=pos.coords.longitude;
+      currentPos={lat:la,lon:lo};
+      // Move marcador
+      marker.setLatLng([la,lo]);
+      map.setView([la,lo],map.getZoom());
+      // Atualiza coords
+      document.getElementById('gps-coords').textContent=la.toFixed(5)+' '+lo.toFixed(5);
+      // Adiciona à rota
+      rotaCoords.push([la,lo]);
+      rotaLine.setLatLngs(rotaCoords);
+      // Calcula distância
+      if(lastPos){
+        distTotal+=haverDist(lastPos,{lat:la,lon:lo});
+        var km=(distTotal/1000).toFixed(2);
+        var kb=document.getElementById('km-badge');
+        kb.style.display='block';
+        kb.textContent=km+' km';
+      }
+      lastPos={lat:la,lon:lo};
+      // Detecta parada
+      detectaParada(la,lo);
+    },
+    function(err){
+      var m={1:'Permissão negada',2:'Indisponível',3:'Timeout'};
+      document.getElementById('gps-coords').textContent=m[err.code]||'Erro GPS';
+    },
+    {enableHighAccuracy:false,maximumAge:5000,timeout:15000}
+  );
+  }catch(e){console.log('GPS erro:',e);}
+}
+
 function haverDist(a,b){
-  const R=6371000,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180;
-  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  var R=6371000,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lon-a.lon)*Math.PI/180;
+  var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
   return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
-function toggleDark(){
-  darkMode=!darkMode;
-  document.body.classList.toggle('dark',darkMode);
-  document.getElementById('dark-toggle').textContent=darkMode?'☀️':'🌙';
-  try{localStorage.setItem('tl_dark',darkMode?'1':'0');}catch(e){}
-}
-function initDark(){
-  const saved=localStorage.getItem('tl_dark');
-  const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if(saved==='1'||(saved===null&&prefersDark)){darkMode=true;document.body.classList.add('dark');document.getElementById('dark-toggle').textContent='☀️';}
-}
-function hideSplash(){
-  setTimeout(()=>{
-    const s=document.getElementById('splash');
-    s.classList.add('hide');
-    setTimeout(()=>s.style.display='none',650);
-  },2400);
+// ===== ROTA POR RUAS (OSRM) =====
+// Retorna {coords:[[lat,lon],...], distance, duration, steps} OU null se falhar.
+async function obterRotaRuas(origLat,origLon,destLat,destLon){
+  try{
+    var url=OSRM_URL+'/route/v1/driving/'+origLon+','+origLat+';'+destLon+','+destLat
+      +'?overview=full&geometries=geojson&steps=true';
+    var r=await fetch(url);
+    if(!r.ok) return null;
+    var d=await r.json();
+    if(!d.routes||!d.routes.length) return null;
+    // GeoJSON usa [lon,lat]; Leaflet quer [lat,lon].
+    var coords=d.routes[0].geometry.coordinates.map(function(c){return [c[1],c[0]];});
+    var steps=(d.routes[0].legs&&d.routes[0].legs[0]&&d.routes[0].legs[0].steps)||[];
+    return {coords:coords,distance:d.routes[0].distance,duration:d.routes[0].duration,steps:steps};
+  }catch(e){console.warn('OSRM erro:',e);return null;}
 }
 
-async function requestWakeLock(){
-  if(!('wakeLock' in navigator)) return;
-  try{wakeLock=await navigator.wakeLock.request('screen');document.getElementById('wake-bar').style.display='block';wakeLock.addEventListener('release',()=>{document.getElementById('wake-bar').style.display='none';});}catch(e){}
-}
-async function releaseWakeLock(){if(wakeLock){await wakeLock.release();wakeLock=null;}document.getElementById('wake-bar').style.display='none';}
-document.addEventListener('visibilitychange',async()=>{if(wakeLock!==null&&document.visibilityState==='visible'&&!ended&&!paused) await requestWakeLock();});
+// ===== TTS - NAVEGACAO POR VOZ =====
+var _vozNavOn=true; // sera lido do localStorage
+var _vozUltimoMarco=null;
+var _vozUltimoFala=0;
+try{var _vn=localStorage.getItem('el_voz_nav');if(_vn!==null) _vozNavOn=(_vn==='1');}catch(e){}
 
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-bar').classList.add('show');});
-window.addEventListener('appinstalled',()=>document.getElementById('install-bar').classList.remove('show'));
-function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-bar').classList.remove('show');});}
-
-function generateManifest(){
-  const icon=generateIcon();
-  const m={name:'TravelLog',short_name:'TravelLog',description:'Rastreador de viagens com GPS',start_url:'.',display:'standalone',background_color:'#1D9E75',theme_color:'#1D9E75',orientation:'portrait',icons:[{src:icon,sizes:'192x192',type:'image/png'},{src:icon,sizes:'512x512',type:'image/png'}]};
-  const blob=new Blob([JSON.stringify(m)],{type:'application/json'});
-  document.getElementById('manifest-link').href=URL.createObjectURL(blob);
-  document.getElementById('apple-icon').href=icon;
+function falarVoz(texto,opts){
+  if(!_vozNavOn) return;
+  if(!('speechSynthesis' in window)) return;
+  opts=opts||{};
+  // Anti-spam: nao fala a mesma coisa em menos de 2s, exceto se forcado
+  var agora=Date.now();
+  if(!opts.force && (agora-_vozUltimoFala<1500)) return;
+  _vozUltimoFala=agora;
+  try{
+    if(opts.interromper) window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(texto);
+    u.lang='pt-BR';
+    u.rate=opts.rate||1.0;
+    u.pitch=1.0;
+    u.volume=1.0;
+    window.speechSynthesis.speak(u);
+  }catch(e){console.warn('TTS falhou:',e);}
 }
-function generateIcon(){
-  const c=document.createElement('canvas');c.width=192;c.height=192;
-  const ctx=c.getContext('2d');ctx.fillStyle='#1D9E75';ctx.beginPath();ctx.roundRect(0,0,192,192,32);ctx.fill();
-  ctx.font='100px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🗺',96,96);
-  return c.toDataURL('image/png');
+function pararVoz(){
+  try{if('speechSynthesis' in window) window.speechSynthesis.cancel();}catch(e){}
+  _vozUltimoMarco=null;
 }
-function registerSW(){
-  if(!('serviceWorker' in navigator)) return;
-  const sw=`const C='tl-v2';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['https://unpkg.com/leaflet@1.9.4/dist/leaflet.css','https://unpkg.com/leaflet@1.9.4/dist/leaflet.js']))));self.addEventListener('fetch',e=>{if(e.request.url.includes('tile.openstreetmap.org')){e.respondWith(caches.open(C).then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(res=>{c.put(e.request,res.clone());return res;}))));}});`;
-  const blob=new Blob([sw],{type:'application/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+function alternarVozNav(){
+  _vozNavOn=!_vozNavOn;
+  try{localStorage.setItem('el_voz_nav',_vozNavOn?'1':'0');}catch(e){}
+  if(!_vozNavOn) pararVoz();
+  return _vozNavOn;
 }
-
-function saveToStorage(){try{localStorage.setItem('tl_current',JSON.stringify({points,routeCoords,totalDist,tripStart,ended}));}catch(e){}}
-function loadFromStorage(){
-  try{const s=localStorage.getItem('tl_current');if(!s)return false;const st=JSON.parse(s);if(st.ended)return false;points=st.points||[];routeCoords=st.routeCoords||[];totalDist=st.totalDist||0;tripStart=st.tripStart||null;return true;}catch(e){return false;}
-}
-function getSavedTrips(){try{return JSON.parse(localStorage.getItem('tl_trips')||'[]');}catch(e){return[];}}
-function saveTripToHistory(t){const trips=getSavedTrips();trips.unshift(t);try{localStorage.setItem('tl_trips',JSON.stringify(trips));}catch(e){}}
-
-function initLeaflet(lat,lon){
-  if(map)return;
-  map=L.map('leafmap',{zoomControl:true,attributionControl:true}).setView([lat,lon],17);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  const icon=L.divIcon({html:'<div style="width:16px;height:16px;background:#1D9E75;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(29,158,117,0.25);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
-  gpsMarker=L.marker([lat,lon],{icon,zIndexOffset:1000}).addTo(map);
-  routeLine=L.polyline(routeCoords.length?routeCoords:[],{color:'#1D9E75',weight:4,opacity:0.9}).addTo(map);
-  points.forEach(p=>{if(p.lat&&p.lon)addPinToMap(p.lat,p.lon,p.cat);});
-}
-function updateLeaflet(lat,lon){
-  if(!map)return;
-  gpsMarker.setLatLng([lat,lon]);routeCoords.push([lat,lon]);routeLine.setLatLngs(routeCoords);
-  map.panTo([lat,lon],{animate:true,duration:0.6});
-  document.getElementById('gps-overlay').textContent=lat.toFixed(5)+', '+lon.toFixed(5);
-  updateCostPerKm();
-}
-function addPinToMap(lat,lon,cat){
-  const c=CATS.find(x=>x.id===cat)||CATS[5];
-  const icon=L.divIcon({html:`<div style="width:32px;height:32px;background:${c.bg};border:2px solid ${c.color};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">${c.icon}</div>`,iconSize:[32,32],iconAnchor:[16,16],className:''});
-  L.marker([lat,lon],{icon}).addTo(map);
-}
-function updateCostPerKm(){
-  const km=totalDist/1000;const total=points.reduce((s,p)=>s+(p.val||0),0);
-  const el=document.getElementById('cpkm-overlay');
-  if(km>0.1&&total>0){el.textContent='R$ '+(total/km).toFixed(2).replace('.',',')+'/km';el.style.display='block';}
-  else el.style.display='none';
-}
-
-function onGPSSuccess(pos){
-  const lat=pos.coords.latitude,lon=pos.coords.longitude;
-  currentPos={lat,lon};
-  if(!watching){
-    watching=true;if(!tripStart)tripStart=Date.now();
-    initLeaflet(lat,lon);requestWakeLock();
-    document.getElementById('statustext').textContent='GPS ativo — gravando rota';
-    document.getElementById('recbadge').style.background='#E24B4A';
-    ['markbtn','voicebtn','pausebtn','endbtn'].forEach(id=>document.getElementById(id).disabled=false);
-    document.getElementById('start-coords').textContent=lat.toFixed(5)+', '+lon.toFixed(5);
-    if(points.length>0)restoreTimeline();
-  }
-  if(!paused&&!ended){
-    if(lastPos)totalDist+=haverDist(lastPos,{lat,lon});
-    lastPos={lat,lon};updateLeaflet(lat,lon);
-    document.getElementById('tripkm').textContent=points.length+' ponto'+(points.length!==1?'s':'')+' · '+(totalDist/1000).toFixed(2)+' km';
-    saveToStorage();
+// Fala marcos de distancia uma unica vez por marco
+function falarMarcoDistancia(metros,nomeDestino){
+  var marcos=[1000,500,200,100,50];
+  for(var i=0;i<marcos.length;i++){
+    var m=marcos[i];
+    var chave='m'+m;
+    if(metros<=m && metros>m*0.6 && _vozUltimoMarco!==chave){
+      _vozUltimoMarco=chave;
+      var txt;
+      if(m>=1000) txt='Faltam um quilômetro até '+(nomeDestino||'o destino');
+      else if(m===500) txt='Faltam 500 metros';
+      else if(m===200) txt='200 metros, fique atento';
+      else if(m===100) txt='100 metros';
+      else if(m===50) txt='50 metros, prepare-se para parar';
+      falarVoz(txt,{interromper:true,force:true});
+      return;
+    }
   }
 }
-function onGPSError(err){
-  const msgs={1:'Permissão negada.',2:'GPS indisponível.',3:'Tempo esgotado.'};
-  document.getElementById('statustext').textContent=msgs[err.code]||'Erro de GPS.';
+
+function detectaParada(la,lo){
+  if(!paradaPos){paradaPos={lat:la,lon:lo};paradaTimer=0;return;}
+  var d=haverDist(paradaPos,{lat:la,lon:lo});
+  if(d<15){
+    paradaTimer++;
+    if(paradaTimer>=10) document.getElementById('parada-btn').style.display='block';
+  } else {
+    paradaPos={lat:la,lon:lo};
+    paradaTimer=0;
+    document.getElementById('parada-btn').style.display='none';
+  }
 }
-function pauseTrip(){
-  paused=!paused;
-  document.getElementById('pausebtn').textContent=paused?'Retomar':'Pausar';
-  document.getElementById('statustext').textContent=paused?'Gravação pausada':'GPS ativo — gravando rota';
-  document.getElementById('recbadge').style.background=paused?'#ccc':'#E24B4A';
-  if(paused)releaseWakeLock();else requestWakeLock();
+
+// ===== MODAL PARADA =====
+async function abrirModalParada(){
+  document.getElementById('parada-btn').style.display='none';
+  document.getElementById('modal-parada').classList.add('open');
+  document.getElementById('parada-nota').value='';
+  document.getElementById('parada-status').textContent='Buscando endereço...';
+  document.getElementById('parada-nome').textContent='Identificando...';
+  document.getElementById('parada-addr').textContent='';
+  if(currentPos) document.getElementById('parada-coords-txt').textContent=currentPos.lat.toFixed(5)+', '+currentPos.lon.toFixed(5);
+  paradaRef={nome:'Local atual',addr:'',lat:currentPos?currentPos.lat:0,lon:currentPos?currentPos.lon:0};
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+currentPos.lat+'&lon='+currentPos.lon+'&format=json&zoom=18',{headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}});
+    var d=await res.json();
+    var nome=d.name||d.address.road||'Local';
+    var addr=[d.address.road,d.address.suburb,d.address.city].filter(Boolean).join(', ');
+    paradaRef={nome:nome,addr:addr,lat:currentPos.lat,lon:currentPos.lon};
+    document.getElementById('parada-nome').textContent=nome;
+    document.getElementById('parada-addr').textContent=addr;
+    document.getElementById('parada-status').textContent='✓ Endereço identificado';
+  }catch(e){
+    document.getElementById('parada-status').textContent='Coordenadas salvas';
+  }
 }
-function endTrip(){
-  if(!confirm('Encerrar e salvar esta viagem?'))return;
-  ended=true;if(watchId)navigator.geolocation.clearWatch(watchId);releaseWakeLock();
-  document.getElementById('statustext').textContent='Viagem salva!';
-  document.getElementById('recbadge').style.background='#378ADD';
-  ['markbtn','voicebtn','pausebtn','endbtn'].forEach(id=>document.getElementById(id).disabled=true);
-  const grand=points.reduce((s,x)=>s+(x.val||0),0);
-  const km=(totalDist/1000).toFixed(2);
-  const cpkm=totalDist>100&&grand>0?(grand/(totalDist/1000)).toFixed(2):null;
-  saveTripToHistory({id:Date.now(),date:tripStart||Date.now(),km,points:[...points],routeCoords:[...routeCoords],total:grand,cpkm});
-  try{localStorage.removeItem('tl_current');}catch(e){}
-  const btn=document.getElementById('endbtn');
-  btn.textContent='Nova viagem';btn.className='abtn new';btn.disabled=false;btn.onclick=newTrip;
-  document.getElementById('tripname').textContent='Viagem salva ✓';
+function fecharModalParada(){document.getElementById('modal-parada').classList.remove('open');}
+async function confirmarParada(){
+  if(!paradaRef)return;
+  var nota=document.getElementById('parada-nota').value.trim();
+  var usr=usuarioAtual?usuarioAtual.nome:'auto';
+  var reg={nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr,foto:paradaFotoBase64||null};
+  // Salva no historico de enderecos salvos
+  try{
+    var l=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    l.unshift(reg);
+    localStorage.setItem('el_regs',JSON.stringify(l));
+  }catch(e){}
+  // Salva tambem no banco local de enderecos para autocomplete
+  try{
+    var bancol=JSON.parse(localStorage.getItem('el_banco_local')||'[]');
+    bancol.unshift({addr:paradaRef.addr,lat:paradaRef.lat,lon:paradaRef.lon,nota:nota});
+    localStorage.setItem('el_banco_local',JSON.stringify(bancol.slice(0,500)));
+  }catch(e){}
+  // Supabase
+  var syncOk=false;
+  var payload={nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,registrado_por:usr};
+  try{
+    await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(payload)});
+    syncOk=true;
+  }catch(e){
+    console.error('[confirmarParada] falha Supabase:',e.message);
+    salvarNaFila('endereco',payload);
+  }
+  // Pin verde
+  if(map&&L){
+    var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">📍</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
+    L.marker([paradaRef.lat,paradaRef.lon],{icon:ic}).addTo(map).bindPopup('<b>'+paradaRef.nome+'</b>'+(nota?'<br/>'+nota:''));
+  }
+  notificarContribuicao();
+  fecharModalParada();
+  alert(syncOk?'✅ Ponto registrado e salvo no banco colaborativo!':'⚠ Salvo localmente. Nao consegui enviar pro banco - veja o aviso vermelho.');
 }
-function newTrip(){
-  points=[];routeCoords=[];totalDist=0;lastPos=null;tripStart=Date.now();paused=false;ended=false;watching=false;
-  if(watchId)navigator.geolocation.clearWatch(watchId);
-  if(map){map.remove();map=null;gpsMarker=null;routeLine=null;}
-  document.getElementById('leafmap').innerHTML='';
-  document.getElementById('tl-list').innerHTML=`<div class="tl-row"><div class="tl-spine"><div class="dot start"></div><div class="tl-vline"></div></div><div><div class="tl-place">Partida</div><div class="tl-meta" id="start-coords">Aguardando GPS...</div></div></div>`;
-  document.getElementById('tripname').textContent='TravelLog';
-  document.getElementById('tripkm').textContent='Aguardando GPS...';
-  document.getElementById('total-badge').textContent='R$ 0,00';
-  document.getElementById('statustext').textContent='Solicitando localização...';
-  document.getElementById('recbadge').style.background='#ccc';
-  document.getElementById('cpkm-overlay').style.display='none';
-  ['markbtn','voicebtn','pausebtn'].forEach(id=>document.getElementById(id).disabled=true);
-  document.getElementById('pausebtn').textContent='Pausar';
-  const btn=document.getElementById('endbtn');
-  btn.textContent='Encerrar';btn.className='abtn danger';btn.disabled=true;btn.onclick=endTrip;
-  window._selCats=new Set(CATS.map(c=>c.id));
-  watchId=navigator.geolocation.watchPosition(onGPSSuccess,onGPSError,{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
-  showScreen('mapa');
+
+// ===== TABS =====
+function showTab(t){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.ntab').forEach(function(b){b.classList.remove('active');});
+  var sc=document.getElementById('screen-'+t);
+  if(sc) sc.classList.add('active');
+  var tabs=['mapa','entregas','registrar','historico','relatorio','rotas'];
+  var idx=tabs.indexOf(t);
+  var btns=document.querySelectorAll('.ntab');
+  if(btns[idx]) btns[idx].classList.add('active');
+  if(t==='mapa'){
+    setTimeout(function(){
+      if(map) map.invalidateSize();
+      if(!watchId) startGPS();
+    },100);
+  }
+  if(t==='historico') renderHistorico();
+  if(t==='relatorio') renderRelatorio();
+  if(t==='rotas') renderRotas();
 }
-function restoreTimeline(){
-  const list=document.getElementById('tl-list');
-  points.forEach(p=>{const cat=catFor(p.cat);const row=document.createElement('div');row.className='tl-row';row.innerHTML=buildTlRow(p,cat);list.appendChild(row);});
-  document.getElementById('total-badge').textContent=fmt(points.reduce((s,x)=>s+(x.val||0),0));
+
+// ===== ENTREGAS =====
+async function addEntrega(){
+  var nome=document.getElementById('nome-input').value.trim();
+  var end=document.getElementById('end-input').value.trim();
+  var tel=document.getElementById('tel-input').value.trim();
+  if(!nome)return alert('Digite o nome.');
+  var coords=null;
+  var endFinal=end||'Endereço não informado';
+  // Busca no banco primeiro
+  if(nome||end){
+    try{
+      var q=nome||end;
+      var r=await fetch(SB_URL+'/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+(end?end.split(',')[0]:nome)+'%')+'&limit=1',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+      var d=await r.json();
+      if(d&&d.length>0){coords={lat:d[0].lat,lon:d[0].lon};endFinal=d[0].addr||end;}
+    }catch(e){}
+  }
+  if(!coords&&end) coords=await geocode(end);
+  entregas.push({id:Date.now(),nome:nome,addr:endFinal,tel:tel,lat:coords?coords.lat:null,lon:coords?coords.lon:null,entregue:false,conhecido:!!coords});
+  document.getElementById('nome-input').value='';
+  document.getElementById('end-input').value='';
+  document.getElementById('tel-input').value='';
+  renderLista();
 }
-function buildTlRow(p,cat){
-  return`<div class="tl-spine"><div class="dot" style="background:${cat.color};"></div><div class="tl-vline"></div></div>
-    <div style="flex:1;"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-      <div class="tl-place">${p.place}</div>
-      <span class="cat-pill" style="background:${cat.bg};color:${cat.color};">${cat.icon} ${cat.label}</span>
-      ${p.val?`<span style="font-size:12px;font-weight:700;">${fmt(p.val)}</span>`:''}
-    </div>
-    <div class="tl-meta">${p.addr||''} · ${p.dist} km</div>
-    ${p.photo?`<img class="tl-photo" src="${p.photo}"/>`:''}
-    ${p.lat?`<button class="nav-btn" onclick="openGoogleMaps(${p.lat},${p.lon},'${p.place.replace(/'/g,"\\'")}')">🗺 Navegar até aqui</button>`:''}
-    ${p.note?`<div class="tl-note">${p.note}</div>`:''}
-    </div>`;
+async function geocode(q){
+  // Coordenadas literais "lat,lon"
+  var cm=q.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+  if(cm)return{lat:parseFloat(cm[1]),lon:parseFloat(cm[2])};
+  // CEP (8 digitos)
+  var soDigitos=q.replace(/\D/g,'');
+  if(soDigitos.length===8){
+    try{
+      var rcep=await fetch('https://viacep.com.br/ws/'+soDigitos+'/json/');
+      var dcep=await rcep.json();
+      if(!dcep.erro){
+        q=[dcep.logradouro,dcep.bairro,dcep.localidade,dcep.uf].filter(Boolean).join(', ');
+      }
+    }catch(e){}
+  }
+  // Nominatim com viés de proximidade e filtro Brasil
+  try{
+    var params='?q='+encodeURIComponent(q)+'&format=json&limit=5&countrycodes=br&addressdetails=1';
+    if(currentPos){
+      var d=0.3;
+      var vb=[currentPos.lon-d,currentPos.lat+d,currentPos.lon+d,currentPos.lat-d].join(',');
+      params+='&viewbox='+vb+'&bounded=0';
+    }
+    var r=await fetch('https://nominatim.openstreetmap.org/search'+params,
+      {headers:{'Accept-Language':'pt-BR'}});
+    var arr=await r.json();
+    if(arr&&arr.length){
+      // Ordena por proximidade se temos GPS
+      if(currentPos){
+        arr.sort(function(a,b){
+          var da=haverDist(currentPos,{lat:parseFloat(a.lat),lon:parseFloat(a.lon)});
+          var db=haverDist(currentPos,{lat:parseFloat(b.lat),lon:parseFloat(b.lon)});
+          return da-db;
+        });
+      }
+      return {lat:parseFloat(arr[0].lat),lon:parseFloat(arr[0].lon)};
+    }
+  }catch(e){}
+  return null;
 }
-function handlePhoto(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    currentPhotoData=ev.target.result;
-    const img=document.getElementById('photo-preview-img');
-    img.src=currentPhotoData;img.style.display='block';
-    document.getElementById('photo-upload-area').style.display='none';
+function renderLista(){
+  var el=document.getElementById('lista-entregas');
+  var btn=document.getElementById('rota-btn');
+  document.getElementById('status-badge').textContent=entregas.filter(function(e){return!e.entregue;}).length+' entregas';
+  if(!entregas.length){el.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#aaa;">Nenhuma entrega adicionada.</div>';btn.className='rota-btn';return;}
+  btn.className='rota-btn show';
+  el.innerHTML='';
+  entregas.forEach(function(e,i){
+    var nc=e.entregue?'done':e.conhecido?'known':'';
+    var sc=e.entregue?'entregue':e.conhecido?'conhecido':'novo';
+    var st=e.entregue?'✅':e.conhecido?'✅ Conhecido':'⚠️ Novo';
+    var card=document.createElement('div');card.className='entrega-card';
+    card.innerHTML='<div class="e-num '+nc+'">'+(i+1)+'</div>'
+      +'<div class="entrega-info"><div class="entrega-nome">'+e.nome+'</div><div class="entrega-addr">'+e.addr+'</div></div>'
+      +'<span class="e-status '+sc+'">'+st+'</span>'
+      +(e.tel?'<button class="e-btn" onclick="window.location.href=\'tel:'+e.tel+'\'">📞</button>':'')
+      +'<button class="e-btn" onclick="editEntrega('+i+')" style="color:#F97316">✏️</button>'
+      +'<button class="e-btn" onclick="delEntrega('+i+')" style="color:#ddd">✕</button>';
+    el.appendChild(card);
+  });
+}
+function delEntrega(i){entregas.splice(i,1);renderLista();}
+function editEntrega(i){
+  var e=entregas[i];
+  document.getElementById('nome-input').value=e.nome;
+  document.getElementById('end-input').value=e.addr;
+  document.getElementById('tel-input').value=e.tel||'';
+  entregas.splice(i,1);renderLista();
+  showTab('entregas');
+}
+async function gerarRota(){
+  for(var i=0;i<entregas.length;i++){
+    if(!entregas[i].lat||!entregas[i].lon){
+      var c=await geocode(entregas[i].addr);
+      if(c){entregas[i].lat=c.lat;entregas[i].lon=c.lon;}
+    }
+  }
+  if(currentPos){
+    var comCoords=entregas.filter(function(e){return e.lat&&e.lon&&!e.entregue;});
+    var semCoords=entregas.filter(function(e){return(!e.lat||!e.lon)&&!e.entregue;});
+    var entregues=entregas.filter(function(e){return e.entregue;});
+    var ord=otimizar(comCoords,currentPos);
+    entregas=[...entregues,...ord,...semCoords];
+  }
+  renderLista();
+  showTab('mapa');
+  setTimeout(function(){
+    if(map){
+      var pts=entregas.filter(function(e){return e.lat&&e.lon;});
+      if(pts.length>0){
+        var bounds=L.latLngBounds(pts.map(function(e){return[e.lat,e.lon];}));
+        map.fitBounds(bounds,{padding:[30,30]});
+      }
+      // Pins no mapa
+      pts.forEach(function(e,i){
+        var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:'+(e.entregue?'#86EFAC':e.conhecido?'#4ADE80':'#FBBF24')+';border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#111;box-shadow:0 2px 6px rgba(0,0,0,0.2);">'+(i+1)+'</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
+        L.marker([e.lat,e.lon],{icon:ic}).addTo(map).bindPopup('<b>'+e.nome+'</b><br/>'+e.addr);
+      });
+    }
+  },500);
+}
+function otimizar(pts,orig){
+  var rest=[...pts],ord=[],atual=orig;
+  while(rest.length){
+    var mi=0,md=Infinity;
+    rest.forEach(function(p,i){var d=haverDist(atual,{lat:p.lat,lon:p.lon});if(d<md){md=d;mi=i;}});
+    ord.push(rest.splice(mi,1)[0]);
+    var u=ord[ord.length-1];
+    if(u.lat&&u.lon)atual={lat:u.lat,lon:u.lon};
+  }
+  return ord;
+}
+function proximaEntrega(){
+  var e=entregas.find(function(x){return!x.entregue;});
+  if(!e){alert('Todas entregues!');return;}
+  if(e.lat&&e.lon&&map)map.setView([e.lat,e.lon],17);
+}
+function marcarEntregue(){
+  var i=entregas.findIndex(function(x){return!x.entregue;});
+  if(i===-1){alert('Todas entregues!');return;}
+  entregas[i].entregue=true;
+  if(currentPos&&(!entregas[i].lat||!entregas[i].lon)){entregas[i].lat=currentPos.lat;entregas[i].lon=currentPos.lon;}
+  salvarEstatDia(1);
+  verificarMomentFeedback();
+  renderLista();
+  proximaEntrega();
+}
+
+var searchMarker=null;
+var searchNavLine=null;
+
+async function buscarEndereco(){
+  var q=document.getElementById('map-search-input').value.trim();
+  if(!q) return;
+  var btn=document.getElementById('map-search-btn');
+  btn.textContent='...';
+  var resultados=[];
+  var ql=q.toLowerCase();
+
+  // 1) Coordenadas literais "lat,lon"
+  var cm=q.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+  if(cm){
+    resultados.push({nome:'Coordenadas',addr:q,lat:parseFloat(cm[1]),lon:parseFloat(cm[2]),salvo:false});
+  }
+
+  // 2) CEP (8 digitos) — usa ViaCEP e depois Nominatim com o endereco completo
+  var soDigitos=q.replace(/\D/g,'');
+  if(soDigitos.length===8){
+    try{
+      var rcep=await fetch('https://viacep.com.br/ws/'+soDigitos+'/json/');
+      var dcep=await rcep.json();
+      if(!dcep.erro){
+        var endStr=[dcep.logradouro,dcep.bairro,dcep.localidade,dcep.uf].filter(Boolean).join(', ');
+        try{
+          var rgeo=await fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(endStr)+'&format=json&limit=1&countrycodes=br&addressdetails=1',
+            {headers:{'Accept-Language':'pt-BR'}});
+          var dgeo=await rgeo.json();
+          if(dgeo&&dgeo.length){
+            resultados.push({
+              nome:dcep.logradouro||('CEP '+soDigitos),
+              addr:endStr+' — CEP '+soDigitos,
+              lat:parseFloat(dgeo[0].lat),lon:parseFloat(dgeo[0].lon),
+              salvo:false,fonte:'cep'
+            });
+          }
+        }catch(e){}
+      }
+    }catch(e){}
+  }
+
+  // 3) Banco local de registros salvos (mais relevantes)
+  try{
+    var local=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    var localMatches=local.filter(function(r){
+      return (r.nome&&r.nome.toLowerCase().indexOf(ql)>=0)||
+             (r.addr&&r.addr.toLowerCase().indexOf(ql)>=0);
+    }).slice(0,3).map(function(r){
+      return{nome:r.nome||'Local salvo',addr:r.addr||'',lat:r.lat,lon:r.lon,nota:r.nota,salvo:true};
+    });
+    resultados=resultados.concat(localMatches);
+  }catch(e){}
+
+  // 4) Nominatim com proximity bias na regiao do usuario
+  try{
+    var params='?q='+encodeURIComponent(q)
+      +'&format=json&limit=7&countrycodes=br&addressdetails=1';
+    if(currentPos){
+      // viewbox de ~0.3 graus (~33km) ao redor do GPS, mas nao limita (bounded=0)
+      var d=0.3;
+      var vb=[currentPos.lon-d,currentPos.lat+d,currentPos.lon+d,currentPos.lat-d].join(',');
+      params+='&viewbox='+vb+'&bounded=0';
+    }
+    var res=await fetch('https://nominatim.openstreetmap.org/search'+params,{
+      headers:{'Accept-Language':'pt-BR'}
+    });
+    var data=await res.json();
+    // Se temos GPS, ordena por proximidade
+    if(currentPos){
+      data.sort(function(a,b){
+        var da=haverDist(currentPos,{lat:parseFloat(a.lat),lon:parseFloat(a.lon)});
+        var db=haverDist(currentPos,{lat:parseFloat(b.lat),lon:parseFloat(b.lon)});
+        return da-db;
+      });
+    }
+    data.forEach(function(d){
+      var nome=d.display_name.split(',')[0];
+      var distLabel='';
+      if(currentPos){
+        var di=haverDist(currentPos,{lat:parseFloat(d.lat),lon:parseFloat(d.lon)});
+        distLabel=di>1000?' · '+(di/1000).toFixed(1)+' km':' · '+Math.round(di)+' m';
+      }
+      resultados.push({
+        nome:nome,
+        addr:d.display_name.slice(0,90)+distLabel,
+        lat:parseFloat(d.lat),
+        lon:parseFloat(d.lon),
+        salvo:false
+      });
+    });
+  }catch(e){console.warn('Nominatim falhou:',e);}
+
+  btn.textContent='Ir';
+
+  // Dedup por lat/lon arredondado
+  var seen={};
+  resultados=resultados.filter(function(r){
+    if(!r.lat||!r.lon) return false;
+    var k=r.lat.toFixed(4)+','+r.lon.toFixed(4);
+    if(seen[k]) return false;
+    seen[k]=true; return true;
+  });
+
+  if(!resultados.length){
+    alert('Endereço não encontrado.\n\nDicas:\n• Inclua a cidade (ex: "Rua X, 100, São Paulo")\n• Use o CEP (8 dígitos)\n• Verifique sua conexão');
+    return;
+  }
+
+  // Sempre mostra a lista (mesmo com 1 resultado) para o usuario validar — antes auto-navegar
+  // pra unico resultado levava a erros silenciosos.
+  var el=document.getElementById('map-search-results');
+  el.innerHTML='';
+  resultados.forEach(function(r){
+    var item=document.createElement('div');
+    item.className='map-result-item';
+    var icone=r.salvo?'📍':(r.fonte==='cep'?'📮':'🔍');
+    item.innerHTML='<div style="font-size:16px;">'+icone+'</div>'
+      +'<div><div class="map-result-nome">'+r.nome+'</div>'
+      +'<div class="map-result-addr">'+r.addr+'</div>'
+      +(r.nota?'<div style="font-size:10px;color:#F97316;">💡 '+r.nota+'</div>':'')
+      +'</div>';
+    item.onclick=function(){
+      el.style.display='none';
+      document.getElementById('map-search-input').value=r.nome;
+      irParaLocal(r);
+    };
+    el.appendChild(item);
+  });
+  el.style.display='block';
+}
+
+async function irParaLocal(r){
+  document.getElementById('map-search-results').style.display='none';
+  if(!map||!r.lat||!r.lon) return;
+  // Remove marcador anterior
+  if(searchMarker){searchMarker.remove();searchMarker=null;}
+  if(searchNavLine){searchNavLine.remove();searchNavLine=null;}
+  // Centraliza no local
+  map.setView([r.lat,r.lon],17);
+  // Pin no destino
+  var ic=L.divIcon({
+    html:'<div style="width:36px;height:36px;background:#F97316;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 10px rgba(0,0,0,0.3);">🎯</div>',
+    iconSize:[36,36],iconAnchor:[18,18],className:''
+  });
+  searchMarker=L.marker([r.lat,r.lon],{icon:ic}).addTo(map);
+  searchMarker.bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+  // Traça rota pelas ruas (OSRM) — fallback para linha reta tracejada
+  if(currentPos){
+    var rota=await obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon);
+    var traceCoords;
+    var dashOpt={};
+    if(rota&&rota.coords.length>1){
+      traceCoords=rota.coords;
+    } else {
+      traceCoords=[[currentPos.lat,currentPos.lon],[r.lat,r.lon]];
+      dashOpt={dashArray:'10,6'};
+    }
+    searchNavLine=L.polyline(traceCoords,Object.assign({
+      color:'#F97316',weight:5,opacity:0.85
+    },dashOpt)).addTo(map);
+    // Enquadra rota inteira
+    var bounds=L.latLngBounds(traceCoords);
+    map.fitBounds(bounds,{padding:[60,60]});
+    // Mostra distância (usa a do OSRM se disponivel)
+    var dist=rota?rota.distance:haverDist(currentPos,{lat:r.lat,lon:r.lon});
+    var distStr=dist>1000?(dist/1000).toFixed(1)+' km':Math.round(dist)+' m';
+    document.getElementById('map-search-input').value=r.nome+' ('+distStr+')';
+  }
+}
+
+// Fecha resultados ao clicar fora
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#map-search')&&!e.target.closest('#map-search-results')){
+    document.getElementById('map-search-results').style.display='none';
+  }
+});
+
+var rotaNavLine=null;
+var navAtivo=false;
+var navDestino=null;
+
+
+
+async function puxarEnderecoGPS(){
+  var status=document.getElementById('chegada-gps-status');
+  status.style.display='block';
+  status.textContent='⏳ Buscando endereço pelo GPS...';
+  var pos=currentPos;
+  if(!pos){
+    try{
+      pos=await new Promise(function(resolve,reject){
+        navigator.geolocation.getCurrentPosition(
+          function(p){resolve({lat:p.coords.latitude,lon:p.coords.longitude});},
+          reject,
+          {enableHighAccuracy:true,timeout:10000}
+        );
+      });
+    }catch(e){
+      status.textContent='❌ GPS indisponível.';
+      return;
+    }
+  }
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.lat+'&lon='+pos.lon+'&format=json&zoom=18',{
+      headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
+    });
+    var data=await res.json();
+    var addr=[data.address.road,data.address.house_number,data.address.suburb,data.address.city].filter(Boolean).join(', ');
+    document.getElementById('chegada-addr-input').value=addr;
+    status.textContent='✅ '+addr;
+    status.style.color='#1D9E75';
+  }catch(e){
+    var coord=pos.lat.toFixed(6)+','+pos.lon.toFixed(6);
+    document.getElementById('chegada-addr-input').value=coord;
+    status.textContent='✅ Coordenadas: '+pos.lat.toFixed(5)+', '+pos.lon.toFixed(5);
+  }
+}
+
+function abrirModalChegada(){
+  if(!navDestino) return;
+  document.getElementById('modal-chegada').classList.add('open');
+  document.getElementById('chegada-nome-txt').textContent=navDestino.nome;
+  document.getElementById('chegada-addr-atual').textContent=navDestino.addr||'';
+  document.getElementById('chegada-addr-input').value=navDestino.addr||'';
+  document.getElementById('chegada-dica').value=navDestino.dica||'';
+  document.getElementById('btn-corrigir').style.display='block';
+  document.getElementById('chegada-corrigir').style.display='none';
+}
+
+function mostrarCorrecao(){
+  document.getElementById('chegada-corrigir').style.display='block';
+  document.getElementById('btn-corrigir').style.display='none';
+}
+
+function fecharChegada(){
+  document.getElementById('modal-chegada').classList.remove('open');
+  window._chegadaMostrada=false;
+}
+
+async function confirmarChegada(){
+  if(!navDestino||!currentPos) return;
+  var addrCorrigido=document.getElementById('chegada-addr-input').value.trim();
+  var dica=document.getElementById('chegada-dica').value.trim();
+  var nome=navDestino.nome;
+  var lat=currentPos.lat;
+  var lon=currentPos.lon;
+  var usr=usuarioAtual?usuarioAtual.nome:'auto';
+  // Salva localização exata no banco colaborativo
+  try{
+    var existe=await supaFetch('/rest/v1/enderecos?addr=ilike.'+encodeURIComponent('%'+addrCorrigido.split(',')[0]+'%')+'&limit=1',{method:'GET'});
+    if(existe&&existe.length>0){
+      await supaFetch('/rest/v1/enderecos?id=eq.'+existe[0].id,{method:'PATCH',body:JSON.stringify({lat:lat,lon:lon,addr:addrCorrigido,nota:dica||existe[0].nota,registrado_por:usr})});
+    } else {
+      await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr})});
+    }
+  }catch(e){
+    console.error('[confirmarChegada] falha Supabase:',e.message);
+    salvarNaFila('endereco',{nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr});
+  }
+  // Salva local
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    lista.unshift({nome:nome,addr:addrCorrigido,nota:dica,foto:null,lat:lat,lon:lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr});
+    localStorage.setItem('el_regs',JSON.stringify(lista));
+  }catch(e){}
+  // Marca entregue e cancela navegação
+  marcarEntregue();
+  cancelarNavegacao();
+  fecharChegada();
+  // Pin verde no mapa
+  if(map&&typeof L!=='undefined'){
+    var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">✅</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+    L.marker([lat,lon],{icon:ic}).addTo(map).bindPopup('<b>'+nome+'</b><br/>'+addrCorrigido+(dica?'<br/>Dica: '+dica:'')).openPopup();
+  }
+}
+
+async function abrirNavegacao(){
+  var e=entregas.find(function(x){return!x.entregue;});
+  if(!e){alert('Nenhuma entrega pendente.');return;}
+  if(!e.lat||!e.lon){
+    // Sem coordenadas — abre Google Maps
+    window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(e.addr),'_blank');
+    return;
+  }
+  navDestino=e;
+  navAtivo=true;
+  _vozUltimoMarco=null;
+  window._chegadaMostrada=false;
+  // Mostra painel de navegação
+  document.getElementById('nav-mode').classList.add('active');
+  document.getElementById('nav-destino').textContent='Para: '+e.nome;
+  document.getElementById('nav-addr').textContent=e.addr;
+  // Desenha rota pelas ruas (OSRM) — fallback p/ linha reta
+  if(map&&typeof L!=='undefined'){
+    if(rotaNavLine) rotaNavLine.remove();
+    var origem=currentPos||{lat:e.lat-0.01,lon:e.lon-0.01};
+    var rota=await obterRotaRuas(origem.lat,origem.lon,e.lat,e.lon);
+    var traceCoords; var dashOpt={};
+    if(rota&&rota.coords.length>1){
+      traceCoords=rota.coords;
+    } else {
+      traceCoords=[[origem.lat,origem.lon],[e.lat,e.lon]];
+      dashOpt={dashArray:'10,6'};
+    }
+    rotaNavLine=L.polyline(traceCoords,Object.assign({
+      color:'#378ADD',weight:5,opacity:0.85
+    },dashOpt)).addTo(map);
+    // Pin destino
+    var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#378ADD;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
+    L.marker([e.lat,e.lon],{icon:ic}).addTo(map).bindPopup('<b>'+e.nome+'</b><br/>'+e.addr);
+    // Enquadra rota inteira
+    map.fitBounds(L.latLngBounds(traceCoords),{padding:[60,60]});
+    // Voz: anuncia inicio
+    var distIni=rota?rota.distance:haverDist(origem,{lat:e.lat,lon:e.lon});
+    var distTxt=distIni>1000?(distIni/1000).toFixed(1)+' quilômetros':Math.round(distIni)+' metros';
+    falarVoz('Iniciando navegação para '+e.nome+'. Distância '+distTxt+'.',{interromper:true,force:true});
+  }
+  atualizarNavegacao();
+}
+
+var _ultimoRerouteTs=0;
+async function atualizarNavegacao(){
+  if(!navAtivo||!navDestino) return;
+  if(currentPos&&navDestino.lat&&navDestino.lon){
+    var dist=haverDist(currentPos,{lat:navDestino.lat,lon:navDestino.lon});
+    var distStr=dist>1000?(dist/1000).toFixed(1)+' km':Math.round(dist)+' m';
+    document.getElementById('nav-dist').textContent=distStr;
+    // Marcos de voz
+    if(dist>=40) falarMarcoDistancia(dist,navDestino.nome);
+    // Recalcula rota a cada 30s OU quando o usuario sai muito da linha tracada
+    var agora=Date.now();
+    var precisaReroute=(agora-_ultimoRerouteTs)>30000;
+    if(rotaNavLine&&map&&precisaReroute){
+      _ultimoRerouteTs=agora;
+      var nova=await obterRotaRuas(currentPos.lat,currentPos.lon,navDestino.lat,navDestino.lon);
+      if(nova&&nova.coords.length>1){
+        rotaNavLine.setLatLngs(nova.coords);
+      } else {
+        // Fallback: linha reta atualizada
+        rotaNavLine.setLatLngs([[currentPos.lat,currentPos.lon],[navDestino.lat,navDestino.lon]]);
+      }
+    } else if(rotaNavLine&&map&&!precisaReroute){
+      // Apenas atualiza o ponto de origem na linha existente (mantem o resto da rota)
+      var atuais=rotaNavLine.getLatLngs();
+      if(atuais&&atuais.length){
+        atuais[0]=L.latLng(currentPos.lat,currentPos.lon);
+        rotaNavLine.setLatLngs(atuais);
+      }
+    }
+    // Chegou — menos de 50 metros
+    if(dist<50&&!window._chegadaMostrada){
+      window._chegadaMostrada=true;
+      document.getElementById('nav-dist').textContent='Voce chegou!';
+      document.getElementById('nav-dist').style.color='#1D9E75';
+      falarVoz('Você chegou ao destino: '+navDestino.nome,{interromper:true,force:true});
+      // Abre modal de chegada
+      setTimeout(function(){abrirModalChegada();},1000);
+    }
+  }
+  if(navAtivo) setTimeout(atualizarNavegacao,3000);
+}
+
+function chegarDestino(){
+  marcarEntregue();
+  cancelarNavegacao();
+}
+
+function cancelarNavegacao(){
+  navAtivo=false;
+  navDestino=null;
+  _vozUltimoMarco=null;
+  pararVoz();
+  document.getElementById('nav-mode').classList.remove('active');
+  document.getElementById('nav-chegou').style.display='none';
+  document.getElementById('nav-dist').style.color='#F97316';
+  if(rotaNavLine){rotaNavLine.remove();rotaNavLine=null;}
+}
+
+// ===== REGISTRAR =====
+function handlePhoto(ev){
+  var file=ev.target.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    photoData=e.target.result;
+    var img=document.getElementById('photo-prev');img.src=photoData;img.style.display='block';
+    document.getElementById('photo-area').style.display='none';
+  };r.readAsDataURL(file);
+}
+async function salvarRegistro(){
+  var nome=document.getElementById('reg-nome').value.trim();
+  var end=document.getElementById('reg-end').value.trim();
+  var nota=document.getElementById('reg-nota').value.trim();
+  if(!nome)return alert('Digite o nome ou referência.');
+  if(!end)return alert('Digite o endereço.');
+  var coords=await geocode(end);
+  var usr=usuarioAtual?usuarioAtual.nome:'auto';
+  var reg={nome:nome,addr:end,nota:nota,foto:photoData||null,lat:coords?coords.lat:null,lon:coords?coords.lon:null,data:new Date().toLocaleString('pt-BR'),registrado_por:usr};
+  try{var l=JSON.parse(localStorage.getItem('el_regs')||'[]');l.unshift(reg);localStorage.setItem('el_regs',JSON.stringify(l));}catch(e){}
+  try{await salvarSupabaseSafe('enderecos',{nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr});}catch(e){}
+  document.getElementById('reg-nome').value='';document.getElementById('reg-end').value='';document.getElementById('reg-nota').value='';
+  photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
+  alert('✅ Registrado! Outros entregadores vão ver essa dica.');
+}
+
+// ===== HISTORICO =====
+function renderHistorico(){
+  var listaCompleta=JSON.parse(localStorage.getItem('el_regs')||'[]');
+  var lista=verificarHistorico7dias(listaCompleta);
+  if(!isPremium()&&listaCompleta.length>lista.length){
+    var bloqueados=listaCompleta.length-lista.length;
+    var aviso=document.createElement('div');
+    aviso.style.cssText='background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#C2410C;cursor:pointer;';
+    aviso.innerHTML='Voce tem '+bloqueados+' registro(s) com mais de 7 dias. <b>Assine o Premium</b> para ver tudo.';
+    aviso.onclick=function(){abrirPremium('Seu historico completo esta disponivel no Premium por R$ 9,90/mes.');};
+    document.getElementById('hist-list').before(aviso);
+  }
+  var el=document.getElementById('hist-list');
+  if(!lista.length){el.innerHTML='<div class="hist-empty">Nenhum endereço registrado.</div>';return;}
+  el.innerHTML='';
+  lista.forEach(function(r,idx){
+    var c=document.createElement('div');c.className='hist-card';
+    c.innerHTML='<div class="hist-nome">'+(r.nome||'Local')+'</div>'
+      +'<div class="hist-addr">'+(r.addr||'')+'</div>'
+      +(r.nota?'<div class="hist-nota">💡 '+r.nota+'</div>':'')
+      +(r.foto?'<img class="hist-photo" src="'+r.foto+'"/>':'')
+      +'<div class="hist-meta">'+(r.data||'')+(r.registrado_por?' · '+r.registrado_por:'')+'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:10px;">'
+        +'<button id="btn-rota-'+idx+'" style="flex:1;background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Rota</button>'
+        +(r.lat&&r.lon?'<button id="btn-ir-'+idx+'" style="flex:1;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🧭 Ir</button>':'')
+        +(r.lat&&r.lon?'<button id="btn-mapa-'+idx+'" style="flex:1;background:#E1F5EE;color:#085041;border:1px solid #1D9E75;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗺 Ver</button>':'')
+        +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'
+      +'</div>';
+    el.appendChild(c);
+
+    // + Rota
+    document.getElementById('btn-rota-'+idx).onclick=function(){
+      entregas.push({id:Date.now(),nome:r.nome||'Local',addr:r.addr||'',tel:'',lat:r.lat||null,lon:r.lon||null,entregue:false,conhecido:true,dica:r.nota||''});
+      renderLista();
+      this.textContent='✅ Adicionado!';
+      this.style.background='#1D9E75';
+      // Vai direto para o mapa e mostra o pin
+      showTab('mapa');
+      setTimeout(function(){
+        if(map&&typeof L!=='undefined'&&r.lat&&r.lon){
+          map.setView([r.lat,r.lon],17);
+          var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">'+entregas.length+'</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+          L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>Dica: '+r.nota:'')).openPopup();
+        }
+      },400);
+    };
+
+    // Ir direto — navega para o endereco
+    if(r.lat&&r.lon){
+      document.getElementById('btn-ir-'+idx).onclick=function(){
+        // Adiciona como entrega e inicia navegacao
+        var nova={id:Date.now(),nome:r.nome||'Local',addr:r.addr||'',tel:'',lat:r.lat,lon:r.lon,entregue:false,conhecido:true,dica:r.nota||''};
+        entregas.unshift(nova);
+        renderLista();
+        showTab('mapa');
+        setTimeout(function(){
+          if(map&&typeof L!=='undefined'){
+            map.setView([r.lat,r.lon],17);
+            // Inicia navegacao interna
+            navegandoPara=nova;
+            destLat=r.lat;destLon=r.lon;
+            var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#1D9E75;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+            // Desenha rota pelas ruas (OSRM) — fallback linha reta tracejada
+            if(currentPos){
+              obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon).then(function(rota){
+                var coords; var dashOpt={};
+                if(rota&&rota.coords.length>1){ coords=rota.coords; }
+                else { coords=[[currentPos.lat,currentPos.lon],[r.lat,r.lon]]; dashOpt={dashArray:'8,6'}; }
+                L.polyline(coords,Object.assign({color:'#1D9E75',weight:4,opacity:0.9},dashOpt)).addTo(map);
+                try{ map.fitBounds(L.latLngBounds(coords),{padding:[60,60]}); }catch(e){}
+              });
+            }
+            falarVoz('Navegando para '+(r.nome||r.addr),{interromper:true,force:true});
+            alert('Navegando para: '+(r.nome||r.addr)+'. Siga a linha verde no mapa!');
+          }
+        },400);
+      };
+    }
+
+    // Ver mapa
+    if(r.lat&&r.lon){
+      document.getElementById('btn-mapa-'+idx).onclick=function(){
+        showTab('mapa');
+        setTimeout(function(){
+          if(map&&typeof L!=='undefined'){
+            map.setView([r.lat,r.lon],17);
+            var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+          }
+        },400);
+      };
+    }
+
+    // Compartilhar WhatsApp
+    document.getElementById('btn-share-'+idx).onclick=function(){
+      var msg='EntregaLog - Endereco registrado!\n\n';
+      msg+=(r.nome||'Local')+'\n';
+      if(r.addr) msg+=r.addr+'\n';
+      if(r.nota) msg+='Dica: '+r.nota+'\n';
+      if(r.lat&&r.lon) msg+='\nhttps://maps.google.com/?q='+r.lat+','+r.lon+'\n';
+      msg+='\nBaixe o EntregaLog gratis:\nhttps://adilson161618.github.io/entrega-log';
+      window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    };
+  });
+}
+
+// ===== RELATORIO =====
+function salvarEstatDia(n){
+  try{var d=new Date().toLocaleDateString('pt-BR');var s=JSON.parse(localStorage.getItem('el_stats')||'{}');s[d]=(s[d]||0)+n;localStorage.setItem('el_stats',JSON.stringify(s));}catch(e){}
+}
+function renderRelatorio(){
+  try{
+    var stats=JSON.parse(localStorage.getItem('el_stats')||'{}');
+    var el=document.getElementById('rel-list');
+    var dias=Object.keys(stats).reverse();
+    if(!dias.length){el.innerHTML='<div class="hist-empty">Nenhuma entrega registrada.</div>';return;}
+    var total=Object.values(stats).reduce(function(a,b){return a+b;},0);
+    var html='<div style="background:#FFF7ED;border-radius:12px;padding:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;border:1px solid #FED7AA;">'
+      +'<div><div style="font-size:11px;color:#9A3412;">Total geral</div><div style="font-size:24px;font-weight:800;color:#C2410C;">'+total+' entregas</div></div>'
+      +'<div style="font-size:11px;color:#9A3412;">'+dias.length+' dias</div>'
+      +'</div>';
+    dias.forEach(function(d){html+='<div class="hist-card" style="display:flex;align-items:center;justify-content:space-between;"><div><div class="hist-nome">'+d+'</div><div class="hist-addr">'+stats[d]+' entrega'+(stats[d]!==1?'s':'')+'</div></div><div style="font-size:22px;font-weight:800;color:#F97316;">'+stats[d]+'</div></div>';});
+    el.innerHTML=html;
+  }catch(e){}
+}
+
+// ===== ROTAS =====
+function renderRotas(){
+  try{
+    var rotas=JSON.parse(localStorage.getItem('el_rotas')||'[]');
+    var el=document.getElementById('rotas-list');
+    if(!rotas.length){el.innerHTML='<div class="hist-empty">Nenhuma rota salva.</div>';return;}
+    el.innerHTML='';
+    rotas.forEach(function(r){
+      var c=document.createElement('div');c.className='hist-card';
+      c.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="hist-nome">'+r.data+'</div><div class="hist-addr">'+r.km+' km · '+r.total+' entrega'+(r.total!==1?'s':'')+'</div></div><div style="font-size:20px;font-weight:800;color:#F97316;">'+r.total+'</div></div>';
+      el.appendChild(c);
+    });
+  }catch(e){}
+}
+
+
+
+// ===== OFFLINE QUEUE =====
+var filaOffline=[];
+var onlineStatus=navigator.onLine;
+
+window.addEventListener('online',function(){
+  onlineStatus=true;
+  document.getElementById('offline-bar').classList.remove('show');
+  sincronizarFila();
+});
+window.addEventListener('offline',function(){
+  onlineStatus=false;
+  document.getElementById('offline-bar').classList.add('show');
+});
+
+function salvarNaFila(tipo,dados){
+  try{
+    var fila=JSON.parse(localStorage.getItem('el_fila')||'[]');
+    fila.push({tipo:tipo,dados:dados,ts:Date.now()});
+    localStorage.setItem('el_fila',JSON.stringify(fila));
+    filaOffline=fila;
+  }catch(e){}
+}
+
+async function sincronizarFila(){
+  try{
+    var fila=JSON.parse(localStorage.getItem('el_fila')||'[]');
+    if(!fila.length) return;
+    var sucesso=[];
+    for(var i=0;i<fila.length;i++){
+      var item=fila[i];
+      try{
+        if(item.tipo==='endereco'){
+          await supaFetch('/rest/v1/enderecos',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
+        } else if(item.tipo==='rota'){
+          await supaFetch('/rest/v1/rotas',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(item.dados)});
+        }
+        sucesso.push(i);
+      }catch(e){console.error('[fila] item',i,'falhou:',e.message);}
+    }
+    // Remove os sincronizados
+    var novaFila=fila.filter(function(_,i){return sucesso.indexOf(i)===-1;});
+    localStorage.setItem('el_fila',JSON.stringify(novaFila));
+    if(sucesso.length>0) console.log('Sincronizados '+sucesso.length+' itens da fila offline');
+  }catch(e){}
+}
+
+// Wrapper para salvar com fallback offline
+async function salvarSupabaseSafe(tabela,dados){
+  var tipo=tabela==='enderecos'?'endereco':(tabela==='rotas'?'rota':tabela);
+  if(!onlineStatus){salvarNaFila(tipo,dados);return false;}
+  try{
+    await supaFetch('/rest/v1/'+tabela,{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify(dados)});
+    return true;
+  }catch(e){
+    console.error('[salvarSupabaseSafe]',tabela,'falhou:',e.message);
+    salvarNaFila(tipo,dados);
+    return false;
+  }
+}
+
+// ===== BATTERY MONITOR =====
+function monitorarBateria(){
+  if(!navigator.getBattery) return;
+  navigator.getBattery().then(function(battery){
+    function verificar(){
+      if(battery.level<0.2&&!battery.charging){
+        document.getElementById('battery-bar').classList.add('show');
+        // Modo econômico — reduz frequência GPS
+        if(watchId){
+          navigator.geolocation.clearWatch(watchId);
+          watchId=navigator.geolocation.watchPosition(
+            function(pos){
+              var la=pos.coords.latitude,lo=pos.coords.longitude;
+              currentPos={lat:la,lon:lo};
+              if(marker) marker.setLatLng([la,lo]);
+              document.getElementById('gps-coords').textContent=la.toFixed(4)+' '+lo.toFixed(4)+' ⚡';
+              rotaCoords.push([la,lo]);
+              rotaLine.setLatLngs(rotaCoords);
+              if(lastPos) distTotal+=haverDist(lastPos,{lat:la,lon:lo});
+              lastPos={lat:la,lon:lo};
+              var km=(distTotal/1000).toFixed(2);
+              var kb=document.getElementById('km-badge');
+              kb.style.display='block';kb.textContent=km+' km';
+              detectaParada(la,lo);
+              if(navAtivo) atualizarNavegacao();
+            },
+            function(){},{enableHighAccuracy:false,maximumAge:10000,timeout:30000}
+          );
+        }
+      } else {
+        document.getElementById('battery-bar').classList.remove('show');
+      }
+    }
+    verificar();
+    battery.addEventListener('levelchange',verificar);
+    battery.addEventListener('chargingchange',verificar);
+  });
+}
+
+// ===== COMANDO DE VOZ =====
+var recVoz=null;
+
+function iniciarVoz(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    alert('Comando de voz não suportado neste navegador. Use o Chrome.');
+    return;
+  }
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recVoz=new SR();
+  recVoz.lang='pt-BR';
+  recVoz.interimResults=false;
+  recVoz.maxAlternatives=1;
+  document.getElementById('voice-listening').classList.add('show');
+  recVoz.start();
+  recVoz.onresult=function(e){
+    var texto=e.results[0][0].transcript;
+    processarComandoVoz(texto);
+    cancelarVoz();
+  };
+  recVoz.onerror=function(){cancelarVoz();};
+  recVoz.onend=function(){document.getElementById('voice-listening').classList.remove('show');};
+}
+
+function cancelarVoz(){
+  if(recVoz){try{recVoz.stop();}catch(e){}}
+  document.getElementById('voice-listening').classList.remove('show');
+}
+
+function processarComandoVoz(texto){
+  texto=texto.toLowerCase().trim();
+  console.log('Voz:',texto);
+  // Liga/desliga voz de navegacao
+  if(texto.includes('desligar voz')||texto.includes('desliga voz')||texto.includes('silenciar')){
+    _vozNavOn=false; try{localStorage.setItem('el_voz_nav','0');}catch(e){}
+    pararVoz();
+    document.getElementById('voice-text').textContent='🔇 Voz desligada';
+    return;
+  }
+  if(texto.includes('ligar voz')||texto.includes('liga voz')||texto.includes('ativar voz')){
+    _vozNavOn=true; try{localStorage.setItem('el_voz_nav','1');}catch(e){}
+    falarVoz('Voz ativada',{interromper:true,force:true});
+    document.getElementById('voice-text').textContent='🔊 Voz ligada';
+    return;
+  }
+  // Comandos
+  if(texto.includes('entregue')||texto.includes('entreguei')||texto.includes('próxima')||texto.includes('proxima')){
+    marcarEntregue();
+    falarVoz('Entrega marcada. Próximo destino.',{interromper:true,force:true});
+    document.getElementById('voice-text').textContent='✅ Marcado como entregue!';
+    return;
+  }
+  if(texto.includes('cancelar')||texto.includes('parar nav')){
+    cancelarNavegacao();
+    falarVoz('Navegação cancelada',{interromper:true,force:true});
+    return;
+  }
+  if(texto.includes('navegar')||texto.includes('navega')||texto.includes('ir para')){
+    abrirNavegacao();
+    return;
+  }
+  if(texto.includes('registrar')||texto.includes('registra')||texto.includes('salvar ponto')){
+    abrirModalParada();
+    return;
+  }
+  // Se não for comando — trata como endereço
+  document.getElementById('map-search-input').value=texto;
+  buscarEndereco();
+  showTab('mapa');
+}
+
+
+function verificarEAbrirOCR(){
+  if(!verificarLimiteOCR()) return;
+  document.getElementById('ocr-input').click();
+  // Atualiza contador
+  var scans=getScansHoje();
+  var counter=document.getElementById('ocr-counter');
+  if(counter&&!isPremium()){
+    counter.textContent=(3-scans)+' scan(s) gratuito(s) restante(s) hoje';
+  }
+}
+
+function mostrarEmBreve(){
+  var loading=document.getElementById('ocr-loading');
+  loading.style.display='block';
+  loading.style.background='#EDE9FE';
+  loading.style.borderColor='#7C3AED';
+  loading.style.color='#5B21B6';
+  loading.textContent='🚀 Leitura de endereço por IA — disponível em breve!';
+  setTimeout(function(){loading.style.display='none';},3000);
+}
+
+
+
+// ===== FEEDBACK / NPS =====
+var npsScore=-1;
+var catSelecionada='';
+
+function abrirFeedback(){
+  npsScore=-1;
+  catSelecionada='';
+  document.querySelectorAll('.nps-btn').forEach(function(b){b.classList.remove('selected');});
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('selected');});
+  document.getElementById('feedback-texto').value='';
+  document.getElementById('modal-feedback').classList.add('open');
+}
+
+function fecharFeedback(){
+  document.getElementById('modal-feedback').classList.remove('open');
+}
+
+function selecionarNPS(n){
+  npsScore=n;
+  document.querySelectorAll('.nps-btn').forEach(function(b,i){
+    b.classList.toggle('selected',i===n);
+  });
+}
+
+function selecionarCat(btn,cat){
+  catSelecionada=cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('selected');});
+  btn.classList.add('selected');
+}
+
+async function enviarFeedback(){
+  var texto=document.getElementById('feedback-texto').value.trim();
+  if(npsScore===-1&&!texto){alert('Por favor selecione uma nota ou escreva uma sugestão!');return;}
+  var usuario=usuarioAtual?usuarioAtual.nome:'Anonimo';
+  var whats=usuarioAtual?usuarioAtual.whatsapp:'';
+  var dados={
+    usuario_nome:usuario,
+    usuario_whatsapp:whats,
+    nps:npsScore,
+    funcionalidade_favorita:catSelecionada,
+    sugestao:texto,
+    data:new Date().toLocaleString('pt-BR')
+  };
+  // Salva no Supabase
+  try{
+    await fetch(SB_URL+'/rest/v1/feedbacks',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body:JSON.stringify(dados)
+    });
+  }catch(e){}
+  // Salva local
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_feedbacks')||'[]');
+    lista.push(dados);
+    localStorage.setItem('el_feedbacks',JSON.stringify(lista));
+  }catch(e){}
+  fecharFeedback();
+  alert('Obrigado pelo feedback! Isso ajuda muito a melhorar o app. 🙏');
+  // Se NPS >= 9 convida para avaliar na Play Store
+  if(npsScore>=9){
+    setTimeout(function(){
+      if(confirm('Que ótimo! Você toparia avaliar o EntregaLog na Play Store? Leva 30 segundos e ajuda muito!')){
+        window.open('https://play.google.com/store/apps/details?id=com.entregalog','_blank');
+      }
+    },500);
+  }
+}
+
+// Mostra feedback após 10 entregas ou 7 dias de uso
+function verificarMomentFeedback(){
+  try{
+    var mostrou=localStorage.getItem('el_fb_mostrou');
+    if(mostrou) return;
+    var stats=JSON.parse(localStorage.getItem('el_stats')||'{}');
+    var total=Object.values(stats).reduce(function(a,b){return a+b;},0);
+    if(total>=10){
+      localStorage.setItem('el_fb_mostrou','1');
+      setTimeout(function(){
+        if(confirm('Você já fez '+total+' entregas com o EntregaLog! Pode dar uma opinião rápida para melhorarmos o app?')){
+          abrirFeedback();
+        }
+      },2000);
+    }
+  }catch(e){}
+}
+
+
+
+async function capturarLocalizacaoAtual(){
+  var status=document.getElementById('loc-status');
+  var btn=document.getElementById('btn-loc-atual');
+  if(status) {status.style.display='block'; status.textContent='Capturando localização...';}
+  if(btn) {btn.style.borderColor='#1D9E75'; btn.style.color='#1D9E75';}
+
+  var pos=currentPos;
+  if(!pos){
+    try{
+      pos=await new Promise(function(resolve,reject){
+        navigator.geolocation.getCurrentPosition(
+          function(p){resolve({lat:p.coords.latitude,lon:p.coords.longitude});},
+          reject,
+          {enableHighAccuracy:true,timeout:10000}
+        );
+      });
+    }catch(e){
+      if(status){status.textContent='GPS indisponivel';setTimeout(function(){status.style.display='none';},2000);}
+      if(btn){btn.style.borderColor='#F97316';btn.style.color='#F97316';}
+      return;
+    }
+  }
+
+  try{
+    var res=await fetch('https://nominatim.openstreetmap.org/reverse?lat='+pos.lat+'&lon='+pos.lon+'&format=json&zoom=18',{
+      headers:{'Accept-Language':'pt-BR','User-Agent':'EntregaLog/1.0'}
+    });
+    var data=await res.json();
+    var addr=[
+      data.address.road,
+      data.address.house_number,
+      data.address.suburb||data.address.neighbourhood,
+      data.address.city||data.address.town
+    ].filter(Boolean).join(', ');
+
+    if(status){status.textContent='✅ '+addr;}
+
+    setTimeout(function(){
+      var opcao=confirm('Localização capturada:\n'+addr+'\n\nOK = Adicionar como entrega\nCancelar = Salvar ponto no banco');
+      if(opcao){
+        showTab('entregas');
+        setTimeout(function(){
+          var inp=document.getElementById('end-input');
+          if(inp) inp.value=addr;
+        },300);
+      } else {
+        paradaRef={nome:'Local atual',addr:addr,lat:pos.lat,lon:pos.lon};
+        document.getElementById('parada-nome').textContent='Local atual';
+        document.getElementById('parada-addr').textContent=addr;
+        document.getElementById('parada-coords-txt').textContent=pos.lat.toFixed(5)+', '+pos.lon.toFixed(5);
+        document.getElementById('parada-status').textContent='✓ Localização capturada';
+        document.getElementById('parada-nota').value='';
+        document.getElementById('modal-parada').classList.add('open');
+      }
+      if(status) status.style.display='none';
+      if(btn){btn.style.borderColor='#F97316';btn.style.color='#F97316';}
+    },1000);
+
+  }catch(e){
+    if(status) status.style.display='none';
+    if(btn){btn.style.borderColor='#F97316';btn.style.color='#F97316';}
+    showTab('entregas');
+    setTimeout(function(){
+      var inp=document.getElementById('end-input');
+      if(inp) inp.value=pos.lat.toFixed(6)+','+pos.lon.toFixed(6);
+    },300);
+  }
+}
+
+// ===== SISTEMA DE RANKING =====
+function abrirRanking(){
+  document.getElementById('modal-ranking').classList.add('open');
+  carregarRanking();
+}
+
+function fecharRanking(){
+  document.getElementById('modal-ranking').classList.remove('open');
+}
+
+async function carregarRanking(){
+  var lista=document.getElementById('ranking-lista');
+  try{
+    // Busca top contribuidores do Supabase
+    var res=await fetch(SB_URL+'/rest/v1/enderecos?select=usuario_nome,usuario_whatsapp&order=created_at.desc',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    var data=await res.json();
+    
+    // Conta endereços por usuário
+    var contagem={};
+    data.forEach(function(e){
+      var nome=e.usuario_nome||'Anonimo';
+      contagem[nome]=(contagem[nome]||0)+1;
+    });
+    
+    // Ordena por quantidade
+    var ranking=Object.entries(contagem)
+      .sort(function(a,b){return b[1]-a[1];})
+      .slice(0,10);
+    
+    if(ranking.length===0){
+      lista.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#888;">Ainda nao ha contribuidores. Seja o primeiro!</div>';
+      return;
+    }
+    
+    var html='';
+    var medalhas=['🥇','🥈','🥉'];
+    var posClasses=['ouro','prata','bronze'];
+    var badgeClasses=['badge-ouro','badge-prata','badge-bronze'];
+    var badgeTextos=['Ouro','Prata','Bronze'];
+    
+    ranking.forEach(function(item,i){
+      var pos=i+1;
+      var nome=item[0];
+      var pts=item[1];
+      var posClass=i<3?posClasses[i]:'normal';
+      var medal=i<3?medalhas[i]:pos;
+      
+      html+='<div class="rank-item">';
+      html+='<div class="rank-pos '+posClass+'">'+medal+'</div>';
+      html+='<div class="rank-info">';
+      html+='<div class="rank-nome">'+nome+'</div>';
+      html+='<div class="rank-end">'+pts+' endereco'+(pts>1?'s':'')+' registrado'+(pts>1?'s':'')+'</div>';
+      html+='</div>';
+      if(i<3) html+='<span class="rank-badge '+badgeClasses[i]+'">'+badgeTextos[i]+'</span>';
+      html+='<div class="rank-pts">+'+pts+'</div>';
+      html+='</div>';
+      
+      // Verifica se e o usuario atual
+      if(usuarioAtual&&nome===usuarioAtual.nome){
+        document.getElementById('minha-posicao').style.display='flex';
+        document.getElementById('rank-meu-nome').textContent=nome;
+        document.getElementById('rank-meu-pts').textContent=pts+' endereco'+(pts>1?'s':'')+' registrado'+(pts>1?'s':'');
+        document.getElementById('rank-minha-pos-num').textContent='#'+pos;
+      }
+    });
+    
+    lista.innerHTML=html;
+    
+    // Mostra posicao do usuario se nao esta no top 10
+    if(usuarioAtual){
+      var meuIndex=ranking.findIndex(function(r){return r[0]===usuarioAtual.nome;});
+      if(meuIndex===-1){
+        document.getElementById('minha-posicao').style.display='flex';
+        document.getElementById('rank-meu-nome').textContent=usuarioAtual.nome;
+        document.getElementById('rank-meu-pts').textContent='0 enderecos registrados';
+        document.getElementById('rank-minha-pos-num').textContent='#-';
+      }
+    }
+    
+  }catch(e){
+    lista.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#888;">Erro ao carregar ranking. Tente novamente.</div>';
+  }
+}
+
+// Notifica quando entregador registra endereco novo
+function notificarContribuicao(){
+  try{
+    var total=parseInt(localStorage.getItem('el_contrib')||'0')+1;
+    localStorage.setItem('el_contrib',total);
+    // Marcos de conquista
+    var marcos=[1,5,10,25,50,100];
+    if(marcos.includes(total)){
+      setTimeout(function(){
+        var msgs={
+          1:'Parabens! Voce registrou seu 1o endereco! Continue contribuindo!',
+          5:'Incrivel! 5 enderecos registrados! Voce ja esta ajudando outros entregadores!',
+          10:'Top 10 contribuicoes! Voce e um colaborador essencial da comunidade!',
+          25:'25 enderecos! Voce ja esta no caminho para o ranking de ouro!',
+          50:'50 enderecos! Que conquista incrivel! Voce e referencia na comunidade!',
+          100:'100 enderecos! Lendario! Voce transformou o EntregaLog em Chapeco!'
+        };
+        if(confirm(msgs[total]+'\n\nVer seu ranking?')){
+          abrirRanking();
+        }
+      },1000);
+    }
+  }catch(e){}
+}
+
+// ===== SISTEMA PREMIUM =====
+function isPremium(){
+  try{
+    var exp=localStorage.getItem('el_premium_exp');
+    if(!exp) return false;
+    return new Date(exp)>new Date();
+  }catch(e){return false;}
+}
+
+function getScansHoje(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var data=JSON.parse(localStorage.getItem('el_scans')||'{}');
+    if(data.dia!==hoje) return 0;
+    return data.count||0;
+  }catch(e){return 0;}
+}
+
+function incrementarScans(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var data=JSON.parse(localStorage.getItem('el_scans')||'{}');
+    if(data.dia!==hoje) data={dia:hoje,count:0};
+    data.count++;
+    localStorage.setItem('el_scans',JSON.stringify(data));
+  }catch(e){}
+}
+
+function verificarLimiteOCR(){
+  if(isPremium()) return true;
+  var scans=getScansHoje();
+  if(scans>=3){
+    abrirPremium('Voce usou seus 3 scans gratuitos de hoje. No premium sao ilimitados por R$ 9,90/mes — menos que 2 entregas!');
+    return false;
+  }
+  return true;
+}
+
+function abrirPremium(msg){
+  if(msg) document.getElementById('premium-msg').textContent=msg;
+  document.getElementById('modal-premium').classList.add('open');
+}
+
+function fecharPremium(){
+  document.getElementById('modal-premium').classList.remove('open');
+}
+
+function assinarPremium(){
+  // Premium estara disponivel via Google Play Billing apos aprovacao na Play Store
+  fecharPremium();
+  alert('Em breve disponivel! O Premium sera lancado junto com o app na Play Store.');
+}
+
+function indicarAmigos(){
+  fecharPremium();
+  var nome=usuarioAtual?usuarioAtual.nome:'Entregador';
+  var msg='Ola! Estou usando o EntregaLog para organizar minhas entregas e ficou incrivel!\n\n'
+    +'Baixe gratuitamente:\nhttps://adilson161618.github.io/entrega-log\n\n'
+    +'Se voce baixar pelo meu link eu ganho 30 dias premium gratis! Valeu!';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+function verificarHistorico7dias(lista){
+  if(isPremium()) return lista;
+  var limite=new Date();
+  limite.setDate(limite.getDate()-7);
+  return lista.filter(function(r){
+    try{
+      var partes=r.data.split('/');
+      var data=new Date(partes[2].split(',')[0],partes[1]-1,partes[0]);
+      return data>=limite;
+    }catch(e){return true;}
+  });
+}
+
+// ===== OCR =====
+var ocrResultados=[];
+var ocrFotoBase64=null;
+
+async function processarOCR(event){
+  var file=event.target.files[0];
+  if(!file) return;
+  // Verifica limite de scans
+  if(!verificarLimiteOCR()){
+    document.getElementById('ocr-input').value='';
+    return;
+  }
+  incrementarScans();
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    var base64=e.target.result;
+    ocrFotoBase64=base64;
+    var img=document.getElementById('ocr-preview');
+    img.src=base64;img.style.display='block';
+    var loading=document.getElementById('ocr-loading');
+    loading.style.display='block';
+    loading.style.background='#EDE9FE';loading.style.borderColor='#7C3AED';loading.style.color='#5B21B6';
+    loading.textContent='🤖 Lendo endereços com IA...';
+    var btn=document.getElementById('ocr-btn');
+    btn.disabled=true;btn.textContent='⏳ Processando...';
+    try{
+      // Comprime a imagem antes de enviar
+      var imgData='';
+      var mediaType='image/jpeg';
+      try{
+        var canvas=document.createElement('canvas');
+        var imgEl=new Image();
+        await new Promise(function(res){imgEl.onload=res;imgEl.src=base64;});
+        var maxW=800,maxH=800;
+        var w=imgEl.width,h=imgEl.height;
+        if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+        if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(imgEl,0,0,w,h);
+        var compressed=canvas.toDataURL('image/jpeg',0.7);
+        imgData=compressed.split(',')[1];
+      }catch(e){
+        imgData=base64.split(',')[1];
+      }
+      var response=await fetch('https://psqtdivgmrnuxgdvymrh.supabase.co/functions/v1/bright-responder',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1000,
+          messages:[{
+            role:'user',
+            content:[
+              {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
+              {type:'text',text:'Leia esta imagem e extraia todos os enderecos encontrados. Um endereco pode ser: rua, avenida, travessa, alameda, rodovia, com ou sem numero, com ou sem bairro ou cidade. Tambem aceite CEP isolado ou coordenadas. Retorne SOMENTE este JSON sem markdown: {"enderecos":["endereco 1 completo","endereco 2 completo"]}. Se nao encontrar nenhum endereco retorne: {"enderecos":[]}.'}
+            ]
+          }]
+        })
+      });
+      var data=await response.json();
+      console.log('API response status:',response.status,'data:',JSON.stringify(data).slice(0,200));
+      if(!response.ok){
+        loading.textContent='API erro '+response.status+': '+(data.error&&data.error.message||'verifique os creditos');
+        loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
+        btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
+        document.getElementById('ocr-input').value='';
+        return;
+      }
+      var texto=data.content&&data.content[0]&&data.content[0].text||'{"entregas":[]}';
+      texto=texto.replace(/```json|```/g,'').trim();
+      var resultado=JSON.parse(texto);
+      var lista=[];
+      // Novo formato simples
+      if(resultado.enderecos&&resultado.enderecos.length>0){
+        lista=resultado.enderecos.map(function(e){return{nome:'',endereco:e,cidade:'',telefone:''};});
+      }
+      // Formato antigo compativel
+      else if(resultado.entregas&&resultado.entregas.length>0){
+        lista=resultado.entregas;
+      }
+      else if(resultado.nome||resultado.endereco){
+        lista=[resultado];
+      }
+      if(!lista.length){
+        loading.textContent='Nao encontrei nenhum endereco na imagem. Tente uma foto mais proxima do texto.';
+        loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
+        btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
+        document.getElementById('ocr-input').value='';
+        return;
+      }
+      ocrResultados=lista;
+      loading.style.display='none';
+      abrirModalOCR();
+    }catch(err){
+      loading.textContent='Erro: '+err.message;
+      loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
+      console.log('OCR erro detalhado:',err);
+    }
+    btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
+    document.getElementById('ocr-input').value='';
   };
   reader.readAsDataURL(file);
 }
-async function doReverseGeo(){
-  if(!currentPos)return;
-  document.getElementById('gps-result').style.display='none';
-  document.getElementById('gps-error').style.display='none';
-  document.getElementById('gps-searching').style.display='flex';
-  const{lat,lon}=currentPos;
-  try{
-    const res=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=18&addressdetails=1`,{headers:{'Accept-Language':'pt-BR','User-Agent':'TravelLog/2.0'}});
-    const data=await res.json();
-    const name=data.name||data.address?.road||data.display_name.split(',')[0];
-    const addr=[data.address?.road,data.address?.suburb,data.address?.city].filter(Boolean).join(', ');
-    currentGPS={name,addr:addr||data.display_name.slice(0,70),lat,lon,cat:OSM_TAGS[data.type||data.class||'']||'outros'};
-    selModal=currentGPS.cat;showGPSResult(currentGPS);buildCatGrid();
-  }catch(e){
-    document.getElementById('gps-searching').style.display='none';
-    document.getElementById('gps-error').style.display='block';
-    currentGPS={name:'Local atual',addr:lat.toFixed(5)+', '+lon.toFixed(5),lat,lon,cat:'outros'};
-    selModal='outros';buildCatGrid();
-  }
-}
-function showGPSResult(p){
-  const cat=CATS.find(c=>c.id===p.cat)||CATS[5];
-  document.getElementById('gps-searching').style.display='none';
-  document.getElementById('gps-result').style.display='block';
-  const ico=document.getElementById('gps-cat-icon');
-  ico.style.background=cat.bg;ico.textContent=cat.icon;
-  document.getElementById('gps-place-name').textContent=p.name;
-  document.getElementById('gps-place-addr').textContent=p.addr;
-  document.getElementById('gps-coords').textContent=p.lat.toFixed(5)+', '+p.lon.toFixed(5);
-}
-function openModal(){
-  if(ended)return;
-  overrideOpen=false;currentPhotoData=null;
-  document.getElementById('override-fields').style.display='none';
-  document.getElementById('override-toggle').textContent='Editar nome ou categoria manualmente';
-  document.getElementById('gps-error').style.display='none';
-  document.getElementById('gps-result').style.display='none';
-  document.getElementById('gps-searching').style.display='flex';
-  document.getElementById('m-val').value='';
-  document.getElementById('m-note').value='';
-  document.getElementById('m-place').value='';
-  document.getElementById('photo-preview-img').style.display='none';
-  document.getElementById('photo-upload-area').style.display='block';
-  document.getElementById('photo-input').value='';
-  selModal=null;buildCatGrid();
-  document.getElementById('modal-overlay').classList.add('open');
-  doReverseGeo();
-}
-function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
-function toggleOverride(){
-  overrideOpen=!overrideOpen;
-  document.getElementById('override-fields').style.display=overrideOpen?'block':'none';
-  document.getElementById('override-toggle').textContent=overrideOpen?'Usar identificação automática':'Editar nome ou categoria manualmente';
-  if(overrideOpen&&currentGPS)document.getElementById('m-place').value=currentGPS.name;
-}
-function buildCatGrid(){
-  const g=document.getElementById('cat-grid');g.innerHTML='';
-  CATS.forEach(c=>{
-    const d=document.createElement('div');
-    d.className='copt'+(selModal===c.id?' sel':'');
-    d.innerHTML=`<div style="font-size:20px;margin-bottom:3px;">${c.icon}</div>${c.label}`;
-    d.onclick=()=>{selModal=c.id;buildCatGrid();};
-    g.appendChild(d);
+
+function abrirModalOCR(){
+  var lista=document.getElementById('ocr-itens-lista');lista.innerHTML='';
+  document.getElementById('ocr-sheet-sub').textContent=ocrResultados.length+' entrega'+(ocrResultados.length!==1?'s':'')+' identificada'+(ocrResultados.length!==1?'s':'')+' — confirme ou corrija:';
+  ocrResultados.forEach(function(r,i){
+    var end=(r.endereco||'')+(r.cidade?', '+r.cidade:'');
+    var div=document.createElement('div');
+    div.style.cssText='background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:10px;';
+    div.innerHTML='<div style="font-size:10px;color:#888;margin-bottom:3px;font-weight:500;">NOME</div>'
+      +'<input id="ocr-nome-'+i+'" value="'+(r.nome||'').replace(/"/g,"'")+'" placeholder="Nome" style="width:100%;background:#fff;border:1px solid #ddd;color:#111;padding:8px 10px;border-radius:8px;margin-bottom:8px;font-size:12px;font-family:inherit;outline:none;"/>'
+      +'<div style="font-size:10px;color:#888;margin-bottom:3px;font-weight:500;">ENDEREÇO</div>'
+      +'<input id="ocr-end-'+i+'" value="'+end.replace(/"/g,"'")+'" placeholder="Endereço" style="width:100%;background:#fff;border:1px solid #ddd;color:#111;padding:8px 10px;border-radius:8px;margin-bottom:8px;font-size:12px;font-family:inherit;outline:none;"/>'
+      +'<div style="font-size:10px;color:#888;margin-bottom:3px;font-weight:500;">TELEFONE</div>'
+      +'<input id="ocr-tel-'+i+'" value="'+(r.telefone||'').replace(/"/g,"'")+'" placeholder="Telefone" style="width:100%;background:#fff;border:1px solid #ddd;color:#111;padding:8px 10px;border-radius:8px;font-size:12px;font-family:inherit;outline:none;"/>';
+    lista.appendChild(div);
   });
-}
-function savePoint(){
-  const name=overrideOpen&&document.getElementById('m-place').value.trim()?document.getElementById('m-place').value.trim():(currentGPS?currentGPS.name:'Local atual');
-  const cat=selModal||'outros';
-  const val=parseFloat(document.getElementById('m-val').value)||0;
-  const note=document.getElementById('m-note').value.trim();
-  const p={place:name,cat,val,note,addr:currentGPS?currentGPS.addr:'',coords:currentPos?currentPos.lat.toFixed(5)+', '+currentPos.lon.toFixed(5):'',lat:currentPos?.lat,lon:currentPos?.lon,dist:(totalDist/1000).toFixed(2),photo:currentPhotoData||null};
-  points.push(p);
-  if(p.lat&&p.lon)addPinToMap(p.lat,p.lon,cat);
-  addToTimeline(p);
-  document.getElementById('total-badge').textContent=fmt(points.reduce((s,x)=>s+(x.val||0),0));
-  document.getElementById('tripkm').textContent=points.length+' ponto'+(points.length!==1?'s':'')+' · '+(totalDist/1000).toFixed(2)+' km';
-  updateCostPerKm();saveToStorage();closeModal();
-}
-function catFor(id){return CATS.find(c=>c.id===id)||CATS[5];}
-function addToTimeline(p){
-  const cat=catFor(p.cat);const list=document.getElementById('tl-list');
-  const row=document.createElement('div');row.className='tl-row';row.innerHTML=buildTlRow(p,cat);list.appendChild(row);
-}
-function openGoogleMaps(lat,lon,name){window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`,'_blank');}
-function shareTrip(trip){
-  const d=new Date(trip.date);
-  let msg=`🗺 *TravelLog — ${d.toLocaleDateString('pt-BR')}*\n`;
-  msg+=`📍 ${trip.points.length} paradas · ${trip.km} km · ${fmt(trip.total)}`;
-  if(trip.cpkm)msg+=` · R$ ${trip.cpkm}/km`;
-  msg+='\n\n';
-  trip.points.forEach((p,i)=>{
-    const cat=catFor(p.cat);
-    msg+=`${i+1}. ${cat.icon} *${p.place}*`;
-    if(p.val)msg+=` — ${fmt(p.val)}`;
-    if(p.lat&&p.lon)msg+=`\nhttps://maps.google.com/?q=${p.lat},${p.lon}`;
-    msg+='\n\n';
-  });
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
-}
-function showScreen(s){
-  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));
-  document.getElementById('screen-'+s).classList.add('active');
-  document.querySelectorAll('.ntab')[{mapa:0,timeline:1,gastos:2,historico:3}[s]].classList.add('active');
-  if(s==='mapa'&&map)setTimeout(()=>map.invalidateSize(),50);
-  if(s==='gastos')renderGastos();
-  if(s==='historico')renderHistorico();
-}
-function renderGastos(){
-  const selCats=window._selCats;
-  const r=document.getElementById('filter-row');r.innerHTML='';
-  const allOn=selCats.size===CATS.length;
-  const all=document.createElement('div');
-  all.className='fchip'+(allOn?' on':'');all.textContent='Todos';
-  all.onclick=()=>{if(allOn)selCats.clear();else CATS.forEach(c=>selCats.add(c.id));renderGastos();};
-  r.appendChild(all);
-  CATS.forEach(c=>{
-    const ch=document.createElement('div');
-    ch.className='fchip'+(selCats.has(c.id)?' on':'');
-    ch.textContent=c.icon+' '+c.label;
-    ch.onclick=()=>{if(selCats.has(c.id))selCats.delete(c.id);else selCats.add(c.id);renderGastos();};
-    r.appendChild(ch);
-  });
-  const filtered=points.filter(p=>selCats.has(p.cat));
-  const grand=filtered.reduce((s,p)=>s+(p.val||0),0);
-  document.getElementById('grand-total').textContent=fmt(grand);
-  const km=totalDist/1000;
-  const cpkmBox=document.getElementById('cpkm-box');
-  if(km>0.1&&grand>0){cpkmBox.style.display='block';document.getElementById('cpkm-val').textContent=fmt(grand/km)+' / km';}
-  else cpkmBox.style.display='none';
-  const catTotals={};CATS.forEach(c=>{catTotals[c.id]={sum:0,count:0};});
-  filtered.forEach(p=>{catTotals[p.cat].sum+=(p.val||0);catTotals[p.cat].count++;});
-  const maxSum=Math.max(...Object.values(catTotals).map(x=>x.sum),1);
-  const cr=document.getElementById('cat-rows');cr.innerHTML='';
-  CATS.forEach(c=>{
-    const ct=catTotals[c.id];if(!selCats.has(c.id)||ct.count===0)return;
-    const pct=Math.round(ct.sum/maxSum*100);
-    const row=document.createElement('div');row.className='cat-row';
-    row.innerHTML=`<div class="cat-icon" style="background:${c.bg};">${c.icon}</div>
-      <div class="cat-info"><div class="cat-name">${c.label} <span class="cat-count">${ct.count} parada${ct.count!==1?'s':''}</span></div>
-      <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${c.color};"></div></div></div>
-      <div class="cat-val">${fmt(ct.sum)}</div>`;
-    cr.appendChild(row);
-  });
-  const dl=document.getElementById('detail-list');dl.innerHTML='';
-  if(!filtered.length){dl.innerHTML='<div style="text-align:center;padding:32px 0;font-size:13px;color:#aaa;">Nenhum ponto selecionado.</div>';return;}
-  filtered.slice().reverse().forEach(p=>{
-    const cat=catFor(p.cat);const card=document.createElement('div');card.className='detail-card';
-    card.innerHTML=`<div class="dc-top"><div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:26px;height:26px;border-radius:8px;background:${cat.bg};display:flex;align-items:center;justify-content:center;font-size:14px;">${cat.icon}</div>
-      <div class="dc-place">${p.place}</div></div>
-      ${p.val?`<div class="dc-val">${fmt(p.val)}</div>`:''}
-    </div>
-    <div class="dc-meta">${cat.label} · ${p.dist} km</div>
-    ${p.photo?`<img class="dc-photo" src="${p.photo}"/>`:''}
-    ${p.lat?`<button class="nav-btn" onclick="openGoogleMaps(${p.lat},${p.lon},'${p.place.replace(/'/g,"\\'")}')">🗺 Navegar até aqui</button>`:''}
-    ${p.note?`<div class="dc-note">${p.note}</div>`:''}`;
-    dl.appendChild(card);
-  });
-}
-function renderHistorico(){
-  const wrap=document.getElementById('hist-wrap');
-  wrap.innerHTML='<div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Viagens salvas</div><div id="hist-list"></div>';
-  const list=document.getElementById('hist-list');
-  const trips=getSavedTrips();
-  if(!trips.length){list.innerHTML='<div class="hist-empty">Nenhuma viagem salva ainda.</div>';return;}
-  trips.forEach(trip=>{
-    const d=new Date(trip.date);
-    const dateStr=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    const card=document.createElement('div');card.className='hist-card';
-    const cats=[...new Set(trip.points.map(p=>p.cat))];
-    const badges=cats.map(id=>{const c=catFor(id);return`<span class="hist-badge">${c.icon} ${c.label}</span>`;}).join('');
-    card.innerHTML=`<div class="hist-name">Viagem — ${dateStr}</div>
-      <div class="hist-meta">${trip.points.length} ponto${trip.points.length!==1?'s':''} · ${trip.km} km · ${fmt(trip.total)}${trip.cpkm?' · R$ '+trip.cpkm+'/km':''}</div>
-      <div class="hist-badges">${badges}</div>`;
-    card.onclick=()=>showTripDetail(trip,wrap);
-    list.appendChild(card);
-  });
-}
-function showTripDetail(trip,wrap){
-  const d=new Date(trip.date);
-  const dateStr=d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  wrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-    <button class="back-btn" onclick="renderHistorico()">← Voltar</button>
-    <span style="font-size:14px;font-weight:600;">Viagem — ${dateStr}</span></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-      <div style="background:#f7f7f7;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;">Distância</div><div style="font-size:16px;font-weight:700;">${trip.km} km</div></div>
-      <div style="background:#f7f7f7;border-radius:10px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;">Total gasto</div><div style="font-size:16px;font-weight:700;">${fmt(trip.total)}</div></div>
-      <div style="background:${trip.cpkm?'#E1F5EE':'#f7f7f7'};border-radius:10px;padding:10px;text-align:center;"><div style="font-size:11px;color:#888;">Custo/km</div><div style="font-size:16px;font-weight:700;color:${trip.cpkm?'#0F6E56':'#aaa'};">${trip.cpkm?'R$ '+trip.cpkm:'—'}</div></div>
-    </div>
-    <button class="share-btn" onclick='shareTrip(${JSON.stringify(trip).replace(/'/g,"\\'")})'>💬 Compartilhar no WhatsApp</button>
-    <div id="hist-list" style="margin-top:12px;"></div>`;
-  const list=document.getElementById('hist-list');
-  if(!trip.points.length){list.innerHTML='<div class="hist-empty">Nenhum ponto nesta viagem.</div>';return;}
-  trip.points.forEach(p=>{
-    const cat=catFor(p.cat);const card=document.createElement('div');card.className='detail-card';
-    card.innerHTML=`<div class="dc-top"><div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:26px;height:26px;border-radius:8px;background:${cat.bg};display:flex;align-items:center;justify-content:center;font-size:14px;">${cat.icon}</div>
-      <div class="dc-place">${p.place}</div></div>
-      ${p.val?`<div class="dc-val">${fmt(p.val)}</div>`:''}
-    </div>
-    <div class="dc-meta">${cat.label} · ${p.dist} km</div>
-    ${p.photo?`<img class="dc-photo" src="${p.photo}"/>`:''}
-    ${p.lat?`<button class="nav-btn" onclick="openGoogleMaps(${p.lat},${p.lon},'${p.place.replace(/'/g,"\\'")}')">🗺 Navegar até aqui</button>`:''}
-    ${p.note?`<div class="dc-note">${p.note}</div>`:''}`;
-    list.appendChild(card);
-  });
-}
-function startVoice(){
-  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Use o Chrome para comando de voz.');return;}
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const rec=new SR();rec.lang='pt-BR';rec.interimResults=false;rec.maxAlternatives=1;
-  document.getElementById('voice-bar').style.display='block';
-  document.getElementById('voicebtn').style.background='#DC2626';
-  document.getElementById('voicebtn').textContent='🔴 Ouvindo';
-  rec.start();
-  rec.onresult=e=>{const t=e.results[0][0].transcript.toLowerCase();document.getElementById('voice-bar').style.display='none';processVoiceCommand(t);};
-  rec.onerror=e=>{document.getElementById('voice-bar').style.display='none';document.getElementById('voicebtn').style.background='#7C3AED';document.getElementById('voicebtn').textContent='🎤 Voz';if(e.error==='not-allowed')alert('Permita o microfone.');};
-  rec.onend=()=>{document.getElementById('voicebtn').style.background='#7C3AED';document.getElementById('voicebtn').textContent='🎤 Voz';document.getElementById('voice-bar').style.display='none';};
-}
-function processVoiceCommand(text){
-  const catMap={'pedágio':'pedagio','pedagio':'pedagio','praça':'pedagio','posto':'posto','combustível':'posto','combustivel':'posto','gasolina':'posto','diesel':'posto','etanol':'posto','abasteci':'posto','restaurante':'restaurante','almoço':'restaurante','almoco':'restaurante','jantar':'restaurante','lanche':'restaurante','comida':'restaurante','borracharia':'borracharia','pneu':'borracharia','hospedagem':'hospedagem','hotel':'hospedagem','pousada':'hospedagem'};
-  let detectedCat='outros';
-  for(const[key,val] of Object.entries(catMap)){if(text.includes(key)){detectedCat=val;break;}}
-  const numMatch=text.match(/(\d+(?:[.,]\d{1,2})?)/);
-  let detectedVal=numMatch?numMatch[1].replace(',','.'):'' ;
-  const catLabel=CATS.find(c=>c.id===detectedCat);
-  const rb=document.getElementById('voice-result-bar');
-  rb.style.display='block';
-  rb.textContent=`Entendido: ${catLabel?catLabel.icon+' '+catLabel.label:'Outros'} — R$ ${detectedVal||'?'} — confirmando...`;
-  setTimeout(()=>{rb.style.display='none';selModal=detectedCat;openModal();setTimeout(()=>{if(detectedVal)document.getElementById('m-val').value=detectedVal;buildCatGrid();},300);},1500);
+  document.getElementById('modal-ocr').style.display='flex';
 }
 
-generateManifest();registerSW();hideSplash();initDark();
-const resumed=loadFromStorage();
-if(navigator.geolocation){
-  watchId=navigator.geolocation.watchPosition(onGPSSuccess,onGPSError,{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
-}else{
-  document.getElementById('statustext').textContent='GPS não suportado.';
+function fecharModalOCR(){
+  document.getElementById('modal-ocr').style.display='none';
+  ocrResultados=[];ocrFotoBase64=null;
+  document.getElementById('ocr-preview').style.display='none';
 }
-if(resumed){
-  document.getElementById('total-badge').textContent=fmt(points.reduce((s,x)=>s+(x.val||0),0));
-  document.getElementById('tripkm').textContent=points.length+' ponto'+(points.length!==1?'s':'')+' · '+(totalDist/1000).toFixed(2)+' km';
+
+function confirmarOCR(){
+  ocrResultados.forEach(function(r,i){
+    var nome=document.getElementById('ocr-nome-'+i).value.trim();
+    var end=document.getElementById('ocr-end-'+i).value.trim();
+    var tel=document.getElementById('ocr-tel-'+i).value.trim();
+    // Endereço é obrigatório — nome e telefone são opcionais
+    if(!end) return;
+    entregas.push({id:Date.now()+i,nome:nome||'Destinatário',addr:end,tel:tel||'',lat:null,lon:null,entregue:false,conhecido:false,foto:ocrFotoBase64});
+  });
+  renderLista();
+  fecharModalOCR();
+  var loading=document.getElementById('ocr-loading');
+  loading.style.display='block';
+  loading.style.background='#DCFCE7';loading.style.borderColor='#1D9E75';loading.style.color='#166534';
+  loading.textContent='✅ Entregas adicionadas!';
+  setTimeout(function(){loading.style.display='none';},3000);
 }
-renderGastos();
+
+// ===== AUTOCOMPLETE =====
+var buscarTimer=null;
+function buscarSugestoes(termo){
+  clearTimeout(buscarTimer);
+  var el=document.getElementById('sugestoes');
+  if(!termo||termo.length<2){el.style.display='none';return;}
+  buscarTimer=setTimeout(function(){
+    try{
+      var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+      var r=lista.filter(function(x){
+        return (x.nome&&x.nome.toLowerCase().indexOf(termo.toLowerCase())>=0)||
+               (x.addr&&x.addr.toLowerCase().indexOf(termo.toLowerCase())>=0);
+      }).slice(0,5);
+      if(!r.length){el.style.display='none';return;}
+      el.innerHTML='';
+      r.forEach(function(item){
+        var d=document.createElement('div');
+        d.className='sug-item';
+        d.innerHTML='<div style="font-size:15px;flex-shrink:0;">📍</div>'
+          +'<div style="flex:1;">'
+          +'<div class="sug-nome">'+(item.nome||'Local')+'</div>'
+          +'<div class="sug-addr">'+(item.addr||'')+'</div>'
+          +(item.nota?'<div class="sug-nota">💡 '+item.nota+'</div>':'')
+          +'</div>'
+          +'<div style="font-size:10px;color:#1D9E75;font-weight:700;padding:2px 8px;background:#E1F5EE;border-radius:20px;white-space:nowrap;align-self:center;">Usar</div>';
+        d.onclick=function(){
+          el.style.display='none';
+          // Adiciona direto na lista
+          entregas.push({
+            id:Date.now(),
+            nome:item.nome||'Local',
+            addr:item.addr||'',
+            tel:'',
+            lat:item.lat||null,
+            lon:item.lon||null,
+            entregue:false,
+            conhecido:true,
+            dica:item.nota||''
+          });
+          document.getElementById('nome-input').value='';
+          document.getElementById('end-input').value='';
+          renderLista();
+          // Pin no mapa
+          if(map&&typeof L!=='undefined'&&item.lat&&item.lon){
+            var ic=L.divIcon({html:'<div style="width:30px;height:30px;background:#4ADE80;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#111;">'+entregas.length+'</div>',iconSize:[30,30],iconAnchor:[15,15],className:''});
+            L.marker([item.lat,item.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(item.nome||'Local')+'</b><br/>'+(item.addr||'')+(item.nota?'<br/>'+item.nota:'')).openPopup();
+          }
+        };
+        el.appendChild(d);
+      });
+      el.style.display='block';
+    }catch(e){console.log('busca erro:',e);}
+  },300);
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#input-wrap')){
+    var el=document.getElementById('sugestoes');
+    if(el) el.style.display='none';
+  }
+});
+
+// ===== CONFIGURAÇÕES =====
+function abrirConfig(){
+  try{
+    var u=usuarioAtual||JSON.parse(localStorage.getItem('el_user')||'null');
+    if(u){
+      document.getElementById('config-nome').textContent=u.nome||'--';
+      var w=u.whatsapp||'';
+      if(w.length>=10){w='('+w.slice(0,2)+') '+w.slice(2,7)+'-'+w.slice(7);}
+      document.getElementById('config-whats').textContent=w||'--';
+    }
+  }catch(e){}
+  var au=localStorage.getItem('el_auto_update');
+  document.getElementById('toggle-autoupdate').checked=(au==null||au==='1');
+  document.getElementById('toggle-dark').checked=document.body.classList.contains('dark');
+  var tvn=document.getElementById('toggle-voz-nav'); if(tvn) tvn.checked=_vozNavOn;
+  document.getElementById('config-versao').textContent=APP_VERSION;
+  document.getElementById('config-update-status').style.display='none';
+  document.getElementById('modal-config').classList.add('open');
+}
+
+function fecharConfig(){
+  document.getElementById('modal-config').classList.remove('open');
+}
+
+function toggleVozNav(cb){
+  _vozNavOn=!!cb.checked;
+  try{localStorage.setItem('el_voz_nav',_vozNavOn?'1':'0');}catch(e){}
+  if(!_vozNavOn) pararVoz();
+  else falarVoz('Voz da navegação ativada',{interromper:true,force:true});
+}
+
+function testarVozNav(){
+  if(!('speechSynthesis' in window)){
+    alert('Seu navegador não suporta voz. Tente no Chrome ou Edge.');
+    return;
+  }
+  falarVoz('Teste de voz do EntregaLog. Em 200 metros, vire à direita.',{interromper:true,force:true});
+}
+
+function toggleAutoUpdate(el){
+  try{localStorage.setItem('el_auto_update',el.checked?'1':'0');}catch(e){}
+  var s=document.getElementById('config-update-status');
+  s.style.display='block';
+  s.style.color='#1D9E75';
+  s.textContent=el.checked
+    ? '✅ Atualizações automáticas ligadas'
+    : '⏸ Atualizações automáticas desligadas — só ao tocar em "Verificar agora"';
+}
+
+function toggleDarkFromConfig(el){
+  var jaEscuro=document.body.classList.contains('dark');
+  if(el.checked && !jaEscuro) toggleDark();
+  if(!el.checked && jaEscuro) toggleDark();
+}
+
+async function verificarAtualizacao(manual){
+  var s=document.getElementById('config-update-status');
+  if(manual){
+    s.style.display='block';
+    s.style.color='#666';
+    s.textContent='⏳ Verificando...';
+  }
+  try{
+    var r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error('http '+r.status);
+    var d=await r.json();
+    var nova=d.version||d.latest||'';
+    if(nova && nova!==APP_VERSION){
+      if(manual){
+        s.style.color='#F97316';
+        s.innerHTML='🆕 Versão <b>'+nova+'</b> disponível! '+
+          '<button onclick="aplicarAtualizacao()" style="background:#F97316;color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;margin-left:4px;">Atualizar</button>';
+      } else {
+        mostrarBannerUpdate(nova);
+      }
+    } else if(manual){
+      s.style.color='#1D9E75';
+      s.textContent='✅ Você já está na versão mais recente ('+APP_VERSION+')';
+    }
+  }catch(e){
+    if(manual){
+      s.style.color='#DC2626';
+      s.textContent='⚠️ Não foi possível verificar (sem internet?)';
+    }
+  }
+}
+
+async function aplicarAtualizacao(){
+  var s=document.getElementById('config-update-status');
+  if(s){s.style.display='block';s.style.color='#F97316';s.textContent='⏳ Atualizando...';}
+  try{
+    // v1.0.5: apaga SOMENTE caches do EntregaLog. Antes apagava todos da origem,
+    // o que conflitava com outros PWAs hospedados em adilson161618.github.io
+    // (ex.: TravelLog) e podia fazer o navegador abrir o app errado depois do reload.
+    if('caches' in window){
+      var ks=await caches.keys();
+      var dosNossos=ks.filter(function(k){
+        // Apaga apenas caches que com certeza sao do EntregaLog
+        return k.indexOf('entregalog-')===0;
+      });
+      await Promise.all(dosNossos.map(function(k){return caches.delete(k);}));
+    }
+    // Atualiza somente o SW da nossa rota; controller é o nosso por escopo
+    if(navigator.serviceWorker){
+      // getRegistration sem path retorna a registration que controla esta pagina
+      var reg=await navigator.serviceWorker.getRegistration();
+      // Garante que so estamos mexendo no SW do EntregaLog (escopo termina em /entrega-log/ ou similar)
+      var ehDoEntregaLog=!reg||!reg.scope||reg.scope.indexOf('/entrega-log')>=0||reg.scope.indexOf('entregalog')>=0
+        ||(reg.active&&reg.active.scriptURL&&reg.active.scriptURL.indexOf('/entrega-log')>=0);
+      if(reg && ehDoEntregaLog){
+        try{await reg.update();}catch(e){}
+        if(reg.waiting){reg.waiting.postMessage({type:'SKIP_WAITING'});}
+        if(reg.installing){reg.installing.postMessage({type:'SKIP_WAITING'});}
+        if(navigator.serviceWorker.controller){
+          // CLEAR_CACHES no SW — mas o nosso SW so apaga caches que ele criou (escopados)
+          navigator.serviceWorker.controller.postMessage({type:'CLEAR_CACHES'});
+          navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
+        }
+      } else {
+        console.warn('[update] SW de outra origem, nao vou mexer:',reg&&reg.scope);
+      }
+    }
+  }catch(e){console.error('aplicarAtualizacao erro:',e);}
+  // Reload garantindo que vai pro index.html do EntregaLog na mesma pasta (nunca pro /)
+  setTimeout(function(){
+    var p=location.pathname;
+    // Se por algum motivo estamos na raiz, redireciona explicitamente pra /entrega-log/
+    if(p==='/'||p===''){ p='/entrega-log/'; }
+    // Garante que termina com /index.html ou / (evita herdar caminho ambiguo)
+    if(p.indexOf('/entrega-log')>=0 && !p.endsWith('.html')){
+      if(!p.endsWith('/')) p=p+'/';
+      p=p+'index.html';
+    }
+    location.replace(p+'?v='+Date.now());
+  },800);
+}
+
+function mostrarBannerUpdate(nova){
+  if(document.getElementById('update-banner')) return;
+  var bar=document.createElement('div');
+  bar.id='update-banner';
+  bar.style.cssText='background:#F97316;color:#fff;padding:8px 14px;font-size:12px;text-align:center;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;';
+  bar.innerHTML='🆕 Nova versão '+nova+' disponível '+
+    '<button onclick="aplicarAtualizacao()" style="background:#fff;color:#F97316;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">Atualizar</button>'+
+    '<button onclick="this.parentNode.remove()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;">Depois</button>';
+  var shell=document.getElementById('shell');
+  shell.insertBefore(bar,shell.firstChild);
+}
+
+function fazerLogout(){
+  if(!confirm('Sair da conta? Suas entregas do dia ficam salvas no celular.')) return;
+  try{localStorage.removeItem('el_user');}catch(e){}
+  fecharConfig();
+  location.reload();
+}
+
+async function excluirConta(){
+  if(!confirm('⚠️ Tem certeza? Isso vai apagar TODOS seus dados (entregas, histórico, configurações). Não dá pra desfazer.')) return;
+  if(!confirm('Última confirmação: realmente excluir conta?')) return;
+  try{
+    var u=usuarioAtual||JSON.parse(localStorage.getItem('el_user')||'null');
+    if(u && u.whatsapp){
+      try{
+        await fetch(SB_URL+'/rest/v1/usuarios?whatsapp=eq.'+encodeURIComponent(u.whatsapp),{
+          method:'DELETE',
+          headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+        });
+      }catch(e){}
+    }
+    var chaves=['el_user','el_regs','el_stats','el_rotas','el_fila','el_banco_local','el_scans','el_premium_exp','el_auto_update','el_dark'];
+    chaves.forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});
+  }catch(e){}
+  alert('Conta excluída. Até logo!');
+  location.reload();
+}
+
+function abrirPrivacidade(){
+  window.open('https://adilson161618.github.io/entrega-log/privacidade.html','_blank');
+}
+
+function abrirSuporte(){
+  var msg='Olá! Preciso de ajuda com o EntregaLog (versão '+APP_VERSION+').';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ===== INIT =====
+// Registra Service Worker (PWA + cache offline)
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('service-worker.js').then(function(reg){
+      // Se já tem um SW esperando, deixa o app decidir quando ativar
+      if(reg.waiting){ console.log('[App] SW atualizado pronto'); }
+      reg.addEventListener('updatefound',function(){
+        var nw=reg.installing;
+        if(nw){
+          nw.addEventListener('statechange',function(){
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              console.log('[App] Nova versao do SW instalada');
+            }
+          });
+        }
+      });
+    }).catch(function(err){console.warn('[App] SW falhou:',err);});
+  });
+}
+initDark();
+hideSplash();
+// GPS iniciado pelo mapa
+monitorarBateria();
+// Atualiza contador OCR
+setTimeout(function(){
+  var scans=getScansHoje();
+  var counter=document.getElementById('ocr-counter');
+  if(counter&&!isPremium()){
+    counter.textContent=(3-scans)+' scan(s) gratuito(s) restante(s) hoje';
+  }
+},2500);
+if(!onlineStatus) document.getElementById("offline-bar").classList.add("show");
+sincronizarFila();
+setTimeout(function(){
+  if(checkLogin()){
+    initMap();
+  } else {
+    document.getElementById('login-screen').classList.add('show');
+  }
+},2200);
+
+// Verificacao automatica de atualizacao (respeita preferencia do usuario)
+setTimeout(function(){
+  try{
+    var au=localStorage.getItem('el_auto_update');
+    if(au==null || au==='1'){ // default ligado
+      verificarAtualizacao(false);
+    }
+  }catch(e){}
+},4000);
+
+// Hash routing - permite atalhos do manifest (#entregas, #mapa, etc) funcionarem
+function aplicarHashRoute(){
+  try{
+    var h=(window.location.hash||'').replace('#','').trim();
+    if(!h) return;
+    var tabsValidas=['mapa','entregas','registrar','historico','relatorio','rotas'];
+    if(tabsValidas.indexOf(h)>=0){
+      showTab(h);
+    }
+  }catch(e){}
+}
+window.addEventListener('hashchange',aplicarHashRoute);
+setTimeout(aplicarHashRoute,2300);
 </script>
-</body>
-</html>
+
+<div id="modal-chegada">
+  <div id="chegada-sheet">
+    <div id="chegada-title">📍 Chegou ao destino?</div>
+    <div id="chegada-sub">O GPS detectou que você está próximo</div>
+    <div id="chegada-nome-txt"></div>
+    <div id="chegada-addr-atual"></div>
+    <button id="btn-corrigir" onclick="mostrarCorrecao()">✏️ Endereço está errado? Corrigir</button>
+    <div id="chegada-corrigir">
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:500;">Endereço correto</label>
+      <div style="position:relative;">
+        <input class="mi" id="chegada-addr-input" placeholder="Digite o endereço correto" style="padding-right:44px;"/>
+        <button onclick="puxarEnderecoGPS()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:20px;" title="Capturar endereço pelo GPS">📍</button>
+      </div>
+      <div id="chegada-gps-status" style="display:none;font-size:11px;color:#1D9E75;margin:-6px 0 8px;padding:0 2px;">⏳ Buscando endereço...</div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:500;">Dica para próximos entregadores</label>
+      <textarea class="mi" id="chegada-dica" placeholder="Ex: Portaria nos fundos..." style="height:56px;resize:none;"></textarea>
+    </div>
+    <div id="chegada-btns">
+      <button class="chegada-btn nao" onclick="fecharChegada()">Não cheguei</button>
+      <button class="chegada-btn sim" onclick="confirmarChegada()">✅ Sim, entreguei!</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="modal-ocr">
+  <div id="ocr-sheet">
+    <h3>📋 Entregas identificadas</h3>
+    <div id="ocr-sheet-sub">Confirme ou corrija antes de adicionar</div>
+    <div id="ocr-itens-lista"></div>
+    <button id="ocr-add-all-btn" onclick="confirmarOCR()">✅ Adicionar todas à lista</button>
+    <button id="ocr-cancel-btn" onclick="fecharModalOCR()">Cancelar</button>
+  </div>
+</div>
+
+
+<div id="modal-ocr" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;">
+    <h3 style="font-size:15px;font-weight:700;color:#111;margin-bottom:4px;">📋 Entregas identificadas</h3>
+    <div id="ocr-sheet-sub" style="font-size:12px;color:#888;marg
