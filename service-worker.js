@@ -1,11 +1,12 @@
 // ============================================================
-// EntregaLog Service Worker v1.0.3
+// EntregaLog Service Worker v1.0.4
 // version.json + index.html: NETWORK-FIRST (atualizacao em tempo real)
 // APIs externas: NETWORK-FIRST
 // Demais estaticos: CACHE-FIRST
+// v1.0.4: adicionado OSRM (router.project-osrm.org) para rotas por ruas
 // ============================================================
 
-const SW_VERSION = '1.0.3';
+const SW_VERSION = '1.0.4';
 const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
 const RUNTIME_CACHE = 'entregalog-runtime';
 
@@ -20,7 +21,8 @@ const NETWORK_FIRST_HOSTS = [
   'supabase.co',
   'nominatim.openstreetmap.org',
   'viacep.com.br',
-  'tile.openstreetmap.org'
+  'tile.openstreetmap.org',
+  'router.project-osrm.org'
 ];
 
 const ALWAYS_FRESH = [
