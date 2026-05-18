@@ -1,6 +1,6 @@
 {
-  "version": "1.0.4",
+  "version": "1.0.5",
   "released_at": "2026-05-18",
-  "notes": "Trajeto agora segue as ruas (OSRM), busca de enderecos com viés de proximidade e voz de navegacao (TTS).",
+  "notes": "Blindagem contra conflito com outros PWAs na mesma origem (TravelLog). Update so apaga caches do EntregaLog.",
   "min_supported": "1.0.0"
 }
