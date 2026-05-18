@@ -2562,4 +2562,169 @@ setTimeout(aplicarHashRoute,2300);
 <div id="modal-ocr" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;">
   <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;">
     <h3 style="font-size:15px;font-weight:700;color:#111;margin-bottom:4px;">📋 Entregas identificadas</h3>
-    <div id="ocr-sheet-sub" style="font-size:12px;color:#888;marg
+    <div id="ocr-sheet-sub" style="font-size:12px;color:#888;margin-bottom:14px;"></div>
+    <div id="ocr-itens-lista"></div>
+    <button onclick="confirmarOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;">✅ Adicionar todas à lista</button>
+    <button onclick="fecharModalOCR()" style="background:#f5f5f5;color:#666;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+
+
+<div id="modal-premium">
+  <div id="premium-sheet">
+    <h3>EntregaLog Premium</h3>
+    <p id="premium-msg">Desbloqueie todos os recursos e faça muito mais entregas por dia.</p>
+    <div class="prem-preco">R$ 9,90</div>
+    <div class="prem-sub">por mes — menos que 2 entregas</div>
+    <div class="prem-features">
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>OCR ilimitado — leia qualquer documento</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Historico completo sem limite de tempo</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Relatorio PDF mensal com ganhos</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Suporte prioritario por WhatsApp</div>
+    </div>
+    <button class="btn-assinar" onclick="assinarPremium()" style="opacity:0.85;">Em breve — disponivel no lancamento</button>
+    <button class="btn-indicar" onclick="indicarAmigos()">Indicar 3 amigos e ganhar 30 dias gratis</button>
+    <button class="btn-fechar-prem" onclick="fecharPremium()">Agora nao</button>
+  </div>
+</div>
+
+
+<button id="feedback-tab-btn" onclick="abrirFeedback()">💬 Feedback</button>
+
+<div id="modal-feedback">
+  <div id="feedback-sheet">
+    <h3>💬 Sua opinião importa!</h3>
+    <p>Ajude a melhorar o EntregaLog. Leva menos de 1 minuto!</p>
+    
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:8px;">De 0 a 10 quanto você indicaria o EntregaLog para outro entregador?</label>
+    <div class="nps-wrap" id="nps-wrap">
+      <button class="nps-btn" onclick="selecionarNPS(0)">0</button>
+      <button class="nps-btn" onclick="selecionarNPS(1)">1</button>
+      <button class="nps-btn" onclick="selecionarNPS(2)">2</button>
+      <button class="nps-btn" onclick="selecionarNPS(3)">3</button>
+      <button class="nps-btn" onclick="selecionarNPS(4)">4</button>
+      <button class="nps-btn" onclick="selecionarNPS(5)">5</button>
+      <button class="nps-btn" onclick="selecionarNPS(6)">6</button>
+      <button class="nps-btn" onclick="selecionarNPS(7)">7</button>
+      <button class="nps-btn" onclick="selecionarNPS(8)">8</button>
+      <button class="nps-btn" onclick="selecionarNPS(9)">9</button>
+      <button class="nps-btn" onclick="selecionarNPS(10)">10</button>
+    </div>
+    <div class="nps-labels"><span>Não indicaria</span><span>Indicaria com certeza</span></div>
+
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:8px;">O que você mais usa no app?</label>
+    <div class="feedback-categoria">
+      <button class="cat-btn" onclick="selecionarCat(this,'GPS e rota')">🗺 GPS e rota</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Banco de endereços')">📍 Banco de endereços</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'OCR câmera')">📷 OCR câmera</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Histórico')">📁 Histórico</button>
+    </div>
+
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:6px;">O que poderia melhorar ou sua ideia para o app?</label>
+    <textarea class="mi" id="feedback-texto" placeholder="Escreva aqui sua sugestão, ideia ou reclamação..." style="height:80px;resize:none;margin-bottom:12px;"></textarea>
+
+    <button class="btn-enviar-fb" onclick="enviarFeedback()">Enviar feedback</button>
+    <button class="btn-fechar-fb" onclick="fecharFeedback()">Agora não</button>
+  </div>
+</div>
+
+
+<button id="btn-ranking" onclick="abrirRanking()">🏆 Ranking</button>
+
+<div id="modal-ranking">
+  <div id="ranking-sheet">
+    <h3>🏆 Top Colaboradores</h3>
+    <p>Entregadores que mais registraram endereços difíceis e ajudaram a comunidade!</p>
+    
+    <div class="rank-minha-pos" id="minha-posicao" style="display:none;">
+      <div style="font-size:24px;">📍</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);" id="rank-meu-nome">Você</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);" id="rank-meu-pts">0 endereços registrados</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#F97316;" id="rank-minha-pos-num">#-</div>
+    </div>
+    
+    <div id="ranking-lista">
+      <div style="text-align:center;padding:20px;font-size:13px;color:#888;">Carregando ranking...</div>
+    </div>
+    
+    <button class="btn-fechar-rank" onclick="fecharRanking()">Fechar</button>
+  </div>
+</div>
+
+
+<!-- ========== MODAL CONFIGURACOES ========== -->
+<div class="overlay" id="modal-config">
+  <div class="modal-sheet">
+    <h3>⚙️ Configurações</h3>
+
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;color:#9A3412;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Conta</div>
+      <div id="config-nome" style="font-size:14px;font-weight:700;color:#111;">--</div>
+      <div id="config-whats" style="font-size:12px;color:#888;margin-top:2px;">--</div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Verificar atualizações automaticamente</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Ao abrir o app, checa se há uma versão nova</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-autoupdate" onchange="toggleAutoUpdate(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
+        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.1</b></div>
+        <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
+      </div>
+      <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Modo escuro</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Reduz brilho da tela</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-dark" onchange="toggleDarkFromConfig(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
+      <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
+      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
+    </div>
+
+    <button onclick="fazerLogout()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚪 Sair / Trocar conta</button>
+
+    <button onclick="excluirConta()" style="background:none;color:#888;border:none;width:100%;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:8px;">Excluir minha conta e meus dados</button>
+
+    <div class="mbtn-row">
+      <button class="mbtn ok" onclick="fecharConfig()" style="flex:1;">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.switch input:checked + .slider{background:#F97316;}
+.switch input:checked + .slider:before{transform:translateX(20px);}
+body.dark .slider{background:#444;}
+body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
+body.dark #modal-config .cfg-label{color:#eee !important;}
+body.dark #modal-config .cfg-link{color:#eee !important;}
+body.dark #config-nome{color:#eee !important;}
+</style>
+
+</body>
+</html>
