@@ -1,14 +1,16 @@
 // ============================================================
-// EntregaLog Service Worker v1.0.4
+// EntregaLog Service Worker v1.0.5
 // version.json + index.html: NETWORK-FIRST (atualizacao em tempo real)
 // APIs externas: NETWORK-FIRST
 // Demais estaticos: CACHE-FIRST
 // v1.0.4: adicionado OSRM (router.project-osrm.org) para rotas por ruas
+// v1.0.5: CLEAR_CACHES so apaga caches com prefixo entregalog-
 // ============================================================
 
-const SW_VERSION = '1.0.4';
+const SW_VERSION = '1.0.5';
 const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
 const RUNTIME_CACHE = 'entregalog-runtime';
+const CACHE_PREFIX = 'entregalog-';
 
 const STATIC_ASSETS = [
   './entregalog-icon-192.png',
@@ -49,7 +51,9 @@ self.addEventListener('activate', function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(keys.map(function (k) {
-        if (k !== STATIC_CACHE && k !== RUNTIME_CACHE) return caches.delete(k);
+        if (k.indexOf(CACHE_PREFIX) === 0 && k !== STATIC_CACHE && k !== RUNTIME_CACHE) {
+          return caches.delete(k);
+        }
       }));
     }).then(function () { return self.clients.claim(); })
   );
@@ -122,7 +126,9 @@ self.addEventListener('message', function (event) {
   if (event.data && event.data.type === 'CLEAR_CACHES') {
     event.waitUntil(
       caches.keys().then(function (keys) {
-        return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+        return Promise.all(keys.map(function (k) {
+          if (k.indexOf(CACHE_PREFIX) === 0) return caches.delete(k);
+        }));
       })
     );
   }
