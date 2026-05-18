@@ -1,6 +1,6 @@
 {
-  "version": "1.0.3",
-  "released_at": "2026-05-15",
-  "notes": "Fix botao Salvar e SW network-first.",
+  "version": "1.0.4",
+  "released_at": "2026-05-18",
+  "notes": "Trajeto agora segue as ruas (OSRM), busca de enderecos com viés de proximidade e voz de navegacao (TTS).",
   "min_supported": "1.0.0"
 }
