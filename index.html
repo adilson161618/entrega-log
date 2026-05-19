@@ -1386,13 +1386,26 @@ async function salvarRegistro(){
 function renderHistorico(){
   var listaCompleta=JSON.parse(localStorage.getItem('el_regs')||'[]');
   var lista=verificarHistorico7dias(listaCompleta);
+  // Limpa avisos anteriores
+  var wrap=document.getElementById('hist-wrap');
+  var avisosAntigos=wrap.querySelectorAll('.hist-aviso-bloqueado, .hist-acoes-topo');
+  avisosAntigos.forEach(function(a){a.remove();});
   if(!isPremium()&&listaCompleta.length>lista.length){
     var bloqueados=listaCompleta.length-lista.length;
     var aviso=document.createElement('div');
+    aviso.className='hist-aviso-bloqueado';
     aviso.style.cssText='background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#C2410C;cursor:pointer;';
     aviso.innerHTML='Voce tem '+bloqueados+' registro(s) com mais de 7 dias. <b>Assine o Premium</b> para ver tudo.';
     aviso.onclick=function(){abrirPremium('Seu historico completo esta disponivel no Premium por R$ 9,90/mes.');};
     document.getElementById('hist-list').before(aviso);
+  }
+  // Botão "Limpar tudo" no topo (só aparece se houver registros)
+  if(listaCompleta.length){
+    var topo=document.createElement('div');
+    topo.className='hist-acoes-topo';
+    topo.style.cssText='display:flex;justify-content:flex-end;margin-bottom:10px;';
+    topo.innerHTML='<button onclick="limparTodosRegistrosLoc()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑 Limpar tudo ('+listaCompleta.length+')</button>';
+    document.getElementById('hist-list').before(topo);
   }
   var el=document.getElementById('hist-list');
   if(!lista.length){el.innerHTML='<div class="hist-empty">Nenhum endereço registrado.</div>';return;}
@@ -1404,13 +1417,19 @@ function renderHistorico(){
       +(r.nota?'<div class="hist-nota">💡 '+r.nota+'</div>':'')
       +(r.foto?'<img class="hist-photo" src="'+r.foto+'"/>':'')
       +'<div class="hist-meta">'+(r.data||'')+(r.registrado_por?' · '+r.registrado_por:'')+'</div>'
-      +'<div style="display:flex;gap:8px;margin-top:10px;">'
+      +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center;">'
         +'<button id="btn-rota-'+idx+'" style="flex:1;background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Rota</button>'
         +(r.lat&&r.lon?'<button id="btn-ir-'+idx+'" style="flex:1;background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🧭 Ir</button>':'')
         +(r.lat&&r.lon?'<button id="btn-mapa-'+idx+'" style="flex:1;background:#E1F5EE;color:#085041;border:1px solid #1D9E75;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗺 Ver</button>':'')
         +'<button id="btn-share-'+idx+'" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">💬</button>'
+        +'<button id="btn-del-'+idx+'" title="Excluir registro" style="flex:0 0 auto;width:38px;background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:8px;padding:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🗑</button>'
       +'</div>';
     el.appendChild(c);
+
+    // Excluir registro
+    document.getElementById('btn-del-'+idx).onclick=function(){
+      excluirRegistroLoc(r);
+    };
 
     // + Rota
     document.getElementById('btn-rota-'+idx).onclick=function(){
@@ -1487,6 +1506,44 @@ function renderHistorico(){
       window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
     };
   });
+}
+
+// ===== EXCLUSAO DE REGISTROS DE LOCALIZACAO =====
+function excluirRegistroLoc(r){
+  if(!r) return;
+  var nome=r.nome||'Local';
+  var addr=r.addr||'';
+  if(!confirm('Excluir este registro?\n\n📍 '+nome+(addr?'\n'+addr:'')+'\n\nEsta ação não pode ser desfeita.')) return;
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    // Remove o registro que casa em todos os campos-chave (1 ocorrência)
+    var removido=false;
+    var novaLista=lista.filter(function(x){
+      if(removido) return true;
+      var match=(x.nome===r.nome)&&(x.addr===r.addr)&&(x.data===r.data)&&(x.lat===r.lat)&&(x.lon===r.lon);
+      if(match){ removido=true; return false; }
+      return true;
+    });
+    localStorage.setItem('el_regs',JSON.stringify(novaLista));
+    try{ falarVoz('Registro excluído',{interromper:true}); }catch(e){}
+    renderHistorico();
+  }catch(e){
+    alert('Erro ao excluir: '+e.message);
+  }
+}
+
+function limparTodosRegistrosLoc(){
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    if(!lista.length){alert('Não há registros para excluir.');return;}
+    if(!confirm('⚠️ Excluir TODOS os '+lista.length+' registro(s) de localização?\n\nEsta ação NÃO pode ser desfeita!')) return;
+    if(!confirm('Tem certeza absoluta?\n\nÚltima confirmação antes de apagar tudo.')) return;
+    localStorage.setItem('el_regs','[]');
+    try{ falarVoz('Todos os registros foram excluídos',{interromper:true}); }catch(e){}
+    renderHistorico();
+  }catch(e){
+    alert('Erro ao limpar: '+e.message);
+  }
 }
 
 // ===== RELATORIO =====
