@@ -297,6 +297,24 @@ body.dark #ranking-sheet{background:#1a1a1a;}
 .rank-minha-pos{background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
 .btn-fechar-rank{background:none;border:none;color:#aaa;font-size:13px;cursor:pointer;width:100%;font-family:inherit;margin-top:8px;}
 #btn-ranking{position:fixed;left:-28px;top:40%;transform:translateY(-50%) rotate(90deg);z-index:999;background:#1D9E75;color:#fff;border:none;border-radius:8px 8px 0 0;padding:6px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(29,158,117,0.4);}
+/* ===== ONBOARDING (primeiro uso) ===== */
+#onboarding{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;display:none;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .3s;}
+#onboarding.show{opacity:1;}
+#onb-card{background:#fff;border-radius:20px;max-width:360px;width:100%;padding:30px 24px 22px;text-align:center;position:relative;box-shadow:0 18px 50px rgba(0,0,0,.3);transform:translateY(14px);transition:transform .3s;font-family:inherit;}
+#onboarding.show #onb-card{transform:translateY(0);}
+body.dark #onb-card{background:#1c1c1c;}
+#onb-skip{position:absolute;top:12px;right:14px;background:none;border:none;color:#999;font-size:13px;cursor:pointer;font-family:inherit;}
+#onb-emoji{font-size:58px;line-height:1;margin:4px 0 14px;}
+#onb-title{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:10px;}
+body.dark #onb-title{color:#fff;}
+#onb-text{font-size:14px;line-height:1.55;color:#555;margin-bottom:22px;}
+body.dark #onb-text{color:#bbb;}
+#onb-text b{color:#F97316;}
+#onb-dots{display:flex;gap:7px;justify-content:center;margin-bottom:18px;}
+.onb-dot{width:8px;height:8px;border-radius:50%;background:#ddd;transition:all .25s;}
+.onb-dot.on{background:#F97316;width:22px;border-radius:4px;}
+#onb-next{width:100%;background:#F97316;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+#onb-next:active{transform:scale(.98);}
 </style>
 </head>
 <body>
@@ -306,6 +324,17 @@ body.dark #ranking-sheet{background:#1a1a1a;}
   <h1>EntregaLog</h1>
   <p>Rotas inteligentes para entregadores</p>
   <div id="splash-bar"><div id="splash-prog"></div></div>
+</div>
+
+<div id="onboarding">
+  <div id="onb-card">
+    <button id="onb-skip" onclick="fecharOnboarding()">Pular</button>
+    <div id="onb-emoji">👋</div>
+    <div id="onb-title"></div>
+    <div id="onb-text"></div>
+    <div id="onb-dots"></div>
+    <button id="onb-next" onclick="_onbNext()">Próximo →</button>
+  </div>
 </div>
 
 <div id="login-screen">
@@ -597,6 +626,40 @@ async function fazerLogin(){
   document.getElementById('login-screen').classList.remove('show');
   showUserBadge();
   initMap();
+  setTimeout(mostrarOnboarding,500);
+}
+
+// ===== ONBOARDING (primeiro uso) =====
+var _onbSlide=0;
+var _onbSlides=[
+  {e:'👋',t:'Bem-vindo ao EntregaLog',d:'Seu ajudante de entregas: monta a rota, guarda os endereços e te leva pelo caminho certo das ruas.'},
+  {e:'🗺',t:'Monte a rota do dia',d:'Na aba <b>Entregas</b>, adicione os endereços e toque em <b>Gerar rota otimizada</b>. O app acha a melhor ordem pelas ruas e mostra no mapa. Depois é só <b>Iniciar trajeto</b>.'},
+  {e:'📍',t:'Marque pontos difíceis',d:'Achou um lugar complicado (portão escondido, sem número)? Toque em <b>Registrar este ponto</b> e deixe uma dica. Isso vira um banco de endereços que ajuda nas próximas entregas.'},
+  {e:'📁',t:'Tudo salvo pra reusar',d:'No <b>Histórico</b> ficam seus endereços guardados pra usar de novo quando quiser. Pronto — bora rodar! 🛵'}
+];
+function _onbRender(){
+  var s=_onbSlides[_onbSlide];
+  document.getElementById('onb-emoji').textContent=s.e;
+  document.getElementById('onb-title').textContent=s.t;
+  document.getElementById('onb-text').innerHTML=s.d;
+  var dots='';for(var i=0;i<_onbSlides.length;i++){dots+='<span class="onb-dot'+(i===_onbSlide?' on':'')+'"></span>';}
+  document.getElementById('onb-dots').innerHTML=dots;
+  document.getElementById('onb-next').textContent=(_onbSlide===_onbSlides.length-1)?'Começar ✓':'Próximo →';
+}
+function _onbNext(){
+  if(_onbSlide<_onbSlides.length-1){_onbSlide++;_onbRender();}
+  else{fecharOnboarding();}
+}
+function fecharOnboarding(){
+  try{localStorage.setItem('el_onboard_v1','1');}catch(e){}
+  var o=document.getElementById('onboarding');
+  if(o){o.classList.remove('show');setTimeout(function(){o.style.display='none';},300);}
+}
+function mostrarOnboarding(forcar){
+  try{ if(!forcar && localStorage.getItem('el_onboard_v1')==='1') return; }catch(e){}
+  _onbSlide=0;_onbRender();
+  var o=document.getElementById('onboarding');
+  if(o){o.style.display='flex';requestAnimationFrame(function(){o.classList.add('show');});}
 }
 
 // ===== MAPA E GPS =====
@@ -2709,6 +2772,7 @@ sincronizarFila();
 setTimeout(function(){
   if(checkLogin()){
     initMap();
+    setTimeout(mostrarOnboarding,700);
   } else {
     document.getElementById('login-screen').classList.add('show');
   }
@@ -2883,7 +2947,7 @@ setTimeout(aplicarHashRoute,2300);
         </label>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
-        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.6</b></div>
+        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.7</b></div>
         <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
       </div>
       <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
@@ -2903,6 +2967,7 @@ setTimeout(aplicarHashRoute,2300);
     </div>
 
     <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
+      <button class="cfg-link" onclick="fecharConfig();setTimeout(function(){mostrarOnboarding(true);},250);" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🎓 Ver tutorial de novo</button>
       <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
       <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
     </div>
