@@ -71,6 +71,7 @@ body.dark #login-screen h2{color:#eee;}
 #km-badge{background:#F97316;color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:none;}
 #parada-btn{display:none;position:absolute;bottom:60px;left:50%;transform:translateX(-50%);z-index:1001;background:#F97316;color:#fff;border:none;border-radius:50px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(249,115,22,0.5);white-space:nowrap;animation:pulsar 1.5s ease-in-out infinite;}
 @keyframes pulsar{0%,100%{transform:translateX(-50%) scale(1);}50%{transform:translateX(-50%) scale(1.06);}}
+#iniciar-trajeto-btn{display:none;position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:1002;background:#1D9E75;color:#fff;border:none;border-radius:50px;padding:15px 30px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(29,158,117,0.55);white-space:nowrap;animation:pulsar 1.6s ease-in-out infinite;}
 #map-btns{display:flex;gap:8px;padding:8px 12px;border-top:1px solid #eee;background:#fff;}
 body.dark #map-btns{background:#1a1a1a;border-color:#333;}
 .mabtn{flex:1;padding:14px 6px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid #ddd;background:#fff;color:#111;font-family:inherit;}
@@ -356,6 +357,7 @@ body.dark #ranking-sheet{background:#1a1a1a;}
         <div id="km-badge">0.00 km</div>
       </div>
       <button id="parada-btn" onclick="abrirModalParada()">📍 Registrar este ponto</button>
+      <button id="iniciar-trajeto-btn" onclick="iniciarTrajeto()">▶ Iniciar trajeto</button>
       <button id="btn-loc-atual" onclick="capturarLocalizacaoAtual()" title="Capturar minha localização agora">📍</button>
       <div id="loc-status"></div>
       <div id="nav-mode">
@@ -438,6 +440,8 @@ body.dark #ranking-sheet{background:#1a1a1a;}
   <!-- ROTAS -->
   <div id="screen-rotas" class="screen">
     <div id="rotas-wrap">
+      <button onclick="novaRota()" style="width:100%;background:#F97316;color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(249,115,22,0.4);margin-bottom:6px;">➕ Nova rota — adicionar e otimizar</button>
+      <div style="font-size:11px;color:#999;text-align:center;margin-bottom:16px;">Adicione as entregas e o app monta o melhor trajeto pelas ruas</div>
       <div class="sec-title">Rotas percorridas</div>
       <div id="rotas-list"></div>
     </div>
@@ -519,7 +523,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.5';
+const APP_VERSION='1.0.7';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -772,18 +776,8 @@ async function confirmarParada(){
   var nota=document.getElementById('parada-nota').value.trim();
   var usr=usuarioAtual?usuarioAtual.nome:'auto';
   var reg={nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr,foto:paradaFotoBase64||null};
-  // Salva no historico de enderecos salvos
-  try{
-    var l=JSON.parse(localStorage.getItem('el_regs')||'[]');
-    l.unshift(reg);
-    localStorage.setItem('el_regs',JSON.stringify(l));
-  }catch(e){}
-  // Salva tambem no banco local de enderecos para autocomplete
-  try{
-    var bancol=JSON.parse(localStorage.getItem('el_banco_local')||'[]');
-    bancol.unshift({addr:paradaRef.addr,lat:paradaRef.lat,lon:paradaRef.lon,nota:nota});
-    localStorage.setItem('el_banco_local',JSON.stringify(bancol.slice(0,500)));
-  }catch(e){}
+  // Salva no historico de enderecos salvos (evitando duplicados)
+  try{ _upsertRegLocal(reg); }catch(e){}
   // Supabase
   var syncOk=false;
   var payload={nome:paradaRef.nome,addr:paradaRef.addr,nota:nota,lat:paradaRef.lat,lon:paradaRef.lon,registrado_por:usr};
@@ -930,11 +924,16 @@ async function gerarRota(){
     var comCoords=entregas.filter(function(e){return e.lat&&e.lon&&!e.entregue;});
     var semCoords=entregas.filter(function(e){return(!e.lat||!e.lon)&&!e.entregue;});
     var entregues=entregas.filter(function(e){return e.entregue;});
-    var ord=otimizar(comCoords,currentPos);
+    var _rb=document.getElementById('rota-btn');
+    var _rbTxt=_rb?_rb.textContent:'';
+    if(_rb&&comCoords.length>1){_rb.textContent='Otimizando pela rua...';}
+    var ord=await otimizarPorRua(comCoords,currentPos);
+    if(_rb){_rb.textContent=_rbTxt;}
     entregas=[...entregues,...ord,...semCoords];
   }
   renderLista();
   showTab('mapa');
+  atualizarBotaoTrajeto();
   setTimeout(function(){
     if(map){
       var pts=entregas.filter(function(e){return e.lat&&e.lon;});
@@ -960,6 +959,33 @@ function otimizar(pts,orig){
     if(u.lat&&u.lon)atual={lat:u.lat,lon:u.lon};
   }
   return ord;
+}
+// Otimiza a ORDEM das entregas pela distancia REAL de rua (OSRM Trip service).
+// O motoboy anda por ruas, nao em linha reta — entao a sequencia respeita o trajeto de carro.
+// Se o OSRM falhar (sem internet, limite, etc.), cai no metodo de linha reta (otimizar).
+async function otimizarPorRua(pts,orig){
+  if(!pts||pts.length<2) return pts?pts.slice():[];
+  // OSRM Trip fica caro com muitos pontos; acima de 24 usa linha reta direto.
+  if(pts.length>24) return otimizar(pts,orig);
+  try{
+    var todos=[orig].concat(pts);
+    var coordStr=todos.map(function(p){return p.lon+','+p.lat;}).join(';');
+    var url=OSRM_URL+'/trip/v1/driving/'+coordStr+'?source=first&destination=any&roundtrip=false&overview=false';
+    var r=await fetch(url);
+    if(!r.ok) throw new Error('http '+r.status);
+    var d=await r.json();
+    if(d.code!=='Ok'||!d.waypoints||d.waypoints.length!==todos.length) throw new Error('resposta invalida');
+    // Cada waypoint tem waypoint_index = posicao na rota otimizada.
+    // O indice 0 e a origem (source=first); ordenamos os pts (1..n) por essa posicao.
+    var comOrdem=pts.map(function(p,i){
+      return {p:p,ordem:d.waypoints[i+1].waypoint_index};
+    });
+    comOrdem.sort(function(a,b){return a.ordem-b.ordem;});
+    return comOrdem.map(function(x){return x.p;});
+  }catch(e){
+    console.warn('[otimizarPorRua] OSRM falhou, usando linha reta:',e.message);
+    return otimizar(pts,orig);
+  }
 }
 function proximaEntrega(){
   var e=entregas.find(function(x){return!x.entregue;});
@@ -1237,11 +1263,9 @@ async function confirmarChegada(){
     console.error('[confirmarChegada] falha Supabase:',e.message);
     salvarNaFila('endereco',{nome:nome,addr:addrCorrigido,nota:dica,lat:lat,lon:lon,registrado_por:usr});
   }
-  // Salva local
+  // Salva local (evitando duplicados)
   try{
-    var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
-    lista.unshift({nome:nome,addr:addrCorrigido,nota:dica,foto:null,lat:lat,lon:lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr});
-    localStorage.setItem('el_regs',JSON.stringify(lista));
+    _upsertRegLocal({nome:nome,addr:addrCorrigido,nota:dica,foto:null,lat:lat,lon:lon,data:new Date().toLocaleString('pt-BR'),registrado_por:usr});
   }catch(e){}
   // Marca entregue e cancela navegação
   marcarEntregue();
@@ -1254,7 +1278,23 @@ async function confirmarChegada(){
   }
 }
 
+// Botao grande "Iniciar trajeto" — aparece apos gerar a rota
+function iniciarTrajeto(){
+  var b=document.getElementById('iniciar-trajeto-btn');
+  if(b) b.style.display='none';
+  abrirNavegacao();
+}
+// Mostra/esconde o botao conforme houver entregas pendentes com coordenadas
+function atualizarBotaoTrajeto(){
+  var b=document.getElementById('iniciar-trajeto-btn');
+  if(!b) return;
+  var temPendente=entregas.some(function(e){return !e.entregue&&e.lat&&e.lon;});
+  b.style.display=(temPendente&&!navAtivo)?'block':'none';
+}
+
 async function abrirNavegacao(){
+  var b=document.getElementById('iniciar-trajeto-btn');
+  if(b) b.style.display='none';
   var e=entregas.find(function(x){return!x.entregue;});
   if(!e){alert('Nenhuma entrega pendente.');return;}
   if(!e.lat||!e.lon){
@@ -1354,6 +1394,7 @@ function cancelarNavegacao(){
   document.getElementById('nav-chegou').style.display='none';
   document.getElementById('nav-dist').style.color='#F97316';
   if(rotaNavLine){rotaNavLine.remove();rotaNavLine=null;}
+  atualizarBotaoTrajeto();
 }
 
 // ===== REGISTRAR =====
@@ -1375,11 +1416,12 @@ async function salvarRegistro(){
   var coords=await geocode(end);
   var usr=usuarioAtual?usuarioAtual.nome:'auto';
   var reg={nome:nome,addr:end,nota:nota,foto:photoData||null,lat:coords?coords.lat:null,lon:coords?coords.lon:null,data:new Date().toLocaleString('pt-BR'),registrado_por:usr};
-  try{var l=JSON.parse(localStorage.getItem('el_regs')||'[]');l.unshift(reg);localStorage.setItem('el_regs',JSON.stringify(l));}catch(e){}
+  var _res='novo';
+  try{_res=_upsertRegLocal(reg);}catch(e){}
   try{await salvarSupabaseSafe('enderecos',{nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr});}catch(e){}
   document.getElementById('reg-nome').value='';document.getElementById('reg-end').value='';document.getElementById('reg-nota').value='';
   photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
-  alert('✅ Registrado! Outros entregadores vão ver essa dica.');
+  alert(_res==='atualizado'?'✅ Esse endereço já existia — atualizei o registro em vez de criar um duplicado.':'✅ Registrado! Outros entregadores vão ver essa dica.');
 }
 
 // ===== HISTORICO =====
@@ -1403,8 +1445,9 @@ function renderHistorico(){
   if(listaCompleta.length){
     var topo=document.createElement('div');
     topo.className='hist-acoes-topo';
-    topo.style.cssText='display:flex;justify-content:flex-end;margin-bottom:10px;';
-    topo.innerHTML='<button onclick="limparTodosRegistrosLoc()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑 Limpar tudo ('+listaCompleta.length+')</button>';
+    topo.style.cssText='display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;flex-wrap:wrap;';
+    topo.innerHTML='<button onclick="removerDuplicados()" style="background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🧹 Remover duplicados</button>'
+      +'<button onclick="limparTodosRegistrosLoc()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑 Limpar tudo ('+listaCompleta.length+')</button>';
     document.getElementById('hist-list').before(topo);
   }
   var el=document.getElementById('hist-list');
@@ -1431,21 +1474,26 @@ function renderHistorico(){
       excluirRegistroLoc(r);
     };
 
-    // + Rota
+    // + Rota — adiciona a entrega e FICA na tela, pra poder adicionar varios seguidos
     document.getElementById('btn-rota-'+idx).onclick=function(){
       entregas.push({id:Date.now(),nome:r.nome||'Local',addr:r.addr||'',tel:'',lat:r.lat||null,lon:r.lon||null,entregue:false,conhecido:true,dica:r.nota||''});
       renderLista();
-      this.textContent='✅ Adicionado!';
+      this.textContent='✅ Na rota';
       this.style.background='#1D9E75';
-      // Vai direto para o mapa e mostra o pin
-      showTab('mapa');
-      setTimeout(function(){
-        if(map&&typeof L!=='undefined'&&r.lat&&r.lon){
-          map.setView([r.lat,r.lon],17);
-          var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);">'+entregas.length+'</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-          L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>Dica: '+r.nota:'')).openPopup();
-        }
-      },400);
+      this.disabled=true;
+      // Confirmacao com contador, sem sair da tela
+      var pend=entregas.filter(function(e){return !e.entregue;}).length;
+      var dica=document.getElementById('rotas-dica-toast');
+      if(!dica){
+        dica=document.createElement('div');
+        dica.id='rotas-dica-toast';
+        dica.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:92vw;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;';
+        document.body.appendChild(dica);
+      }
+      dica.textContent='Adicionado! '+pend+' na rota. Continue adicionando ou vá em Entregas → Gerar rota.';
+      dica.style.display='block';
+      clearTimeout(dica._h);
+      dica._h=setTimeout(function(){dica.style.display='none';},4000);
     };
 
     // Ir direto — navega para o endereco
@@ -1546,6 +1594,94 @@ function limparTodosRegistrosLoc(){
   }
 }
 
+// ===== DEDUPLICACAO DE ENDERECOS =====
+// Normaliza endereco para comparacao: minusculas, sem acento, espacos colapsados
+function _normAddr(a){
+  if(!a) return '';
+  return a.toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/\s+/g,' ')
+    .replace(/[^a-z0-9, ]/g,'')
+    .trim();
+}
+// Mesmo local fisico: coordenadas a menos de ~30 metros
+function _mesmoLocal(a,b){
+  if(a.lat&&a.lon&&b.lat&&b.lon){
+    try{ return haverDist({lat:a.lat,lon:a.lon},{lat:b.lat,lon:b.lon})<30; }catch(e){ return false; }
+  }
+  return false;
+}
+// Duplicado = endereco igual (texto) OU mesma localizacao (GPS)
+function _ehDuplicado(a,b){
+  var na=_normAddr(a.addr), nb=_normAddr(b.addr);
+  if(na&&nb&&na===nb) return true;
+  if(_mesmoLocal(a,b)) return true;
+  return false;
+}
+// Pontua quao "completo" e um registro — usado para decidir qual manter
+function _scoreReg(r){
+  var s=0;
+  if(r.nota) s+=2;
+  if(r.foto) s+=2;
+  if(r.lat&&r.lon) s+=1;
+  if(r.addr) s+=1;
+  if(r.nome&&r.nome!=='Local'&&r.nome!=='Local atual') s+=1;
+  return s;
+}
+// Insere no historico local evitando duplicar: se ja existe, atualiza o melhor
+function _upsertRegLocal(reg){
+  var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+  var idx=-1;
+  for(var i=0;i<lista.length;i++){ if(_ehDuplicado(reg,lista[i])){ idx=i; break; } }
+  if(idx>=0){
+    var ex=lista[idx];
+    var mesclado={
+      nome: (reg.nome&&reg.nome!=='Local'&&reg.nome!=='Local atual')?reg.nome:(ex.nome||reg.nome),
+      addr: reg.addr||ex.addr,
+      nota: reg.nota||ex.nota,
+      foto: reg.foto||ex.foto,
+      lat: reg.lat||ex.lat,
+      lon: reg.lon||ex.lon,
+      data: reg.data||ex.data,
+      registrado_por: reg.registrado_por||ex.registrado_por
+    };
+    lista.splice(idx,1);
+    lista.unshift(mesclado);
+    localStorage.setItem('el_regs',JSON.stringify(lista));
+    return 'atualizado';
+  }
+  lista.unshift(reg);
+  localStorage.setItem('el_regs',JSON.stringify(lista));
+  return 'novo';
+}
+// Botao: remove duplicados ja existentes, mantendo 1 (o mais completo) de cada
+function removerDuplicados(){
+  try{
+    var lista=JSON.parse(localStorage.getItem('el_regs')||'[]');
+    if(lista.length<2){ alert('Não há registros suficientes para ter duplicados.'); return; }
+    var mantidos=[];
+    var removidos=0;
+    lista.forEach(function(r){
+      var idx=-1;
+      for(var i=0;i<mantidos.length;i++){ if(_ehDuplicado(r,mantidos[i])){ idx=i; break; } }
+      if(idx===-1){
+        mantidos.push(r);
+      } else {
+        removidos++;
+        if(_scoreReg(r)>_scoreReg(mantidos[idx])) mantidos[idx]=r;
+      }
+    });
+    if(removidos===0){ alert('Nenhum endereço duplicado encontrado. 👍'); return; }
+    if(!confirm('Encontrei '+removidos+' endereço(s) duplicado(s).\n\nVou manter 1 de cada (o registro mais completo) e remover os repetidos.\n\nContinuar?')) return;
+    localStorage.setItem('el_regs',JSON.stringify(mantidos));
+    try{ falarVoz(removidos+' duplicados removidos',{interromper:true}); }catch(e){}
+    renderHistorico();
+    alert('✅ '+removidos+' duplicado(s) removido(s)! Sua lista ficou mais limpa.');
+  }catch(e){
+    alert('Erro ao remover duplicados: '+e.message);
+  }
+}
+
 // ===== RELATORIO =====
 function salvarEstatDia(n){
   try{var d=new Date().toLocaleDateString('pt-BR');var s=JSON.parse(localStorage.getItem('el_stats')||'{}');s[d]=(s[d]||0)+n;localStorage.setItem('el_stats',JSON.stringify(s));}catch(e){}
@@ -1567,6 +1703,29 @@ function renderRelatorio(){
 }
 
 // ===== ROTAS =====
+// Botao "Nova rota": leva pra aba de entregas pra montar e otimizar a rota
+function novaRota(){
+  showTab('entregas');
+  setTimeout(function(){
+    var inp=document.getElementById('end-input')||document.getElementById('nome-input');
+    if(inp){ try{ inp.focus(); }catch(e){} }
+    var pend=entregas.filter(function(e){return !e.entregue;}).length;
+    if(pend>0){
+      // Ja existem entregas na lista — avisa que e so gerar a rota
+      var dica=document.getElementById('rotas-dica-toast');
+      if(!dica){
+        dica=document.createElement('div');
+        dica.id='rotas-dica-toast';
+        dica.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:92vw;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.3);text-align:center;';
+        document.body.appendChild(dica);
+      }
+      dica.textContent='Você já tem '+pend+' entrega(s). Toque em "Gerar rota" para otimizar.';
+      dica.style.display='block';
+      clearTimeout(dica._h);
+      dica._h=setTimeout(function(){dica.style.display='none';},5000);
+    }
+  },300);
+}
 function renderRotas(){
   try{
     var rotas=JSON.parse(localStorage.getItem('el_rotas')||'[]');
@@ -1949,15 +2108,15 @@ async function carregarRanking(){
   var lista=document.getElementById('ranking-lista');
   try{
     // Busca top contribuidores do Supabase
-    var res=await fetch(SB_URL+'/rest/v1/enderecos?select=usuario_nome,usuario_whatsapp&order=created_at.desc',{
+    var res=await fetch(SB_URL+'/rest/v1/enderecos?select=registrado_por',{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
     var data=await res.json();
-    
+
     // Conta endereços por usuário
     var contagem={};
     data.forEach(function(e){
-      var nome=e.usuario_nome||'Anonimo';
+      var nome=e.registrado_por||'Anonimo';
       contagem[nome]=(contagem[nome]||0)+1;
     });
     
@@ -2616,17 +2775,6 @@ setTimeout(aplicarHashRoute,2300);
 </div>
 
 
-<div id="modal-ocr" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:3000;align-items:flex-end;justify-content:center;">
-  <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 32px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;">
-    <h3 style="font-size:15px;font-weight:700;color:#111;margin-bottom:4px;">📋 Entregas identificadas</h3>
-    <div id="ocr-sheet-sub" style="font-size:12px;color:#888;margin-bottom:14px;"></div>
-    <div id="ocr-itens-lista"></div>
-    <button onclick="confirmarOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;">✅ Adicionar todas à lista</button>
-    <button onclick="fecharModalOCR()" style="background:#f5f5f5;color:#666;border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;">Cancelar</button>
-  </div>
-</div>
-
-
 <div id="modal-premium">
   <div id="premium-sheet">
     <h3>EntregaLog Premium</h3>
@@ -2735,7 +2883,7 @@ setTimeout(aplicarHashRoute,2300);
         </label>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
-        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.1</b></div>
+        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.6</b></div>
         <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
       </div>
       <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
