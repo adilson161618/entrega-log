@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6",
-  "released_at": "2026-05-19",
-  "notes": "Botao de exclusao de registros de localizacao.",
+  "version": "1.0.7",
+  "released_at": "2026-05-21",
+  "notes": "Rota otimizada por ruas, botao Iniciar trajeto, botao Nova rota e remocao de enderecos duplicados.",
   "min_supported": "1.0.0"
 }
