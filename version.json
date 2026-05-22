@@ -1,6 +1,5 @@
 {
-  "version": "1.0.7",
-  "released_at": "2026-05-21",
-  "notes": "Rota otimizada por ruas, botao Iniciar trajeto, botao Nova rota e remocao de enderecos duplicados.",
-  "min_supported": "1.0.0"
+  "version": "1.0.8",
+  "released_at": "2026-05-22",
+  "notes": "Login por e-mail ou celular; fotos salvas corretamente (compressao automatica)"
 }
