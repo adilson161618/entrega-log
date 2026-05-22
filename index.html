@@ -2579,10 +2579,11 @@ function abrirConfig(){
   try{
     var u=usuarioAtual||JSON.parse(localStorage.getItem('el_user')||'null');
     if(u){
-      document.getElementById('config-nome').textContent=u.nome||'--';
-      var w=u.whatsapp||'';
-      if(w.length>=10){w='('+w.slice(0,2)+') '+w.slice(2,7)+'-'+w.slice(7);}
-      document.getElementById('config-whats').textContent=w||'--';
+      document.getElementById('config-nome').textContent=u.nome||u.identificador||'--';
+      var id=u.identificador||u.whatsapp||'';
+      // Formata celular se for número
+      if(/^\d{10,11}$/.test(id)){id='('+id.slice(0,2)+') '+id.slice(2,7)+'-'+id.slice(7);}
+      document.getElementById('config-whats').textContent=id||'--';
     }
   }catch(e){}
   var au=localStorage.getItem('el_auto_update');
@@ -2882,6 +2883,78 @@ setTimeout(aplicarHashRoute,2300);
   </div>
 </div>
 
+
+<div class="overlay" id="modal-config">
+  <div class="modal-sheet">
+    <h3>⚙️ Configurações</h3>
+
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;color:#9A3412;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Conta</div>
+      <div id="config-nome" style="font-size:14px;font-weight:700;color:#111;">--</div>
+      <div id="config-whats" style="font-size:12px;color:#888;margin-top:2px;">--</div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Verificar atualizações automaticamente</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Ao abrir o app, checa se há uma versão nova</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-autoupdate" onchange="toggleAutoUpdate(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
+        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">--</b></div>
+        <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
+      </div>
+      <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Voz de navegação</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Fala as instruções ao navegar</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-voz-nav" onchange="toggleVozNav(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="margin-top:8px;">
+        <button onclick="testarVozNav()" style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;">🔊 Testar voz</button>
+      </div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Modo escuro</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Reduz brilho da tela</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-dark" onchange="toggleDarkFromConfig(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
+      <button onclick="mostrarOnboarding(true)" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🎓 Ver tutorial de novo</button>
+      <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
+      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
+    </div>
+
+    <button onclick="fazerLogout()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚪 Sair / Trocar conta</button>
+    <button onclick="excluirConta()" style="background:none;color:#888;border:none;width:100%;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:8px;">Excluir minha conta e meus dados</button>
+
+    <div class="mbtn-row">
+      <button class="mbtn ok" onclick="fecharConfig()" style="flex:1;">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <button id="feedback-tab-btn" onclick="abrirFeedback()">💬 Feedback</button>
 
