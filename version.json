@@ -1,5 +1,5 @@
 {
-  "version": "1.0.9",
+  "version": "1.0.12",
   "released_at": "2026-05-25",
-  "notes": "Nomes e locais mais visíveis nas listas de entregas e histórico"
+  "notes": "Botões do mapa corrigidos — não ficam mais escondidos em telas pequenas"
 }
