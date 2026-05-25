@@ -1,5 +1,5 @@
 {
-  "version": "1.0.14",
+  "version": "1.0.15",
   "released_at": "2026-05-25",
-  "notes": "Botões do mapa corrigidos definitivamente — layout fixo pelo height do body"
+  "notes": "Escolha de app de navegação — EntregaLog interno ou Google Maps"
 }
