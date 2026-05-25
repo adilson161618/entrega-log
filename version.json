@@ -1,5 +1,5 @@
 {
-  "version": "1.0.12",
+  "version": "1.0.13",
   "released_at": "2026-05-25",
-  "notes": "Botões do mapa corrigidos — não ficam mais escondidos em telas pequenas"
+  "notes": "Botão Finalizar dia aparece quando todas as entregas são concluídas"
 }
