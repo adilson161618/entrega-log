@@ -1,5 +1,5 @@
 {
-  "version": "1.0.13",
+  "version": "1.0.14",
   "released_at": "2026-05-25",
-  "notes": "Botão Finalizar dia aparece quando todas as entregas são concluídas"
+  "notes": "Botões do mapa corrigidos definitivamente — layout fixo pelo height do body"
 }
