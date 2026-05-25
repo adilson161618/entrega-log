@@ -1,5 +1,5 @@
 // ============================================================
-// EntregaLog Service Worker v1.0.13
+// EntregaLog Service Worker v1.0.14
 // version.json + index.html: NETWORK-FIRST (atualizacao em tempo real)
 // APIs externas: NETWORK-FIRST
 // Demais estaticos: CACHE-FIRST
@@ -8,7 +8,7 @@
 // v1.0.6: botao de exclusao de registros de localizacao (individual + limpar tudo)
 // ============================================================
 
-const SW_VERSION = '1.0.13';
+const SW_VERSION = '1.0.14';
 const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
 const RUNTIME_CACHE = 'entregalog-runtime';
 const CACHE_PREFIX = 'entregalog-';
