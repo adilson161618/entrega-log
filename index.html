@@ -294,6 +294,24 @@ body.dark .tarefas-dot{background:#5a3e00;}
 
 #modal-tarefas{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5001;align-items:flex-end;justify-content:center;}
 #modal-tarefas.open{display:flex;}
+#modal-nav-choice{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5100;align-items:flex-end;justify-content:center;}
+#modal-nav-choice.open{display:flex;}
+#nav-choice-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;}
+body.dark #nav-choice-sheet{background:#1a1a1a;}
+#nav-choice-sheet h3{font-size:16px;font-weight:800;color:#111;margin-bottom:4px;text-align:center;}
+body.dark #nav-choice-sheet h3{color:#eee;}
+#nav-choice-sheet .nc-sub{font-size:12px;color:#888;text-align:center;margin-bottom:18px;}
+.nc-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px;font-family:inherit;}
+.nc-btn-interno{background:#F97316;color:#fff;}
+.nc-btn-gmaps{background:#fff;color:#222;border:2px solid #ddd;}
+body.dark .nc-btn-gmaps{background:#2a2a2a;color:#eee;border-color:#444;}
+.nc-btn span.nc-icon{font-size:24px;}
+.nc-btn div{text-align:left;}
+.nc-btn .nc-label{font-size:14px;font-weight:700;}
+.nc-btn .nc-desc{font-size:11px;font-weight:400;opacity:0.75;margin-top:1px;}
+.nc-lembrar{display:flex;align-items:center;gap:8px;font-size:12px;color:#888;margin:4px 0 14px;cursor:pointer;}
+.nc-lembrar input{width:16px;height:16px;cursor:pointer;}
+.nc-fechar{background:none;border:none;color:#aaa;font-size:13px;width:100%;text-align:center;padding:8px;cursor:pointer;font-family:inherit;}
 #tarefas-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
 body.dark #tarefas-sheet{background:#1a1a1a;}
 #tarefas-sheet h3{font-size:17px;font-weight:800;color:#111;margin-bottom:4px;}
@@ -639,7 +657,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.14';
+const APP_VERSION='1.0.15';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -1497,11 +1515,45 @@ async function abrirNavegacao(){
   if(b) b.style.display='none';
   var e=entregas.find(function(x){return!x.entregue;});
   if(!e){alert('Nenhuma entrega pendente.');return;}
-  if(!e.lat||!e.lon){
-    // Sem coordenadas — abre Google Maps
+  if(!e.lat&&!e.lon){
+    // Sem coordenadas — abre Google Maps direto
     window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(e.addr),'_blank');
     return;
   }
+  // Verifica preferência salva
+  var pref=localStorage.getItem('el_nav_pref');
+  if(pref==='gmaps'){_abrirGoogleMaps(e);return;}
+  if(pref==='interno'){await _abrirNavInterno(e);return;}
+  // Sem preferência: mostra modal de escolha
+  window._navChoiceEntrega=e;
+  var txt=document.getElementById('nc-destino-txt');
+  if(txt) txt.textContent='Para: '+(e.nome||e.addr||'próxima entrega');
+  var cb=document.getElementById('nc-lembrar-cb');
+  if(cb) cb.checked=false;
+  document.getElementById('modal-nav-choice').classList.add('open');
+}
+
+function _fecharNavChoice(){
+  document.getElementById('modal-nav-choice').classList.remove('open');
+  window._navChoiceEntrega=null;
+}
+
+async function _escolherNav(tipo){
+  var cb=document.getElementById('nc-lembrar-cb');
+  if(cb&&cb.checked) localStorage.setItem('el_nav_pref',tipo);
+  document.getElementById('modal-nav-choice').classList.remove('open');
+  var e=window._navChoiceEntrega;
+  if(!e) return;
+  if(tipo==='gmaps'){_abrirGoogleMaps(e);}
+  else{await _abrirNavInterno(e);}
+}
+
+function _abrirGoogleMaps(e){
+  var dest=(e.lat&&e.lon)?(e.lat+','+e.lon):encodeURIComponent(e.addr);
+  window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank');
+}
+
+async function _abrirNavInterno(e){
   navDestino=e;
   navAtivo=true;
   _vozUltimoMarco=null;
@@ -3013,6 +3065,12 @@ function testarVozNav(){
   falarVoz('Teste de voz do EntregaLog. Em 200 metros, vire à direita.',{interromper:true,force:true});
 }
 
+function resetarNavPref(){
+  localStorage.removeItem('el_nav_pref');
+  var btn=document.getElementById('btn-reset-nav-pref');
+  if(btn){btn.textContent='✓ Redefinido';setTimeout(function(){btn.textContent='🗺 Redefinir app de mapa';},2000);}
+}
+
 function toggleAutoUpdate(el){
   try{localStorage.setItem('el_auto_update',el.checked?'1':'0');}catch(e){}
   var s=document.getElementById('config-update-status');
@@ -3298,6 +3356,32 @@ setTimeout(aplicarHashRoute,2300);
   </div>
 </div>
 
+<!-- MODAL ESCOLHA NAVEGAÇÃO -->
+<div id="modal-nav-choice">
+  <div id="nav-choice-sheet">
+    <h3>Como quer navegar?</h3>
+    <p class="nc-sub" id="nc-destino-txt">Para: —</p>
+    <button class="nc-btn nc-btn-interno" onclick="_escolherNav('interno')">
+      <span class="nc-icon">🗺</span>
+      <div>
+        <div class="nc-label">Navegar pelo EntregaLog</div>
+        <div class="nc-desc">GPS integrado, histórico salvo automaticamente</div>
+      </div>
+    </button>
+    <button class="nc-btn nc-btn-gmaps" onclick="_escolherNav('gmaps')">
+      <span class="nc-icon">📍</span>
+      <div>
+        <div class="nc-label">Abrir no Google Maps</div>
+        <div class="nc-desc">Abre o Google Maps com o destino já preenchido</div>
+      </div>
+    </button>
+    <label class="nc-lembrar">
+      <input type="checkbox" id="nc-lembrar-cb"> Lembrar minha escolha
+    </label>
+    <button class="nc-fechar" onclick="_fecharNavChoice()">Cancelar</button>
+  </div>
+</div>
+
 <!-- MODAL TAREFAS -->
 <div id="modal-tarefas">
   <div id="tarefas-sheet">
@@ -3348,8 +3432,9 @@ setTimeout(aplicarHashRoute,2300);
           <span class="slider"></span>
         </label>
       </div>
-      <div style="margin-top:8px;">
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
         <button onclick="testarVozNav()" style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;">🔊 Testar voz</button>
+        <button onclick="resetarNavPref()" style="background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;" id="btn-reset-nav-pref">🗺 Redefinir app de mapa</button>
       </div>
     </div>
 
