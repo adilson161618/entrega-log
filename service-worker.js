@@ -6,7 +6,6 @@
 // v1.0.4: adicionado OSRM (router.project-osrm.org) para rotas por ruas
 // v1.0.5: CLEAR_CACHES so apaga caches com prefixo entregalog-
 // v1.0.6: botao de exclusao de registros de localizacao (individual + limpar tudo)
-// v1.0.9: foto opcional ao adicionar entrega
 // ============================================================
 
 const SW_VERSION = '1.0.9';
