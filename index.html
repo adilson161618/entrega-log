@@ -248,6 +248,68 @@ body.dark #premium-sheet{background:#1a1a1a;}
 .btn-fechar-prem{background:none;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;width:100%;font-family:inherit;}
 .prem-preco{font-size:28px;font-weight:800;color:#F97316;text-align:center;margin-bottom:4px;}
 .prem-sub{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:16px;}
+.btn-video-ad{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:13px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-video-ad:disabled{opacity:0.5;cursor:not-allowed;}
+.prem-divider{display:flex;align-items:center;gap:8px;margin:4px 0 10px;color:var(--color-text-secondary);font-size:11px;}
+.prem-divider::before,.prem-divider::after{content:'';flex:1;height:1px;background:#eee;}
+body.dark .prem-divider::before,body.dark .prem-divider::after{background:#333;}
+
+/* MODAL VIDEO AD */
+#modal-video-ad{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:6000;align-items:center;justify-content:center;}
+#modal-video-ad.open{display:flex;}
+#video-ad-sheet{background:#111;border-radius:20px;padding:28px 20px 24px;width:90%;max-width:380px;text-align:center;}
+#video-ad-tela{width:100%;height:160px;background:#000;border-radius:12px;margin-bottom:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #333;overflow:hidden;position:relative;}
+#video-ad-emoji{font-size:48px;margin-bottom:8px;}
+#video-ad-marca{font-size:13px;color:#aaa;}
+#video-ad-timer-bar{position:absolute;bottom:0;left:0;height:4px;background:#F97316;transition:width 1s linear;width:0;}
+#video-ad-titulo{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
+#video-ad-sub{font-size:12px;color:#888;margin-bottom:20px;}
+#video-ad-countdown{font-size:13px;color:#aaa;margin-bottom:16px;}
+#video-ad-fechar{background:#F97316;color:#fff;border:none;border-radius:12px;padding:13px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:none;}
+
+/* BANNER AD */
+#ad-banner{display:none;background:#f9f9f9;border-bottom:1px solid #eee;padding:6px 12px;text-align:center;font-size:11px;color:#aaa;min-height:52px;align-items:center;justify-content:center;}
+#ad-banner.show{display:flex;}
+body.dark #ad-banner{background:#1a1a1a;border-color:#333;}
+.ad-inner{width:100%;max-width:400px;background:#f0f0f0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;}
+body.dark .ad-inner{background:#2a2a2a;}
+.ad-label{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;}
+.ad-content{flex:1;font-size:12px;color:#666;text-align:left;}
+body.dark .ad-content{color:#888;}
+
+/* TAREFAS */
+#tarefas-strip{background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border:1px solid #FED7AA;border-radius:14px;padding:10px 14px;margin-bottom:14px;cursor:pointer;}
+body.dark #tarefas-strip{background:linear-gradient(135deg,#1a1200,#1a1800);border-color:#5a3e00;}
+.tarefas-strip-title{font-size:12px;font-weight:700;color:#9A3412;display:flex;align-items:center;justify-content:space-between;}
+body.dark .tarefas-strip-title{color:#FCD34D;}
+.tarefas-strip-sub{font-size:11px;color:#C2410C;margin-top:2px;}
+body.dark .tarefas-strip-sub{color:#F97316;}
+.tarefas-prog{display:flex;gap:4px;margin-top:8px;}
+.tarefas-dot{width:10px;height:10px;border-radius:50%;background:#FED7AA;}
+body.dark .tarefas-dot{background:#5a3e00;}
+.tarefas-dot.done{background:#F97316;}
+
+#modal-tarefas{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5001;align-items:flex-end;justify-content:center;}
+#modal-tarefas.open{display:flex;}
+#tarefas-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
+body.dark #tarefas-sheet{background:#1a1a1a;}
+#tarefas-sheet h3{font-size:17px;font-weight:800;color:#111;margin-bottom:4px;}
+body.dark #tarefas-sheet h3{color:#eee;}
+#tarefas-sheet .ts-sub{font-size:12px;color:#888;margin-bottom:16px;}
+.task-item{background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+body.dark .task-item{background:#222;border-color:#333;}
+.task-item.done{background:#F0FDF4;border-color:#BBF7D0;}
+body.dark .task-item.done{background:#052e16;border-color:#166534;}
+.task-emoji{font-size:22px;flex-shrink:0;}
+.task-info{flex:1;}
+.task-titulo{font-size:13px;font-weight:600;color:#111;}
+body.dark .task-titulo{color:#eee;}
+.task-item.done .task-titulo{color:#166534;text-decoration:line-through;}
+body.dark .task-item.done .task-titulo{color:#4ade80;}
+.task-bonus{font-size:11px;color:#F97316;font-weight:700;margin-top:2px;}
+.task-item.done .task-bonus{color:#059669;}
+.task-action{background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.task-check{font-size:22px;}
 
 #btn-loc-atual{position:fixed;bottom:175px;right:12px;z-index:9999;width:52px;height:52px;border-radius:50%;background:#fff;border:3px solid #F97316;color:#F97316;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(249,115,22,0.4);}
 body.dark #btn-loc-atual{background:#1a1a1a;border-color:#F97316;}
@@ -362,6 +424,14 @@ body.dark #onb-text{color:#bbb;}
       <div id="status-badge">0 entregas</div>
     </div>
   </div>
+  <!-- BANNER AD (apenas para free) -->
+  <div id="ad-banner">
+    <div class="ad-inner">
+      <span class="ad-label">Anúncio</span>
+      <span class="ad-content" id="ad-text">Organize suas entregas e ganhe mais — EntregaLog Premium</span>
+    </div>
+  </div>
+
   <div id="nav">
     <button class="ntab active" onclick="showTab('mapa')">🗺 Rota</button>
     <button class="ntab" onclick="showTab('entregas')">📋 Entregas</button>
@@ -406,6 +476,20 @@ body.dark #onb-text{color:#bbb;}
   <!-- ENTREGAS -->
   <div id="screen-entregas" class="screen">
     <div id="entregas-wrap">
+      <!-- STRIP DE TAREFAS -->
+      <div id="tarefas-strip" onclick="abrirTarefas()">
+        <div class="tarefas-strip-title">
+          <span>🎯 Tarefas do dia — ganhe OCR de bônus</span>
+          <span id="tarefas-badge" style="background:#F97316;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;">0/4</span>
+        </div>
+        <div class="tarefas-strip-sub" id="tarefas-strip-sub">Complete tarefas e ganhe scans extras hoje</div>
+        <div class="tarefas-prog" id="tarefas-prog">
+          <div class="tarefas-dot"></div>
+          <div class="tarefas-dot"></div>
+          <div class="tarefas-dot"></div>
+          <div class="tarefas-dot"></div>
+        </div>
+      </div>
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
         <button id="ocr-btn" onclick="verificarEAbrirOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
@@ -551,7 +635,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.9';
+const APP_VERSION='1.0.11';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -861,6 +945,7 @@ async function confirmarParada(){
     L.marker([paradaRef.lat,paradaRef.lon],{icon:ic}).addTo(map).bindPopup('<b>'+paradaRef.nome+'</b>'+(nota?'<br/>'+nota:''));
   }
   notificarContribuicao();
+  try{completarTarefa('registrar1');}catch(e){}
   fecharModalParada();
   alert(syncOk?'✅ Ponto registrado e salvo no banco colaborativo!':'⚠ Salvo localmente. Nao consegui enviar pro banco - veja o aviso vermelho.');
 }
@@ -1001,6 +1086,7 @@ async function gerarRota(){
   renderLista();
   showTab('mapa');
   atualizarBotaoTrajeto();
+  try{completarTarefa('gerar_rota');}catch(e){}
   setTimeout(function(){
     if(map){
       var pts=entregas.filter(function(e){return e.lat&&e.lon;});
@@ -1068,6 +1154,7 @@ function marcarEntregue(){
   verificarMomentFeedback();
   renderLista();
   proximaEntrega();
+  try{checarTarefasAuto();}catch(e){}
 }
 
 var searchMarker=null;
@@ -1508,6 +1595,7 @@ async function salvarRegistro(){
   try{await salvarSupabaseSafe('enderecos',{nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr});}catch(e){}
   document.getElementById('reg-nome').value='';document.getElementById('reg-end').value='';document.getElementById('reg-nota').value='';
   photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
+  try{completarTarefa('registrar1');}catch(e){}
   alert(_res==='atualizado'?'✅ Esse endereço já existia — atualizei o registro em vez de criar um duplicado.':'✅ Registrado! Outros entregadores vão ver essa dica.');
 }
 
@@ -2318,13 +2406,19 @@ function incrementarScans(){
     data.count++;
     localStorage.setItem('el_scans',JSON.stringify(data));
   }catch(e){}
+  try{atualizarContadorOCR();}catch(e){}
 }
 
 function verificarLimiteOCR(){
   if(isPremium()) return true;
   var scans=getScansHoje();
-  if(scans>=3){
-    abrirPremium('Voce usou seus 3 scans gratuitos de hoje. No premium sao ilimitados por R$ 9,90/mes — menos que 2 entregas!');
+  var bonus=getBonusOCRHoje();
+  var limite=3+bonus;
+  if(scans>=limite){
+    var msg=bonus>0
+      ? 'Você usou todos os seus '+limite+' scans de hoje (3 base + '+bonus+' bônus). Complete tarefas amanhã para ganhar mais, ou assine o Premium para OCR ilimitado!'
+      : 'Você usou seus 3 scans gratuitos de hoje. Complete tarefas para ganhar bônus, ou assine o Premium para OCR ilimitado por R$ 9,90/mês!';
+    abrirPremium(msg);
     return false;
   }
   return true;
@@ -2333,6 +2427,7 @@ function verificarLimiteOCR(){
 function abrirPremium(msg){
   if(msg) document.getElementById('premium-msg').textContent=msg;
   document.getElementById('modal-premium').classList.add('open');
+  try{_atualizarBtnVideo();}catch(e){}
 }
 
 function fecharPremium(){
@@ -2354,6 +2449,109 @@ function indicarAmigos(){
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
+// ===== VIDEO AD (rewarded) =====
+var _videoAdTimer=null;
+var VIDEO_AD_MAX_DIA=3; // maximo de videos por dia
+
+function _getVideosHoje(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var d=JSON.parse(localStorage.getItem('el_videos')||'{}');
+    if(d.dia!==hoje) return 0;
+    return d.count||0;
+  }catch(e){return 0;}
+}
+
+function _incVideosHoje(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var d=JSON.parse(localStorage.getItem('el_videos')||'{}');
+    if(d.dia!==hoje) d={dia:hoje,count:0};
+    d.count++;
+    localStorage.setItem('el_videos',JSON.stringify(d));
+  }catch(e){}
+}
+
+function _atualizarBtnVideo(){
+  var btn=document.getElementById('btn-video-ad');
+  var info=document.getElementById('video-ad-info');
+  if(!btn) return;
+  var vistos=_getVideosHoje();
+  var restam=VIDEO_AD_MAX_DIA-vistos;
+  if(restam<=0){
+    btn.disabled=true;
+    btn.textContent='📺 Limite diário atingido ('+VIDEO_AD_MAX_DIA+'/dia)';
+    if(info) info.textContent='Volte amanhã para mais vídeos gratuitos';
+  } else {
+    btn.disabled=false;
+    btn.innerHTML='📺 Assistir vídeo curto — ganhar +1 scan grátis';
+    if(info) info.textContent=restam+' vídeo(s) disponível(is) hoje · '+VIDEO_AD_MAX_DIA+' por dia';
+  }
+}
+
+// Conteúdos simulados do anuncio (troque por AdMob real quando disponivel)
+var _AD_CONTEUDOS=[
+  {emoji:'🛵',marca:'Entrega rápida — anúncio'},
+  {emoji:'📦',marca:'Logística pro — anúncio'},
+  {emoji:'🗺',marca:'Rotas inteligentes — anúncio'},
+  {emoji:'💼',marca:'Organize seu trabalho — anúncio'}
+];
+
+function abrirVideoAd(){
+  if(isPremium()){fecharPremium();return;}
+  var vistos=_getVideosHoje();
+  if(vistos>=VIDEO_AD_MAX_DIA){
+    alert('Você já assistiu '+VIDEO_AD_MAX_DIA+' vídeos hoje. Volte amanhã!');
+    return;
+  }
+  fecharPremium();
+  // Sorteia conteúdo
+  var c=_AD_CONTEUDOS[Math.floor(Math.random()*_AD_CONTEUDOS.length)];
+  document.getElementById('video-ad-emoji').textContent=c.emoji;
+  document.getElementById('video-ad-marca').textContent=c.marca;
+  document.getElementById('video-ad-titulo').textContent='+1 scan OCR liberado';
+  document.getElementById('video-ad-sub').textContent='Aguarde o vídeo terminar para resgatar';
+  document.getElementById('video-ad-countdown').textContent='⏱ 15 segundos';
+  document.getElementById('video-ad-fechar').style.display='none';
+  document.getElementById('video-ad-timer-bar').style.width='0';
+  document.getElementById('modal-video-ad').classList.add('open');
+  // Animação da barra + contagem regressiva
+  var seg=15;
+  var bar=document.getElementById('video-ad-timer-bar');
+  var cnt=document.getElementById('video-ad-countdown');
+  // Dispara expansão da barra
+  setTimeout(function(){bar.style.width='100%';},50);
+  _videoAdTimer=setInterval(function(){
+    seg--;
+    if(seg>0){
+      cnt.textContent='⏱ '+seg+' segundo'+(seg!==1?'s':'');
+    } else {
+      clearInterval(_videoAdTimer);
+      cnt.textContent='✅ Pronto!';
+      document.getElementById('video-ad-fechar').style.display='block';
+      document.getElementById('video-ad-sub').textContent='Vídeo concluído — clique para resgatar';
+    }
+  },1000);
+}
+
+function concluirVideoAd(){
+  clearInterval(_videoAdTimer);
+  document.getElementById('modal-video-ad').classList.remove('open');
+  _incVideosHoje();
+  // Adiciona 1 scan de bônus via sistema de bônus OCR
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var d=JSON.parse(localStorage.getItem('el_tasks')||'{}');
+    if(d.dia!==hoje){d={dia:hoje,completadas:[],bonus:0};}
+    d.bonus=(d.bonus||0)+1;
+    localStorage.setItem('el_tasks',JSON.stringify(d));
+  }catch(e){}
+  atualizarContadorOCR();
+  atualizarStripTarefas();
+  _atualizarBtnVideo();
+  _toastTarefa('📺 Vídeo assistido! +1 scan OCR liberado');
+}
+
 function verificarHistorico7dias(lista){
   if(isPremium()) return lista;
   var limite=new Date();
@@ -2365,6 +2563,161 @@ function verificarHistorico7dias(lista){
       return data>=limite;
     }catch(e){return true;}
   });
+}
+
+// ===== SISTEMA DE TAREFAS (bonus OCR) =====
+var TAREFAS_DEF=[
+  {id:'entregar5',  emoji:'📦', titulo:'Complete 5 entregas hoje',      desc:'Marque 5 como entregue',         bonus:2, tipo:'auto'},
+  {id:'registrar1', emoji:'📍', titulo:'Registre 1 ponto colaborativo', desc:'Salve um endereço difícil',       bonus:1, tipo:'auto'},
+  {id:'gerar_rota', emoji:'🗺', titulo:'Gere uma rota otimizada',        desc:'Use "Gerar rota otimizada"',     bonus:1, tipo:'auto'},
+  {id:'compartilhar',emoji:'🔗',titulo:'Compartilhe o app',              desc:'Indique o EntregaLog a alguém',  bonus:2, tipo:'manual'}
+];
+
+function _getTarefasHoje(){
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR');
+    var d=JSON.parse(localStorage.getItem('el_tasks')||'{}');
+    if(d.dia!==hoje) return {dia:hoje, completadas:[], bonus:0};
+    return d;
+  }catch(e){return {dia:new Date().toLocaleDateString('pt-BR'),completadas:[],bonus:0};}
+}
+
+function _saveTarefas(d){
+  try{localStorage.setItem('el_tasks',JSON.stringify(d));}catch(e){}
+}
+
+function getBonusOCRHoje(){
+  return _getTarefasHoje().bonus||0;
+}
+
+function completarTarefa(id){
+  var d=_getTarefasHoje();
+  if(d.completadas.indexOf(id)!==-1) return false; // já completada
+  var t=TAREFAS_DEF.filter(function(x){return x.id===id;})[0];
+  if(!t) return false;
+  d.completadas.push(id);
+  d.bonus=(d.bonus||0)+t.bonus;
+  _saveTarefas(d);
+  _toastTarefa(t.emoji+' Tarefa completa! +'+t.bonus+' scan(s) OCR desbloqueado(s)');
+  atualizarStripTarefas();
+  atualizarContadorOCR();
+  return true;
+}
+
+function _toastTarefa(msg){
+  try{
+    var t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.25);white-space:nowrap;text-align:center;';
+    t.textContent=msg;
+    document.body.appendChild(t);
+    setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},3500);
+  }catch(e){}
+}
+
+function atualizarStripTarefas(){
+  var d=_getTarefasHoje();
+  var total=TAREFAS_DEF.length;
+  var feitas=d.completadas.length;
+  var badge=document.getElementById('tarefas-badge');
+  var sub=document.getElementById('tarefas-strip-sub');
+  var prog=document.getElementById('tarefas-prog');
+  if(badge) badge.textContent=feitas+'/'+total;
+  if(sub){
+    if(feitas===total) sub.textContent='🏆 Todas completas! +'+d.bonus+' scans ganhos hoje';
+    else sub.textContent='Complete e ganhe +'+(TAREFAS_DEF.reduce(function(a,t){return a+t.bonus;},0)-d.bonus)+' scan(s) ainda disponíveis';
+  }
+  if(prog){
+    var dots=prog.querySelectorAll('.tarefas-dot');
+    for(var i=0;i<dots.length;i++){
+      if(i<feitas) dots[i].className='tarefas-dot done';
+      else dots[i].className='tarefas-dot';
+    }
+  }
+}
+
+function abrirTarefas(){
+  var d=_getTarefasHoje();
+  var total=TAREFAS_DEF.reduce(function(a,t){return a+t.bonus;},0);
+  var ganho=d.bonus||0;
+  var el=document.getElementById('tarefas-bonus-total');
+  if(el) el.innerHTML='🎁 Bônus hoje: <b>+'+ganho+' scan(s)</b> de '+total+' disponíveis &nbsp;·&nbsp; Base livre: 3 scans &nbsp;·&nbsp; Total: '+(3+ganho)+' scans';
+  var lista=document.getElementById('tarefas-lista');
+  if(lista){
+    lista.innerHTML='';
+    TAREFAS_DEF.forEach(function(t){
+      var feita=d.completadas.indexOf(t.id)!==-1;
+      var item=document.createElement('div');
+      item.className='task-item'+(feita?' done':'');
+      var btn='';
+      if(!feita && t.tipo==='manual'){
+        btn='<button class="task-action" onclick="completarTarefaManual(\''+t.id+'\')">Compartilhar</button>';
+      } else if(feita){
+        btn='<span class="task-check">✅</span>';
+      } else {
+        btn='<span style="font-size:11px;color:#aaa;white-space:nowrap;">Auto</span>';
+      }
+      item.innerHTML='<span class="task-emoji">'+t.emoji+'</span>'
+        +'<div class="task-info"><div class="task-titulo">'+t.titulo+'</div>'
+        +'<div class="task-bonus">+'+t.bonus+' scan(s) &nbsp;·&nbsp; '+t.desc+'</div></div>'
+        +btn;
+      lista.appendChild(item);
+    });
+  }
+  document.getElementById('modal-tarefas').classList.add('open');
+}
+
+function fecharTarefas(){
+  document.getElementById('modal-tarefas').classList.remove('open');
+}
+
+function completarTarefaManual(id){
+  if(id==='compartilhar'){
+    var nome=usuarioAtual?usuarioAtual.nome:'Entregador';
+    var msg='Ei! Uso o EntregaLog pra organizar minhas entregas e amei!\n\nÉ de graça e funciona no celular sem precisar instalar:\nhttps://adilson161618.github.io/entrega-log\n\nDá uma olhada 👊';
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    completarTarefa(id);
+    fecharTarefas();
+  }
+}
+
+function atualizarContadorOCR(){
+  var scans=getScansHoje();
+  var bonus=getBonusOCRHoje();
+  var limite=3+bonus;
+  var restantes=Math.max(0,limite-scans);
+  var counter=document.getElementById('ocr-counter');
+  if(counter&&!isPremium()){
+    var txt=restantes+' scan(s) restante(s) hoje (3 base'+(bonus>0?' + '+bonus+' bônus':'')+')';
+    counter.textContent=txt;
+  }
+}
+
+// Atualiza o anuncio discreto
+var _ADS=[
+  'Sabia que o Premium libera OCR ilimitado? R$ 9,90/mês',
+  'Histórico completo no Premium — veja entregas de semanas atrás',
+  'Otimize suas rotas diárias com o EntregaLog Premium',
+  'Faça mais entregas por dia com rotas inteligentes por ruas'
+];
+function _rotacionarAd(){
+  try{
+    if(isPremium()) return;
+    var el=document.getElementById('ad-text');
+    if(el){
+      var idx=Math.floor(Math.random()*_ADS.length);
+      el.textContent=_ADS[idx];
+    }
+    document.getElementById('ad-banner').classList.add('show');
+  }catch(e){}
+}
+
+// Checa tarefas automaticas
+function checarTarefasAuto(){
+  // Tarefa: gerar_rota (chamada em gerarRota)
+  // Tarefa: registrar1 (chamada em confirmarParada / salvarRegistro)
+  // Tarefa: entregar5 (chamada em marcarEntregue / confirmarChegada)
+  var entregues=entregas.filter(function(e){return e.entregue;}).length;
+  if(entregues>=5) completarTarefa('entregar5');
 }
 
 // ===== OCR =====
@@ -2784,13 +3137,11 @@ initDark();
 hideSplash();
 // GPS iniciado pelo mapa
 monitorarBateria();
-// Atualiza contador OCR
+// Atualiza contador OCR, tarefas e anuncio
 setTimeout(function(){
-  var scans=getScansHoje();
-  var counter=document.getElementById('ocr-counter');
-  if(counter&&!isPremium()){
-    counter.textContent=(3-scans)+' scan(s) gratuito(s) restante(s) hoje';
-  }
+  atualizarContadorOCR();
+  atualizarStripTarefas();
+  _rotacionarAd();
 },2500);
 if(!onlineStatus) document.getElementById("offline-bar").classList.add("show");
 sincronizarFila();
@@ -2874,15 +3225,43 @@ setTimeout(aplicarHashRoute,2300);
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>OCR ilimitado — leia qualquer documento</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Historico completo sem limite de tempo</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Relatorio PDF mensal com ganhos</div>
-      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios e sem videos</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Suporte prioritario por WhatsApp</div>
     </div>
     <button class="btn-assinar" onclick="assinarPremium()" style="opacity:0.85;">Em breve — disponivel no lancamento</button>
+    <div class="prem-divider">ou ganhe gratis</div>
+    <button class="btn-video-ad" id="btn-video-ad" onclick="abrirVideoAd()">📺 Assistir vídeo curto — ganhar +1 scan grátis</button>
+    <div id="video-ad-info" style="font-size:11px;color:#aaa;text-align:center;margin-top:-4px;margin-bottom:10px;"></div>
     <button class="btn-indicar" onclick="indicarAmigos()">Indicar 3 amigos e ganhar 30 dias gratis</button>
     <button class="btn-fechar-prem" onclick="fecharPremium()">Agora nao</button>
   </div>
 </div>
 
+<!-- MODAL VIDEO AD -->
+<div id="modal-video-ad">
+  <div id="video-ad-sheet">
+    <div id="video-ad-tela">
+      <div id="video-ad-emoji">📦</div>
+      <div id="video-ad-marca">Anúncio</div>
+      <div id="video-ad-timer-bar"></div>
+    </div>
+    <div id="video-ad-titulo">+1 scan OCR liberado</div>
+    <div id="video-ad-sub">Aguarde o vídeo terminar</div>
+    <div id="video-ad-countdown">⏱ 15 segundos</div>
+    <button id="video-ad-fechar" onclick="concluirVideoAd()">✅ Resgatar +1 scan grátis</button>
+  </div>
+</div>
+
+<!-- MODAL TAREFAS -->
+<div id="modal-tarefas">
+  <div id="tarefas-sheet">
+    <h3>🎯 Tarefas do dia</h3>
+    <div class="ts-sub">Complete e ganhe scans OCR extras — reseta à meia-noite</div>
+    <div id="tarefas-bonus-total" style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#9A3412;font-weight:600;"></div>
+    <div id="tarefas-lista"></div>
+    <button onclick="fecharTarefas()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;width:100%;padding:8px;font-family:inherit;">Fechar</button>
+  </div>
+</div>
 
 <div class="overlay" id="modal-config">
   <div class="modal-sheet">
