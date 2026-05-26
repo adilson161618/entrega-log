@@ -1,6 +1,6 @@
 {
-  "version": "1.0.26",
+  "version": "1.0.27",
   "released_at": "2026-05-26",
-  "notes": "OCR: deteccao correta de erros da IA + botao reset scans"
+  "notes": "OCR: nova chave API ativa"
 }
-           
+                                          
