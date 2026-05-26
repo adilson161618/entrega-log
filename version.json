@@ -1,5 +1,5 @@
 {
-  "version": "1.0.20",
+  "version": "1.0.21",
   "released_at": "2026-05-26",
-  "notes": "OCR funcionando: API Anthropic direta, modelo Haiku, scan so contado apos sucesso"
+  "notes": "Correcao definitiva de atualizacao: SW antigo e limpo automaticamente a cada nova versao"
 }
