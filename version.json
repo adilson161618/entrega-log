@@ -1,6 +1,6 @@
 {
-  "version": "1.0.24",
+  "version": "1.0.26",
   "released_at": "2026-05-26",
-  "notes": "OCR: imagem em maior resolucao para melhor leitura de texto"
+  "notes": "OCR: deteccao correta de erros da IA + botao reset scans"
 }
-        
+           
