@@ -1,4 +1,5 @@
 {
-  "version": "1.0.22",
+  "version": "1.0.23",
   "released_at": "2026-05-26",
-  "notes": "Fixes: login email/celular, fotos comprimidas, OCR com IA, configuracoe
+  "notes": "OCR corrigido: chamada via Supabase para evitar bloqueio do browser"
+}
