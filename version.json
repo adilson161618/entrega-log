@@ -1,5 +1,5 @@
 {
-  "version": "1.0.19",
+  "version": "1.0.20",
   "released_at": "2026-05-26",
-  "notes": "Correcao: scan so contado apos sucesso da API; debug alert OCR"
+  "notes": "OCR funcionando: API Anthropic direta, modelo Haiku, scan so contado apos sucesso"
 }
