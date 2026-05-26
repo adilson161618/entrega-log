@@ -9,7 +9,7 @@
 // v1.0.15: escolha de app de navegacao (EntregaLog ou Google Maps)
 // ============================================================
 
-const SW_VERSION = '1.0.22';
+const SW_VERSION = '1.0.23';
 const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
 const RUNTIME_CACHE = 'entregalog-runtime';
 const CACHE_PREFIX = 'entregalog-';
