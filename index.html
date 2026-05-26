@@ -658,7 +658,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.22';
+const APP_VERSION='1.0.23';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -2873,12 +2873,12 @@ async function processarOCR(event){
       }catch(e){
         imgData=base64.split(',')[1];
       }
-      var response=await fetch('https://api.anthropic.com/v1/messages',{
+      var response=await fetch(SB_URL+'/functions/v1/bright-responder',{
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'x-api-key':ANTHROPIC_KEY,
-          'anthropic-version':'2023-06-01'
+          'apikey':SB_KEY,
+          'Authorization':'Bearer '+SB_KEY
         },
         body:JSON.stringify({
           model:'claude-haiku-4-5-20251001',
@@ -3594,4 +3594,4 @@ body.dark #config-nome{color:#eee !important;}
 </style>
 
 </body>
-</html>
+</html>          
