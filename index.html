@@ -657,7 +657,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.15';
+const APP_VERSION='1.0.16';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -2872,7 +2872,7 @@ async function processarOCR(event){
             role:'user',
             content:[
               {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
-              {type:'text',text:'Leia esta imagem e extraia todos os enderecos encontrados. Um endereco pode ser: rua, avenida, travessa, alameda, rodovia, com ou sem numero, com ou sem bairro ou cidade. Tambem aceite CEP isolado ou coordenadas. Retorne SOMENTE este JSON sem markdown: {"enderecos":["endereco 1 completo","endereco 2 completo"]}. Se nao encontrar nenhum endereco retorne: {"enderecos":[]}.'}
+              {type:'text',text:'Voce e um assistente especializado em leitura de etiquetas e documentos de entrega. Analise esta imagem com muito cuidado e extraia TODOS os enderecos de entrega que aparecerem, sejam impressos ou escritos a mao.\n\nUm endereco pode ser qualquer combinacao de: Rua/Av/Trav/Al/Rod + numero + complemento (apto, casa, lote, quadra, etc) + bairro + cidade + estado + CEP. Aceite tambem apenas CEP ou apenas coordenadas geograficas.\n\nIMPORTANTE: Mesmo que haja numeros de telefone, nomes de empresas ou outros textos na imagem, procure APENAS por enderecos de localizacao fisica.\n\nRetorne SOMENTE este JSON puro, sem markdown, sem explicacao, sem texto antes ou depois:\n{"enderecos":["endereco completo 1","endereco completo 2"]}\n\nSe realmente nao houver nenhum endereco de localizacao na imagem, retorne:\n{"enderecos":[]}'}
             ]
           }]
         })
@@ -2886,13 +2886,15 @@ async function processarOCR(event){
         document.getElementById('ocr-input').value='';
         return;
       }
-      var texto=data.content&&data.content[0]&&data.content[0].text||'{"entregas":[]}';
-      texto=texto.replace(/```json|```/g,'').trim();
-      var resultado=JSON.parse(texto);
+      var texto=data.content&&data.content[0]&&data.content[0].text||'{"enderecos":[]}';
+      // Extrai JSON mesmo que venha com texto extra ao redor
+      var jsonMatch=texto.match(/\{[\s\S]*\}/);
+      var resultado={};
+      try{resultado=JSON.parse(jsonMatch?jsonMatch[0]:texto);}catch(e){resultado={};}
       var lista=[];
-      // Novo formato simples
+      // Formato principal
       if(resultado.enderecos&&resultado.enderecos.length>0){
-        lista=resultado.enderecos.map(function(e){return{nome:'',endereco:e,cidade:'',telefone:''};});
+        lista=resultado.enderecos.filter(function(e){return e&&e.trim();}).map(function(e){return{nome:'',endereco:e.trim(),cidade:'',telefone:''};});
       }
       // Formato antigo compativel
       else if(resultado.entregas&&resultado.entregas.length>0){
@@ -2900,6 +2902,17 @@ async function processarOCR(event){
       }
       else if(resultado.nome||resultado.endereco){
         lista=[resultado];
+      }
+      // Fallback regex: tenta extrair linhas que parecem endereco brasileiro
+      if(!lista.length){
+        var textoLivre=texto.replace(/[{}"\\[\]]/g,' ');
+        var linhas=textoLivre.split(/[\n,]+/);
+        linhas.forEach(function(l){
+          l=l.trim();
+          if(/\b(rua|av\.?|avenida|travessa|trav\.?|alameda|al\.?|rodovia|rod\.?|estrada|est\.?|pca\.?|praca|r\.)\b/i.test(l)&&l.length>8){
+            lista.push({nome:'',endereco:l,cidade:'',telefone:''});
+          }
+        });
       }
       if(!lista.length){
         loading.textContent='Nao encontrei nenhum endereco na imagem. Tente uma foto mais proxima do texto.';
