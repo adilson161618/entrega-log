@@ -1,5 +1,5 @@
 {
-  "version": "1.0.21",
+  "version": "1.0.22",
   "released_at": "2026-05-26",
-  "notes": "Correcao definitiva de atualizacao: SW antigo e limpo automaticamente a cada nova versao"
+  "notes": "Fixes: login email/celular, fotos comprimidas, OCR com IA, configuracoes, atualizacao automatica"
 }
