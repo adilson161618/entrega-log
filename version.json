@@ -1,5 +1,5 @@
 {
-  "version": "1.0.18",
+  "version": "1.0.19",
   "released_at": "2026-05-26",
-  "notes": "OCR debug via alert"
+  "notes": "Correcao: scan so contado apos sucesso da API; debug alert OCR"
 }
