@@ -1,5 +1,6 @@
 {
-  "version": "1.0.23",
+  "version": "1.0.24",
   "released_at": "2026-05-26",
-  "notes": "OCR corrigido: chamada via Supabase para evitar bloqueio do browser"
+  "notes": "OCR: imagem em maior resolucao para melhor leitura de texto"
 }
+        
