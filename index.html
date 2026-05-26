@@ -658,7 +658,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.25';
+const APP_VERSION='1.0.26';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -2895,8 +2895,11 @@ async function processarOCR(event){
       var rawText=await response.text();
       var data={};
       try{data=JSON.parse(rawText);}catch(e){data={};}
-      if(!response.ok){
-        loading.textContent='Erro '+response.status+': '+(data.error&&data.error.message||rawText.slice(0,120));
+      // Detecta erro mesmo quando Supabase devolve 200 com corpo de erro da Anthropic
+      var apiErr=(!response.ok)||(data.error)||(data.type==='error')||(!data.content);
+      if(apiErr){
+        var errDetail=data.error&&data.error.message||data.message||rawText.slice(0,200)||'Erro desconhecido';
+        loading.textContent='Erro da IA: '+errDetail;
         loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
         btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
         document.getElementById('ocr-input').value='';
@@ -3506,6 +3509,7 @@ setTimeout(aplicarHashRoute,2300);
 
     <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
       <button onclick="mostrarOnboarding(true)" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🎓 Ver tutorial de novo</button>
+      <button onclick="resetarScansHoje()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#7C3AED;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🔄 Resetar scans OCR de hoje</button>
       <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
       <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
     </div>
@@ -3583,15 +3587,4 @@ setTimeout(aplicarHashRoute,2300);
 .switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
 .switch input{opacity:0;width:0;height:0;}
 .slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
-.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
-.switch input:checked + .slider{background:#F97316;}
-.switch input:checked + .slider:before{transform:translateX(20px);}
-body.dark .slider{background:#444;}
-body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
-body.dark #modal-config .cfg-label{color:#eee !important;}
-body.dark #modal-config .cfg-link{color:#eee !important;}
-body.dark #config-nome{color:#eee !important;}
-</style>
-
-</body>
-</html>               
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 
