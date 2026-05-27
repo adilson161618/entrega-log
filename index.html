@@ -658,7 +658,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.27';
+const APP_VERSION='1.0.28';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -2880,17 +2880,7 @@ async function processarOCR(event){
           'apikey':SB_KEY,
           'Authorization':'Bearer '+SB_KEY
         },
-        body:JSON.stringify({
-          model:'claude-sonnet-4-6',
-          max_tokens:1000,
-          messages:[{
-            role:'user',
-            content:[
-              {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
-              {type:'text',text:'Voce e um assistente especializado em leitura de etiquetas e documentos de entrega. Analise esta imagem com muito cuidado e extraia TODOS os enderecos de entrega que aparecerem, sejam impressos ou escritos a mao.\n\nUm endereco pode ser qualquer combinacao de: Rua/Av/Trav/Al/Rod + numero + complemento (apto, casa, lote, quadra, etc) + bairro + cidade + estado + CEP. Aceite tambem apenas CEP ou apenas coordenadas geograficas.\n\nIMPORTANTE: Mesmo que haja numeros de telefone, nomes de empresas ou outros textos na imagem, procure APENAS por enderecos de localizacao fisica.\n\nRetorne SOMENTE este JSON puro, sem markdown, sem explicacao, sem texto antes ou depois:\n{"enderecos":["endereco completo 1","endereco completo 2"]}\n\nSe realmente nao houver nenhum endereco de localizacao na imagem, retorne:\n{"enderecos":[]}'}
-            ]
-          }]
-        })
+        body:JSON.stringify({imgData:imgData,mediaType:mediaType})
       });
       var rawText=await response.text();
       var data={};
@@ -3587,4 +3577,15 @@ setTimeout(aplicarHashRoute,2300);
 .switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
 .switch input{opacity:0;width:0;height:0;}
 .slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
-.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.switch input:checked + .slider{background:#F97316;}
+.switch input:checked + .slider:before{transform:translateX(20px);}
+body.dark .slider{background:#444;}
+body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
+body.dark #modal-config .cfg-label{color:#eee !important;}
+body.dark #modal-config .cfg-link{color:#eee !important;}
+body.dark #config-nome{color:#eee !important;}
+</style>
+
+</body>
+</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
