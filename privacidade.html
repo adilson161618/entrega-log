@@ -1,136 +1,158 @@
-// ============================================================
-// EntregaLog Service Worker v1.0.12
-// version.json + index.html: NETWORK-FIRST (atualizacao em tempo real)
-// APIs externas: NETWORK-FIRST
-// Demais estaticos: CACHE-FIRST
-// v1.0.4: adicionado OSRM (router.project-osrm.org) para rotas por ruas
-// v1.0.5: CLEAR_CACHES so apaga caches com prefixo entregalog-
-// v1.0.6: botao de exclusao de registros de localizacao (individual + limpar tudo)
-// ============================================================
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Política de Privacidade — EntregaLog</title>
+<meta name="theme-color" content="#F97316"/>
+<style>
+*{box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#fafafa;color:#1a1a1a;margin:0;line-height:1.65;}
+.wrap{max-width:760px;margin:0 auto;padding:24px 22px 60px;}
+.hd{padding:30px 0 18px;border-bottom:3px solid #F97316;margin-bottom:24px;}
+.hd .logo{font-size:24px;font-weight:800;color:#F97316;}
+.hd h1{font-size:22px;font-weight:800;margin:8px 0 4px;}
+.hd .meta{font-size:12.5px;color:#777;}
+h2{font-size:16.5px;font-weight:700;color:#1a1a1a;margin:28px 0 8px;border-left:4px solid #F97316;padding-left:10px;}
+h3{font-size:14.5px;font-weight:700;margin:18px 0 6px;color:#333;}
+p,li{font-size:14.5px;color:#333;}
+ul{padding-left:22px;margin:8px 0 12px;}
+li{margin-bottom:4px;}
+a{color:#F97316;text-decoration:none;font-weight:600;}
+a:hover{text-decoration:underline;}
+.box{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px 16px;margin:16px 0;font-size:13.5px;}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid #eee;font-size:12px;color:#888;text-align:center;}
+.back{display:inline-block;margin-bottom:14px;color:#F97316;font-size:13px;text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
 
-const SW_VERSION = '1.0.12';
-const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
-const RUNTIME_CACHE = 'entregalog-runtime';
-const CACHE_PREFIX = 'entregalog-';
+<a class="back" href="index.html">← Voltar para o app</a>
 
-const STATIC_ASSETS = [
-  './entregalog-icon-192.png',
-  './entregalog-icon-512.png',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-];
+<div class="hd">
+  <div class="logo">📦 EntregaLog</div>
+  <h1>Política de Privacidade</h1>
+  <div class="meta">Versão 2.0 — atualizada em 28 de maio de 2026</div>
+</div>
 
-const NETWORK_FIRST_HOSTS = [
-  'supabase.co',
-  'nominatim.openstreetmap.org',
-  'viacep.com.br',
-  'tile.openstreetmap.org',
-  'router.project-osrm.org'
-];
+<div class="box">
+Esta Política de Privacidade explica de forma clara como o aplicativo <b>EntregaLog</b> coleta, usa, armazena e protege seus dados pessoais. Está em conformidade com a <b>Lei Geral de Proteção de Dados (Lei 13.709/2018 — LGPD)</b>. Ao usar o EntregaLog, você concorda com esta Política.
+</div>
 
-const ALWAYS_FRESH = [
-  '/version.json',
-  '/index.html',
-  '/manifest.json',
-  '/service-worker.js'
-];
+<h2>1. Quem somos</h2>
+<p>O EntregaLog é um aplicativo desenvolvido e mantido por <b>Adilson Daniel de Almeida</b>, pessoa física, localizado em Chapecó — Santa Catarina, Brasil. Para qualquer assunto relacionado à privacidade, entre em contato pelo e-mail <a href="mailto:adilsonlider04@gmail.com">adilsonlider04@gmail.com</a>.</p>
 
-self.addEventListener('install', function (event) {
-  self.skipWaiting();
-  event.waitUntil(
-    caches.open(STATIC_CACHE).then(function (cache) {
-      return Promise.all(STATIC_ASSETS.map(function (url) {
-        return cache.add(url).catch(function (err) {
-          console.warn('[SW] Falha ao cachear:', url, err);
-        });
-      }));
-    })
-  );
-});
+<h2>2. Quais dados coletamos</h2>
 
-self.addEventListener('activate', function (event) {
-  event.waitUntil(
-    caches.keys().then(function (keys) {
-      return Promise.all(keys.map(function (k) {
-        if (k.indexOf(CACHE_PREFIX) === 0 && k !== STATIC_CACHE && k !== RUNTIME_CACHE) {
-          return caches.delete(k);
-        }
-      }));
-    }).then(function () { return self.clients.claim(); })
-  );
-});
+<h3>2.1 Dados que você fornece diretamente</h3>
+<ul>
+  <li><b>Nome</b> (informado no cadastro)</li>
+  <li><b>E-mail ou número de telefone</b> com DDD (para login e identificação da conta)</li>
+  <li><b>Endereços de entrega</b> que você cadastra manualmente (rua, número, bairro, cidade, complemento, CEP, nome do destinatário e observações que você optar por registrar)</li>
+  <li><b>Notas e dicas</b> que você adicionar a cada endereço (por exemplo: "portão azul", "cachorro bravo", etc.)</li>
+  <li><b>Fotos</b> de etiquetas, pacotes ou anotações que você decidir capturar para extração de endereços via OCR</li>
+</ul>
 
-function isAlwaysFresh(url) {
-  return ALWAYS_FRESH.some(function (p) { return url.pathname.endsWith(p); });
-}
+<h3>2.2 Dados coletados automaticamente</h3>
+<ul>
+  <li><b>Localização geográfica (GPS):</b> coletada apenas quando o app está em uso, exclusivamente para mostrar sua posição no mapa, calcular distâncias e gerar rotas otimizadas. Você pode revogar essa permissão a qualquer momento nas configurações do seu celular.</li>
+  <li><b>Histórico de rotas e entregas:</b> data, horário, distância percorrida e endereços visitados, para gerar seus relatórios e estatísticas pessoais.</li>
+  <li><b>Informações técnicas do dispositivo:</b> versão do app, tipo de navegador, status de conexão (online/offline). Não coletamos IMEI, número de série nem identificadores únicos do aparelho.</li>
+</ul>
 
-self.addEventListener('fetch', function (event) {
-  var req = event.request;
-  if (req.method !== 'GET') return;
-  var url = new URL(req.url);
+<h2>3. Para que usamos seus dados</h2>
+<ul>
+  <li>Permitir o seu acesso à sua conta e ao seu histórico em qualquer celular (sincronização).</li>
+  <li>Mostrar sua localização no mapa em tempo real.</li>
+  <li>Calcular e otimizar rotas de entrega passando pelas ruas (não em linha reta).</li>
+  <li>Extrair endereços de fotos por meio de OCR (reconhecimento ótico de caracteres).</li>
+  <li>Construir um banco de endereços pessoal e colaborativo, para que dicas úteis (como "portão pelos fundos") ajudem outros entregadores em endereços difíceis.</li>
+  <li>Gerar relatórios de seu desempenho (distância percorrida, número de entregas, etc.).</li>
+  <li>Melhorar o aplicativo, corrigir falhas e desenvolver novas funcionalidades.</li>
+</ul>
 
-  if (isAlwaysFresh(url) || req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req, { cache: 'no-store' })
-        .then(function (resp) {
-          if (resp && resp.ok) {
-            var copy = resp.clone();
-            caches.open(STATIC_CACHE).then(function (c) { c.put(req, copy); });
-          }
-          return resp;
-        })
-        .catch(function () {
-          return caches.match(req).then(function (c) {
-            return c || caches.match('./index.html');
-          });
-        })
-    );
-    return;
-  }
+<h2>4. Base legal (LGPD)</h2>
+<p>Tratamos seus dados pessoais com base nas seguintes hipóteses legais previstas pela LGPD:</p>
+<ul>
+  <li><b>Consentimento</b> (Art. 7º, I) — ao criar conta e aceitar esta Política.</li>
+  <li><b>Execução de contrato</b> (Art. 7º, V) — para entregar os serviços do app que você contratou.</li>
+  <li><b>Legítimo interesse</b> (Art. 7º, IX) — para melhorar o produto, prevenir fraudes e garantir a segurança da plataforma, sempre respeitando seus direitos.</li>
+</ul>
 
-  var isNetworkFirst = NETWORK_FIRST_HOSTS.some(function (h) {
-    return url.hostname.indexOf(h) !== -1;
-  });
-  if (isNetworkFirst) {
-    event.respondWith(
-      fetch(req)
-        .then(function (resp) {
-          if (url.hostname.indexOf('tile.openstreetmap.org') !== -1 && resp.ok) {
-            var copy = resp.clone();
-            caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, copy); });
-          }
-          return resp;
-        })
-        .catch(function () { return caches.match(req); })
-    );
-    return;
-  }
+<h2>5. Com quem compartilhamos seus dados</h2>
+<p>Para que o EntregaLog funcione, alguns parceiros tecnológicos processam parte dos seus dados em nosso nome:</p>
+<ul>
+  <li><b>Supabase</b> (banco de dados em nuvem) — armazena sua conta, endereços e rotas. Sediado nos Estados Unidos com servidores na América do Sul. <a href="https://supabase.com/privacy" target="_blank">Política do Supabase</a>.</li>
+  <li><b>Google (Gemini API)</b> — processa as fotos enviadas para OCR. As imagens são enviadas, analisadas e o texto é devolvido. O Google declara não usar dados de API gratuita para treinar modelos. <a href="https://ai.google.dev/gemini-api/terms" target="_blank">Termos do Gemini</a>.</li>
+  <li><b>OpenStreetMap</b> — fornece os tiles do mapa exibidos no app. Recebe apenas a região geográfica que você está visualizando, sem dados de identificação. <a href="https://wiki.openstreetmap.org/wiki/Privacy_Policy" target="_blank">Privacidade do OSM</a>.</li>
+  <li><b>OSRM</b> e <b>Nominatim</b> — calculam rotas e fazem busca de endereços. Recebem apenas pontos geográficos ou textos de busca, sem dados pessoais.</li>
+  <li><b>GitHub Pages</b> — hospeda os arquivos do aplicativo (HTML, CSS, JS). Não tem acesso aos seus dados de uso.</li>
+</ul>
+<p><b>Não vendemos seus dados</b> nem os compartilhamos com terceiros para fins de marketing ou publicidade direcionada.</p>
 
-  event.respondWith(
-    caches.match(req).then(function (cached) {
-      if (cached) return cached;
-      return fetch(req).then(function (resp) {
-        if (resp && resp.ok && resp.type !== 'opaque') {
-          var copy = resp.clone();
-          caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, copy); });
-        }
-        return resp;
-      });
-    })
-  );
-});
+<h2>6. Por quanto tempo guardamos seus dados</h2>
+<ul>
+  <li><b>Conta e histórico:</b> enquanto você mantiver a conta ativa. Se você apagar sua conta no menu Configurações, todos os seus dados pessoais são removidos do banco em até 30 dias.</li>
+  <li><b>Endereços com dicas comunitárias:</b> as dicas que você optar por compartilhar para ajudar outros entregadores podem permanecer no banco de endereços comunitário, em formato anonimizado (sem ligação com seu nome ou conta), mesmo após você apagar sua conta.</li>
+  <li><b>Fotos enviadas para OCR:</b> são processadas no momento e <b>não ficam armazenadas em nossos servidores</b>. Cópia local pode permanecer no seu próprio celular dentro do app (em formato comprimido) por sua opção.</li>
+  <li><b>Logs técnicos:</b> mantidos por até 90 dias para fins de segurança e depuração.</li>
+</ul>
 
-self.addEventListener('message', function (event) {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  if (event.data && event.data.type === 'CLEAR_CACHES') {
-    event.waitUntil(
-      caches.keys().then(function (keys) {
-        return Promise.all(keys.map(function (k) {
-          if (k.indexOf(CACHE_PREFIX) === 0) return caches.delete(k);
-        }));
-      })
-    );
-  }
-});
+<h2>7. Onde armazenamos seus dados</h2>
+<ul>
+  <li><b>No seu celular:</b> dados em "localStorage" e cache do navegador para funcionamento offline (chaves prefixadas com <code>el_</code>).</li>
+  <li><b>Na nuvem (Supabase):</b> servidores em datacenters seguros, com criptografia em repouso e em trânsito (TLS 1.2+).</li>
+</ul>
+
+<h2>8. Seus direitos (LGPD Art. 18)</h2>
+<p>A qualquer momento, você pode exercer os seguintes direitos:</p>
+<ul>
+  <li><b>Confirmação</b> da existência de tratamento dos seus dados.</li>
+  <li><b>Acesso</b> aos dados que armazenamos sobre você.</li>
+  <li><b>Correção</b> de dados incompletos, inexatos ou desatualizados.</li>
+  <li><b>Anonimização, bloqueio ou eliminação</b> de dados desnecessários ou em desconformidade.</li>
+  <li><b>Portabilidade</b> dos dados a outro fornecedor de serviço.</li>
+  <li><b>Eliminação</b> dos dados tratados com base no seu consentimento.</li>
+  <li><b>Informação</b> sobre os terceiros com quem compartilhamos seus dados.</li>
+  <li><b>Revogação do consentimento</b> a qualquer momento.</li>
+</ul>
+<p>Para exercer qualquer um desses direitos, mande um e-mail para <a href="mailto:adilsonlider04@gmail.com">adilsonlider04@gmail.com</a> com o assunto "LGPD — solicitação de direito". Respondemos em até <b>15 dias úteis</b>.</p>
+
+<h2>9. Como protegemos seus dados</h2>
+<ul>
+  <li>Comunicação criptografada via HTTPS em todas as chamadas.</li>
+  <li>Chaves de API sensíveis armazenadas como "secrets" no Supabase, nunca no código do app.</li>
+  <li>Banco de dados com regras de acesso restritivas (Row Level Security).</li>
+  <li>Senhas e tokens nunca aparecem em logs.</li>
+</ul>
+<p>Apesar dos cuidados, nenhum sistema é 100% inviolável. Caso ocorra um incidente de segurança que afete seus dados, comprometemo-nos a comunicá-lo em até 72 horas, conforme exige a LGPD.</p>
+
+<h2>10. Crianças e adolescentes</h2>
+<p>O EntregaLog não é destinado a menores de 18 anos. Não coletamos intencionalmente dados de crianças ou adolescentes. Se você é responsável por um menor e descobriu que ele criou conta no app, entre em contato para que possamos excluir os dados imediatamente.</p>
+
+<h2>11. Cookies</h2>
+<p>O EntregaLog utiliza apenas armazenamento local (localStorage) para manter sua sessão e preferências. <b>Não usamos cookies de rastreamento</b> nem de publicidade.</p>
+
+<h2>12. Alterações nesta Política</h2>
+<p>Esta Política pode ser atualizada para refletir mudanças no app ou na legislação. Sempre que houver mudança significativa, você verá um aviso dentro do app na próxima vez que abri-lo. A data da última atualização aparece no topo deste documento.</p>
+
+<h2>13. Foro</h2>
+<p>Para questões relacionadas a esta Política, fica eleito o foro da Comarca de Chapecó — Santa Catarina, Brasil, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
+
+<h2>14. Contato</h2>
+<p>Para qualquer dúvida, solicitação ou reclamação relacionada a esta Política de Privacidade:</p>
+<div class="box">
+<b>Adilson Daniel de Almeida</b><br>
+E-mail: <a href="mailto:adilsonlider04@gmail.com">adilsonlider04@gmail.com</a><br>
+Cidade: Chapecó — SC, Brasil
+</div>
+
+<div class="foot">
+EntregaLog &copy; 2026 — Adilson Daniel de Almeida — Todos os direitos reservados<br>
+Build EL-ADA-2026-3F395D9FAEA1FC7E
+</div>
+
+</div>
+</body>
+</html>
