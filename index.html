@@ -3243,6 +3243,10 @@ function abrirPrivacidade(){
   window.open('https://adilson161618.github.io/entrega-log/privacidade.html','_blank');
 }
 
+function abrirTermos(){
+  window.open('https://adilson161618.github.io/entrega-log/termos.html','_blank');
+}
+
 function abrirSuporte(){
   var msg='Olá! Preciso de ajuda com o EntregaLog (versão '+APP_VERSION+').';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
@@ -3338,7 +3342,7 @@ setTimeout(aplicarHashRoute,2300);
 
 // build integrity check
 window.addEventListener('keydown',function(e){
-  if(e.ctrlKey&&e.shiftKey&&(e.key==='A'||e.key==='a')){
+  if(e.ctrlKey&&e.altKey&&(e.key==='E'||e.key==='e')){
     console.log('%cEntregaLog','color:#F97316;font-size:24px;font-weight:bold;');
     console.log('%cBuild '+APP_VERSION+' | '+_buildSig,'color:#1D9E75;font-weight:bold;');
     console.log('%cPropriedade de Adilson Daniel de Almeida','color:#1a1a1a;');
@@ -3520,6 +3524,7 @@ window.addEventListener('keydown',function(e){
       <button onclick="mostrarOnboarding(true)" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🎓 Ver tutorial de novo</button>
       <button onclick="resetarScansHoje()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#7C3AED;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🔄 Resetar scans OCR de hoje</button>
       <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
+      <button class="cfg-link" onclick="abrirTermos()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📜 Termos de Uso</button>
       <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
     </div>
 
