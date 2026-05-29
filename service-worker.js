@@ -1,17 +1,4 @@
-// ============================================================
-// EntregaLog Service Worker v1.0.9
-// version.json + index.html: NETWORK-FIRST
-// APIs externas: NETWORK-FIRST
-// Demais estaticos: CACHE-FIRST
-// v1.0.4: adicionado OSRM
-// v1.0.5: CLEAR_CACHES so apaga caches com prefixo entregalog-
-// v1.0.6: botao de exclusao de registros de localizacao
-// v1.0.7: rota otimizada por ruas e remocao de duplicados
-// v1.0.9: PERF SEGURO - limita RUNTIME_CACHE para nao acumular MB
-// ============================================================
-
-const SW_VERSION = '1.0.9';
-const RUNTIME_CACHE_MAX = 80;
+const SW_VERSION = '1.0.7';
 const STATIC_CACHE = 'entregalog-static-v' + SW_VERSION;
 const RUNTIME_CACHE = 'entregalog-runtime';
 const CACHE_PREFIX = 'entregalog-';
@@ -38,21 +25,13 @@ const ALWAYS_FRESH = [
   '/service-worker.js'
 ];
 
-function trimCache(cache) {
-  cache.keys().then(function (keys) {
-    if (keys.length <= RUNTIME_CACHE_MAX) return;
-    var excesso = keys.length - RUNTIME_CACHE_MAX;
-    for (var i = 0; i < excesso; i++) cache.delete(keys[i]);
-  });
-}
-
 self.addEventListener('install', function (event) {
   self.skipWaiting();
   event.waitUntil(
     caches.open(STATIC_CACHE).then(function (cache) {
       return Promise.all(STATIC_ASSETS.map(function (url) {
         return cache.add(url).catch(function (err) {
-          console.warn('[SW] Falha ao cachear:', url, err);
+          console.warn('[SW] Falha:', url, err);
         });
       }));
     })
@@ -108,10 +87,7 @@ self.addEventListener('fetch', function (event) {
         .then(function (resp) {
           if (url.hostname.indexOf('tile.openstreetmap.org') !== -1 && resp.ok) {
             var copy = resp.clone();
-            caches.open(RUNTIME_CACHE).then(function (c) {
-              c.put(req, copy);
-              trimCache(c);
-            });
+            caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, copy); });
           }
           return resp;
         })
@@ -126,10 +102,7 @@ self.addEventListener('fetch', function (event) {
       return fetch(req).then(function (resp) {
         if (resp && resp.ok && resp.type !== 'opaque') {
           var copy = resp.clone();
-          caches.open(RUNTIME_CACHE).then(function (c) {
-            c.put(req, copy);
-            trimCache(c);
-          });
+          caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, copy); });
         }
         return resp;
       });
