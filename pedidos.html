@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>EntregaLog · Pedidos</title>
+<style>
+:root{--laranja:#F97316;--laranja-claro:#FFF7ED;--verde:#1D9E75;--verde-claro:#E1F5EE;--amarelo:#F59E0B;--amarelo-claro:#FEF3C7;--vermelho:#DC2626;--vermelho-claro:#FEE2E2;--cinza:#6B7280;--cinza-claro:#F3F4F6;--borda:#E5E7EB;--texto:#111827;--texto-claro:#374151;--fundo:#FAFAFA}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--texto);background:var(--fundo)}
+body{padding-bottom:20px}
+.topbar{background:var(--laranja);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.topbar-row{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto}
+.topbar-nome{font-weight:700;font-size:15px;line-height:1.2}
+.topbar-sub{font-size:11px;opacity:0.9;margin-top:2px}
+.topbar-acoes{margin-left:auto;display:flex;gap:6px}
+.icon-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.container{max-width:680px;margin:0 auto;padding:14px 12px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--borda);border-radius:10px;padding:10px 8px;text-align:center}
+.stat-num{font-size:18px;font-weight:800}
+.stat-num.amarelo{color:var(--amarelo)}
+.stat-num.laranja{color:var(--laranja)}
+.stat-num.verde{color:var(--verde)}
+.stat-label{font-size:10px;color:var(--cinza);margin-top:2px;text-transform:uppercase;letter-spacing:0.03em}
+.sec-titulo{font-size:11px;color:var(--cinza);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:14px 4px 8px}
+.pedido{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:14px;margin-bottom:10px;position:relative;border-left:4px solid var(--amarelo)}
+.pedido.meu{border-left-color:var(--laranja);background:var(--laranja-claro)}
+.pedido.entregue{border-left-color:var(--verde);opacity:0.7}
+.pedido-loja{font-size:11px;color:var(--cinza);text-transform:uppercase;letter-spacing:0.05em;font-weight:700;margin-bottom:6px}
+.pedido-cliente{font-size:16px;font-weight:700;color:var(--texto)}
+.pedido-addr{font-size:13px;color:var(--texto-claro);margin-top:4px;line-height:1.4}
+.pedido-itens{font-size:12px;color:var(--cinza);margin-top:6px;font-style:italic}
+.pedido-valor{font-size:14px;font-weight:700;color:var(--laranja);margin-top:6px}
+.pedido-obs{font-size:11px;color:var(--vermelho);margin-top:6px}
+.pedido-meta{font-size:11px;color:var(--cinza);margin-top:6px}
+.badge{display:inline-block;padding:4px 9px;border-radius:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px}
+.badge-aguardando{background:var(--amarelo-claro);color:#854F0B}
+.badge-meu{background:var(--laranja);color:#fff}
+.badge-entregue{background:var(--verde-claro);color:#085041}
+.pedido-acoes{display:flex;gap:8px;margin-top:12px}
+.btn{border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex:1}
+.btn:active{transform:scale(0.97)}
+.btn-verde{background:var(--verde);color:#fff}
+.btn-laranja{background:var(--laranja);color:#fff}
+.btn-cinza{background:var(--cinza-claro);color:var(--texto-claro);border:1px solid var(--borda)}
+.empty{text-align:center;padding:60px 20px;color:var(--cinza);font-size:13px}
+.empty-icon{font-size:48px;margin-bottom:14px;opacity:0.5}
+.empty-titulo{font-size:15px;font-weight:600;color:var(--texto);margin-bottom:6px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-overlay.ativo{display:flex}
+.modal{background:#fff;width:90%;max-width:400px;border-radius:18px;padding:20px}
+.modal-titulo{font-size:18px;font-weight:800;margin-bottom:14px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-size:12px;font-weight:700;color:var(--texto-claro);margin-bottom:5px}
+.campo input{width:100%;padding:11px 12px;border:1px solid var(--borda);border-radius:9px;font-size:14px;font-family:inherit}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--texto);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.ativo{opacity:1}
+.online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--verde);margin-right:6px;animation:pulso 1.5s infinite}
+@keyframes pulso{0%,100%{opacity:1}50%{opacity:0.5}}
+.refresh-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="topbar">
+<div class="topbar-row">
+<div class="topbar-icon">🛵</div>
+<div style="flex:1;min-width:0">
+<div class="topbar-nome">Pedidos disponíveis</div>
+<div class="topbar-sub"><span class="online-dot"></span><span id="status-conexao">Conectando...</span> · <span id="motoboy-nome">--</span></div>
+</div>
+<div class="topbar-acoes">
+<button class="refresh-btn" onclick="carregar()">↻</button>
+<button class="icon-btn" onclick="abrirPerfil()" title="Perfil">👤</button>
+</div>
+</div>
+</div>
+<div class="container">
+<div class="stats-row">
+<div class="stat"><div class="stat-num amarelo" id="st-aguardando">0</div><div class="stat-label">Disponíveis</div></div>
+<div class="stat"><div class="stat-num laranja" id="st-meus">0</div><div class="stat-label">Meus</div></div>
+<div class="stat"><div class="stat-num verde" id="st-entregue">0</div><div class="stat-label">Entregues hoje</div></div>
+</div>
+<div class="sec-titulo">Meus pedidos em andamento</div>
+<div id="lista-meus"></div>
+<div class="sec-titulo">Pedidos disponíveis</div>
+<div id="lista-disponiveis"></div>
+</div>
+<div class="modal-overlay" id="modal-perfil">
+<div class="modal">
+<div class="modal-titulo">👤 Seu perfil</div>
+<div class="campo"><label>Seu nome</label><input type="text" id="m-nome" placeholder="Ex: Carlos" /></div>
+<div class="campo"><label>Telefone (opcional)</label><input type="text" id="m-telefone" placeholder="(00) 00000-0000" /></div>
+<div style="display:flex;gap:8px;margin-top:14px">
+<button class="btn btn-cinza" onclick="fecharModal('modal-perfil')">Cancelar</button>
+<button class="btn btn-laranja" onclick="salvarPerfil()">💾 Salvar</button>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="pedidos.js"></script>
+</body>
+</html>
