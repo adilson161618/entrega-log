@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>EntregaLog · Loja</title>
+<style>
+:root{
+  --cor-principal:#F97316;
+  --cor-principal-clara:#FFF7ED;
+  --cor-principal-borda:#FED7AA;
+  --verde:#1D9E75;
+  --verde-claro:#E1F5EE;
+  --amarelo:#F59E0B;
+  --amarelo-claro:#FEF3C7;
+  --vermelho:#DC2626;
+  --vermelho-claro:#FEE2E2;
+  --cinza:#6B7280;
+  --cinza-claro:#F3F4F6;
+  --borda:#E5E7EB;
+  --texto:#111827;
+  --texto-claro:#374151;
+  --fundo:#FAFAFA;
+  --banner-img:none;
+  --bg-loja:none;
+  --bg-display:none;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--texto);background:var(--fundo)}
+body{padding-bottom:90px;position:relative}
+body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);background-size:cover;background-position:center;opacity:0.12;z-index:0;pointer-events:none;display:var(--bg-display)}
+.container,.topbar,.tabs,.fab{position:relative;z-index:1}
+.topbar{background:var(--cor-principal);background-image:var(--banner-img);background-size:cover;background-position:center;background-blend-mode:multiply;color:#fff;padding:14px 16px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.topbar-row{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;flex:0 0 auto}
+.topbar-icon img{width:100%;height:100%;object-fit:cover}
+.topbar-nome{font-weight:700;font-size:15px;line-height:1.2;cursor:pointer}
+.topbar-sub{font-size:11px;opacity:0.9;margin-top:2px}
+.topbar-slogan{font-size:12px;opacity:0.95;margin-top:3px;font-style:italic}
+.topbar-acoes{margin-left:auto;display:flex;gap:6px}
+.icon-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.icon-btn:active{transform:scale(0.95)}
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--borda);position:sticky;top:74px;z-index:40;overflow-x:auto}
+.tab{flex:1;min-width:90px;padding:11px 8px;text-align:center;font-size:13px;font-weight:600;color:var(--cinza);border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;font-family:inherit}
+.tab.ativa{color:var(--cor-principal);border-bottom-color:var(--cor-principal)}
+.container{max-width:680px;margin:0 auto;padding:14px 12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--borda);border-radius:10px;padding:10px 8px;text-align:center}
+.stat-num{font-size:18px;font-weight:800;color:var(--texto)}
+.stat-num.verde{color:var(--verde)}
+.stat-num.principal{color:var(--cor-principal)}
+.stat-num.amarelo{color:var(--amarelo)}
+.stat-label{font-size:10px;color:var(--cinza);margin-top:2px;text-transform:uppercase;letter-spacing:0.03em}
+.sec-titulo{font-size:11px;color:var(--cinza);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:14px 4px 8px}
+.pedido{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:12px;margin-bottom:10px;position:relative}
+.pedido.entregue{border-left:4px solid var(--verde)}
+.pedido.caminho{border-left:4px solid var(--cor-principal)}
+.pedido.aguardando{border-left:4px solid var(--amarelo)}
+.pedido-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.pedido-num{font-weight:800;color:var(--texto);font-size:14px}
+.pedido-cliente{font-size:15px;font-weight:700;color:var(--texto);margin-top:2px}
+.pedido-addr{font-size:13px;color:var(--texto-claro);margin-top:2px;line-height:1.4}
+.pedido-itens{font-size:12px;color:var(--cinza);margin-top:4px;font-style:italic}
+.pedido-meta{font-size:11px;color:var(--cinza);margin-top:6px}
+.pedido-valor{font-size:13px;font-weight:700;color:var(--cor-principal);margin-top:4px}
+.badge{display:inline-block;padding:4px 9px;border-radius:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap}
+.badge-entregue{background:var(--verde-claro);color:#085041}
+.badge-caminho{background:var(--cor-principal-clara);color:#9A3412}
+.badge-aguardando{background:var(--amarelo-claro);color:#854F0B}
+.pedido-acoes{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex:1;min-width:80px}
+.btn:active{transform:scale(0.97)}
+.btn-verde{background:var(--verde);color:#fff}
+.btn-principal{background:var(--cor-principal);color:#fff}
+.btn-vermelho{background:var(--vermelho-claro);color:#B91C1C;border:1px solid #FCA5A5;flex:0 0 auto;min-width:auto;width:42px}
+.btn-cinza{background:var(--cinza-claro);color:var(--texto-claro);border:1px solid var(--borda)}
+.empty{text-align:center;padding:40px 20px;color:var(--cinza);font-size:13px}
+.empty-icon{font-size:42px;margin-bottom:10px;opacity:0.5}
+.fab{position:fixed;bottom:18px;left:12px;right:12px;max-width:656px;margin:0 auto;background:var(--cor-principal);color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,0.18);z-index:30;display:flex;align-items:center;justify-content:center;gap:8px}
+.fab:active{transform:scale(0.98)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;z-index:100}
+.modal-overlay.ativo{display:flex}
+.modal{background:#fff;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px;animation:slideUp 0.25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-titulo{font-size:18px;font-weight:800;margin-bottom:14px;color:var(--texto)}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-size:12px;font-weight:700;color:var(--texto-claro);margin-bottom:5px}
+.campo input,.campo textarea,.campo select{width:100%;padding:11px 12px;border:1px solid var(--borda);border-radius:9px;font-size:14px;font-family:inherit;background:#fff;color:var(--texto)}
+.campo input:focus,.campo textarea:focus,.campo select:focus{outline:none;border-color:var(--cor-principal)}
+.campo textarea{resize:vertical;min-height:60px}
+.modal-acoes{display:flex;gap:8px;margin-top:14px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--texto);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.ativo{opacity:1}
+.paleta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.bola-cor{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid #fff;box-shadow:0 0 0 1px var(--borda);transition:transform 0.15s}
+.bola-cor.selecionada{border-color:#000}
+.bola-cor:active{transform:scale(0.9)}
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+<div class="topbar-row">
+<div class="topbar-icon" id="loja-logo">🏪</div>
+<div style="flex:1;min-width:0">
+<div class="topbar-nome" id="loja-nome" onclick="abrirConfig()">Pet Shop Patinhas</div>
+<div class="topbar-sub" id="loja-status">Plano Básico</div>
+<div class="topbar-slogan" id="loja-slogan" style="display:none"></div>
+</div>
+<div class="topbar-acoes">
+<button class="icon-btn" onclick="abrirConfig()" title="Configurações">⚙️</button>
+</div>
+</div>
+</div>
+<div class="tabs">
+<button class="tab ativa" data-tab="pedidos" onclick="trocarTab('pedidos')">📦 Pedidos</button>
+<button class="tab" data-tab="motoboys" onclick="trocarTab('motoboys')">🛵 Motoboys</button>
+<button class="tab" data-tab="historico" onclick="trocarTab('historico')">📁 Histórico</button>
+</div>
+<div class="container">
+<div id="tab-pedidos" class="tab-conteudo">
+<div class="stats">
+<div class="stat"><div class="stat-num" id="st-total">0</div><div class="stat-label">Hoje</div></div>
+<div class="stat"><div class="stat-num amarelo" id="st-aguardando">0</div><div class="stat-label">Aguardando</div></div>
+<div class="stat"><div class="stat-num principal" id="st-caminho">0</div><div class="stat-label">A caminho</div></div>
+<div class="stat"><div class="stat-num verde" id="st-entregue">0</div><div class="stat-label">Entregues</div></div>
+</div>
+<div class="sec-titulo">Pedidos de hoje</div>
+<div id="lista-pedidos"></div>
+</div>
+<div id="tab-motoboys" class="tab-conteudo" style="display:none"><div class="sec-titulo">Motoboys vinculados</div><div id="lista-motoboys"></div></div>
+<div id="tab-historico" class="tab-conteudo" style="display:none"><div class="sec-titulo">Pedidos anteriores</div><div id="lista-historico"></div></div>
+</div>
+<button class="fab" onclick="abrirNovoPedido()">+ Cadastrar novo pedido</button>
+<div class="modal-overlay" id="modal-pedido"><div class="modal">
+<div class="modal-titulo">Novo pedido</div>
+<div class="campo"><label>Cliente *</label><input type="text" id="p-cliente" placeholder="Nome do cliente" /></div>
+<div class="campo"><label>Endereço *</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro" /></div>
+<div class="campo"><label>Itens / descrição</label><textarea id="p-itens" placeholder="Ex: 1 saco ração 15kg"></textarea></div>
+<div class="campo"><label>Valor (R$)</label><input type="text" id="p-valor" placeholder="Ex: 10,00" inputmode="decimal" /></div>
+<div class="campo"><label>Observação ao motoboy</label><input type="text" id="p-obs" placeholder="Ex: portaria nos fundos" /></div>
+<div class="modal-acoes"><button class="btn btn-cinza" onclick="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-principal" onclick="salvarPedido()">💾 Salvar</button></div>
+</div></div>
+<div class="modal-overlay" id="modal-config"><div class="modal">
+<div class="modal-titulo">⚙️ Configurações</div>
+<div class="sec-titulo" style="margin:4px 0 8px;color:var(--cor-principal)">📋 Dados básicos</div>
+<div class="campo"><label>Nome do comércio</label><input type="text" id="c-nome" /></div>
+<div class="campo"><label>Endereço</label><input type="text" id="c-endereco" placeholder="Rua, número, bairro" /></div>
+<div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="c-telefone" placeholder="(00) 00000-0000" /></div>
+<div class="campo"><label>Plano</label><select id="c-plano"><option value="basico">Básico (R$ 29/mês)</option><option value="intermediario">Intermediário (R$ 49/mês)</option><option value="empresarial">Empresarial (R$ 99/mês)</option></select></div>
+<div class="sec-titulo" style="margin:18px 0 8px;color:var(--cor-principal)">🎨 Personalização visual</div>
+<div class="campo"><label>Slogan (opcional)</label><input type="text" id="c-slogan" placeholder="Ex: Tudo pro seu pet" maxlength="80" /></div>
+<div class="campo"><label>Cor principal</label><div id="paleta-cores" class="paleta"></div><input type="color" id="c-cor" style="margin-top:8px;width:60px;height:36px;padding:0;cursor:pointer" /></div>
+<div class="campo"><label>Logo</label>
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><div id="logo-preview" style="width:54px;height:54px;border-radius:12px;background:var(--cor-principal);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;overflow:hidden;border:1px solid var(--borda)">🏪</div><div style="flex:1;font-size:11px;color:var(--cinza);line-height:1.4">Emoji ou imagem (PNG/JPG)</div></div>
+<input type="text" id="c-logo-emoji" placeholder="Cole um emoji ex: 🍕" maxlength="4" style="margin-bottom:8px" />
+<input type="file" id="c-logo-arquivo" accept="image/*" />
+<button class="btn btn-cinza" onclick="removerLogo()" style="margin-top:8px;flex:0 0 auto">🗑 Remover</button>
+</div>
+<div class="campo"><label>Foto de fundo</label>
+<div id="bg-preview" style="width:100%;height:90px;border-radius:10px;background:var(--cinza-claro);background-size:cover;background-position:center;margin-bottom:8px;border:1px solid var(--borda);display:flex;align-items:center;justify-content:center;color:var(--cinza);font-size:12px">Sem foto</div>
+<input type="file" id="c-bg-arquivo" accept="image/*" />
+<div style="display:flex;gap:8px;margin-top:8px">
+<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--texto-claro);font-weight:600;cursor:pointer"><input type="radio" name="bg-modo" value="banner" /> Banner topo</label>
+<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--texto-claro);font-weight:600;cursor:pointer"><input type="radio" name="bg-modo" value="pagina" /> Fundo página</label>
+</div>
+<button class="btn btn-cinza" onclick="removerBg()" style="margin-top:8px;flex:0 0 auto">🗑 Remover</button>
+</div>
+<div class="modal-acoes"><button class="btn btn-cinza" onclick="fecharModal('modal-config')">Fechar</button><button class="btn btn-principal" onclick="salvarConfig()">💾 Salvar</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script src="loja.js"></script>
+</body>
+</html>
