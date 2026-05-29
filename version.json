@@ -1,5 +1,6 @@
 {
-  "version": "1.0.29",
-  "released_at": "2026-05-27",
-  "notes": "OCR Gemini 2.0 + fix reset scans"
+  "version": "1.0.9",
+  "released_at": "2026-05-29",
+  "notes": "Cache podado para nao acumular MB - so service-worker mudou, index.html intacto.",
+  "min_supported": "1.0.0"
 }
