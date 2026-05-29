@@ -1,6 +1,6 @@
 {
-  "version": "1.0.9",
+  "version": "1.0.30",
   "released_at": "2026-05-29",
-  "notes": "Cache podado para nao acumular MB - so service-worker mudou, index.html intacto.",
+  "notes": "Cache podado no service-worker - sem mudanca de funcionalidade.",
   "min_supported": "1.0.0"
 }
