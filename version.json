@@ -1,6 +1,6 @@
 {
-  "version": "1.0.30",
+  "version": "1.0.29",
   "released_at": "2026-05-29",
-  "notes": "Cache podado no service-worker - sem mudanca de funcionalidade.",
+  "notes": "Estavel.",
   "min_supported": "1.0.0"
 }
