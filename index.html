@@ -1,12 +1,4 @@
 <!DOCTYPE html>
-<!--
-  EntregaLog - Rotas inteligentes para entregadores
-  (c) 2026 Adilson Daniel de Almeida - Todos os direitos reservados
-  contato: adilsonlider04@gmail.com
-  build-id: EL-ADA-2026-3F395D9FAEA1FC7E
-  Este software e protegido por lei. Reproducao, copia ou redistribuicao
-  nao autorizada e crime previsto pela Lei 9.610/98 (Direito Autoral).
--->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
@@ -22,7 +14,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 body{background:#0f0f0f;}
 body.dark #shell{background:#111;}
 body.dark #topbar,body.dark #nav{background:#1a1a1a;border-color:#333;}
@@ -56,7 +48,7 @@ body.dark #login-screen h2{color:#eee;}
 #login-screen p{font-size:13px;color:#888;margin-bottom:24px;text-align:center;}
 #login-form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;}
 
-#shell{max-width:430px;margin:0 auto;background:#fff;height:100%;display:flex;flex-direction:column;overflow:hidden;}
+#shell{max-width:430px;margin:0 auto;background:#fff;min-height:100vh;display:flex;flex-direction:column;}
 #topbar{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;background:#fff;}
 #app-title{font-size:17px;font-weight:700;color:#F97316;}
 #app-sub{font-size:10px;color:#aaa;}
@@ -69,12 +61,11 @@ body.dark #login-screen h2{color:#eee;}
 .ntab{flex-shrink:0;padding:9px 10px;font-size:10px;text-align:center;cursor:pointer;color:#aaa;border:none;background:none;border-bottom:2px solid transparent;font-family:inherit;white-space:nowrap;}
 .ntab.active{color:#F97316;border-bottom-color:#F97316;font-weight:600;}
 
-.screen{display:none;flex:1;min-height:0;overflow-y:auto;}.screen.active{display:block;flex:1;min-height:0;}
-#screen-mapa.active{display:flex;flex-direction:column;overflow:hidden;}
+.screen{display:none;flex:1;overflow-y:auto;}.screen.active{display:block;}
 
 /* MAPA */
-#mapwrap{position:relative;flex:1;min-height:0;}
-#leafmap{width:100%;height:100%;position:absolute;inset:0;}
+#mapwrap{position:relative;height:calc(100vh - 180px);min-height:300px;}
+#leafmap{width:100%;height:100%;}
 #gps-info{position:absolute;bottom:8px;left:8px;right:8px;z-index:1000;display:flex;justify-content:space-between;pointer-events:none;}
 #gps-coords{background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:4px 8px;border-radius:8px;font-family:monospace;}
 #km-badge{background:#F97316;color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:none;}
@@ -103,8 +94,8 @@ body.dark .mabtn{background:#222;color:#eee;border-color:#444;}
 .e-num.known{background:#DCFCE7;color:#166534;}
 .e-num.done{background:#D1FAE5;color:#059669;}
 .entrega-info{flex:1;}
-.entrega-nome{font-size:17px;font-weight:700;color:#111;}
-.entrega-addr{font-size:13px;color:#888;margin-top:3px;}
+.entrega-nome{font-size:13px;font-weight:600;color:#111;}
+.entrega-addr{font-size:11px;color:#888;margin-top:1px;}
 .e-status{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;}
 .e-status.conhecido{background:#DCFCE7;color:#166534;}
 .e-status.novo{background:#FEF9C3;color:#854D0E;}
@@ -112,8 +103,6 @@ body.dark .mabtn{background:#222;color:#eee;border-color:#444;}
 .e-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:2px;}
 #rota-btn{background:linear-gradient(135deg,#F97316,#EA580C);color:#fff;border:none;border-radius:14px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:none;}
 #rota-btn.show{display:block;}
-#finalizar-btn{display:none;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:14px;padding:16px;width:100%;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:12px;box-shadow:0 4px 16px rgba(5,150,105,0.4);}
-#finalizar-btn.show{display:block;}
 
 /* REGISTRAR */
 #reg-wrap{padding:14px 16px;}
@@ -128,8 +117,8 @@ textarea.mi{height:72px;resize:none;line-height:1.5;}
 /* HISTORICO */
 #hist-wrap{padding:14px 16px;}
 .hist-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:8px;}
-.hist-nome{font-size:17px;font-weight:700;color:#111;}
-.hist-addr{font-size:13px;color:#888;margin-top:3px;}
+.hist-nome{font-size:13px;font-weight:700;color:#111;}
+.hist-addr{font-size:11px;color:#888;margin-top:2px;}
 .hist-nota{font-size:11px;color:#666;margin-top:6px;padding:6px 10px;background:#FFF7ED;border-left:2px solid #F97316;border-radius:0 8px 8px 0;}
 .hist-photo{width:100%;max-height:100px;object-fit:cover;border-radius:8px;margin-top:7px;}
 .hist-meta{font-size:10px;color:#aaa;margin-top:4px;}
@@ -259,86 +248,6 @@ body.dark #premium-sheet{background:#1a1a1a;}
 .btn-fechar-prem{background:none;border:none;color:var(--color-text-secondary);font-size:13px;cursor:pointer;width:100%;font-family:inherit;}
 .prem-preco{font-size:28px;font-weight:800;color:#F97316;text-align:center;margin-bottom:4px;}
 .prem-sub{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:16px;}
-.btn-video-ad{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:12px;padding:13px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
-.btn-video-ad:disabled{opacity:0.5;cursor:not-allowed;}
-.prem-divider{display:flex;align-items:center;gap:8px;margin:4px 0 10px;color:var(--color-text-secondary);font-size:11px;}
-.prem-divider::before,.prem-divider::after{content:'';flex:1;height:1px;background:#eee;}
-body.dark .prem-divider::before,body.dark .prem-divider::after{background:#333;}
-
-/* MODAL VIDEO AD */
-#modal-video-ad{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:6000;align-items:center;justify-content:center;}
-#modal-video-ad.open{display:flex;}
-#video-ad-sheet{background:#111;border-radius:20px;padding:28px 20px 24px;width:90%;max-width:380px;text-align:center;}
-#video-ad-tela{width:100%;height:160px;background:#000;border-radius:12px;margin-bottom:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #333;overflow:hidden;position:relative;}
-#video-ad-emoji{font-size:48px;margin-bottom:8px;}
-#video-ad-marca{font-size:13px;color:#aaa;}
-#video-ad-timer-bar{position:absolute;bottom:0;left:0;height:4px;background:#F97316;transition:width 1s linear;width:0;}
-#video-ad-titulo{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px;}
-#video-ad-sub{font-size:12px;color:#888;margin-bottom:20px;}
-#video-ad-countdown{font-size:13px;color:#aaa;margin-bottom:16px;}
-#video-ad-fechar{background:#F97316;color:#fff;border:none;border-radius:12px;padding:13px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:none;}
-
-/* BANNER AD */
-#ad-banner{display:none;background:#f9f9f9;border-bottom:1px solid #eee;padding:6px 12px;text-align:center;font-size:11px;color:#aaa;min-height:52px;align-items:center;justify-content:center;}
-#ad-banner.show{display:flex;}
-body.dark #ad-banner{background:#1a1a1a;border-color:#333;}
-.ad-inner{width:100%;max-width:400px;background:#f0f0f0;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;}
-body.dark .ad-inner{background:#2a2a2a;}
-.ad-label{font-size:9px;color:#bbb;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0;}
-.ad-content{flex:1;font-size:12px;color:#666;text-align:left;}
-body.dark .ad-content{color:#888;}
-
-/* TAREFAS */
-#tarefas-strip{background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border:1px solid #FED7AA;border-radius:14px;padding:10px 14px;margin-bottom:14px;cursor:pointer;}
-body.dark #tarefas-strip{background:linear-gradient(135deg,#1a1200,#1a1800);border-color:#5a3e00;}
-.tarefas-strip-title{font-size:12px;font-weight:700;color:#9A3412;display:flex;align-items:center;justify-content:space-between;}
-body.dark .tarefas-strip-title{color:#FCD34D;}
-.tarefas-strip-sub{font-size:11px;color:#C2410C;margin-top:2px;}
-body.dark .tarefas-strip-sub{color:#F97316;}
-.tarefas-prog{display:flex;gap:4px;margin-top:8px;}
-.tarefas-dot{width:10px;height:10px;border-radius:50%;background:#FED7AA;}
-body.dark .tarefas-dot{background:#5a3e00;}
-.tarefas-dot.done{background:#F97316;}
-
-#modal-tarefas{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5001;align-items:flex-end;justify-content:center;}
-#modal-tarefas.open{display:flex;}
-#modal-nav-choice{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5100;align-items:flex-end;justify-content:center;}
-#modal-nav-choice.open{display:flex;}
-#nav-choice-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;}
-body.dark #nav-choice-sheet{background:#1a1a1a;}
-#nav-choice-sheet h3{font-size:16px;font-weight:800;color:#111;margin-bottom:4px;text-align:center;}
-body.dark #nav-choice-sheet h3{color:#eee;}
-#nav-choice-sheet .nc-sub{font-size:12px;color:#888;text-align:center;margin-bottom:18px;}
-.nc-btn{width:100%;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px;font-family:inherit;}
-.nc-btn-interno{background:#F97316;color:#fff;}
-.nc-btn-gmaps{background:#fff;color:#222;border:2px solid #ddd;}
-body.dark .nc-btn-gmaps{background:#2a2a2a;color:#eee;border-color:#444;}
-.nc-btn span.nc-icon{font-size:24px;}
-.nc-btn div{text-align:left;}
-.nc-btn .nc-label{font-size:14px;font-weight:700;}
-.nc-btn .nc-desc{font-size:11px;font-weight:400;opacity:0.75;margin-top:1px;}
-.nc-lembrar{display:flex;align-items:center;gap:8px;font-size:12px;color:#888;margin:4px 0 14px;cursor:pointer;}
-.nc-lembrar input{width:16px;height:16px;cursor:pointer;}
-.nc-fechar{background:none;border:none;color:#aaa;font-size:13px;width:100%;text-align:center;padding:8px;cursor:pointer;font-family:inherit;}
-#tarefas-sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:430px;max-height:85vh;overflow-y:auto;}
-body.dark #tarefas-sheet{background:#1a1a1a;}
-#tarefas-sheet h3{font-size:17px;font-weight:800;color:#111;margin-bottom:4px;}
-body.dark #tarefas-sheet h3{color:#eee;}
-#tarefas-sheet .ts-sub{font-size:12px;color:#888;margin-bottom:16px;}
-.task-item{background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
-body.dark .task-item{background:#222;border-color:#333;}
-.task-item.done{background:#F0FDF4;border-color:#BBF7D0;}
-body.dark .task-item.done{background:#052e16;border-color:#166534;}
-.task-emoji{font-size:22px;flex-shrink:0;}
-.task-info{flex:1;}
-.task-titulo{font-size:13px;font-weight:600;color:#111;}
-body.dark .task-titulo{color:#eee;}
-.task-item.done .task-titulo{color:#166534;text-decoration:line-through;}
-body.dark .task-item.done .task-titulo{color:#4ade80;}
-.task-bonus{font-size:11px;color:#F97316;font-weight:700;margin-top:2px;}
-.task-item.done .task-bonus{color:#059669;}
-.task-action{background:#F97316;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
-.task-check{font-size:22px;}
 
 #btn-loc-atual{position:fixed;bottom:175px;right:12px;z-index:9999;width:52px;height:52px;border-radius:50%;background:#fff;border:3px solid #F97316;color:#F97316;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(249,115,22,0.4);}
 body.dark #btn-loc-atual{background:#1a1a1a;border-color:#F97316;}
@@ -431,9 +340,10 @@ body.dark #onb-text{color:#bbb;}
 <div id="login-screen">
   <div style="font-size:48px;margin-bottom:12px;">📦</div>
   <h2>Bem-vindo!</h2>
-  <p>Entre com seu e-mail ou número de celular para salvar seu histórico</p>
+  <p>Crie sua conta gratuita para salvar seu histórico em qualquer celular</p>
   <div id="login-form">
-    <input class="mi" id="login-id" placeholder="E-mail ou celular com DDD"/>
+    <input class="mi" id="login-nome" placeholder="Seu nome completo"/>
+    <input class="mi" id="login-whats" type="tel" placeholder="WhatsApp com DDD"/>
     <button class="add-btn" onclick="fazerLogin()">Entrar / Criar conta</button>
   </div>
 </div>
@@ -453,14 +363,6 @@ body.dark #onb-text{color:#bbb;}
       <div id="status-badge">0 entregas</div>
     </div>
   </div>
-  <!-- BANNER AD (apenas para free) -->
-  <div id="ad-banner">
-    <div class="ad-inner">
-      <span class="ad-label">Anúncio</span>
-      <span class="ad-content" id="ad-text">Organize suas entregas e ganhe mais — EntregaLog Premium</span>
-    </div>
-  </div>
-
   <div id="nav">
     <button class="ntab active" onclick="showTab('mapa')">🗺 Rota</button>
     <button class="ntab" onclick="showTab('entregas')">📋 Entregas</button>
@@ -505,20 +407,6 @@ body.dark #onb-text{color:#bbb;}
   <!-- ENTREGAS -->
   <div id="screen-entregas" class="screen">
     <div id="entregas-wrap">
-      <!-- STRIP DE TAREFAS -->
-      <div id="tarefas-strip" onclick="abrirTarefas()">
-        <div class="tarefas-strip-title">
-          <span>🎯 Tarefas do dia — ganhe OCR de bônus</span>
-          <span id="tarefas-badge" style="background:#F97316;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;">0/4</span>
-        </div>
-        <div class="tarefas-strip-sub" id="tarefas-strip-sub">Complete tarefas e ganhe scans extras hoje</div>
-        <div class="tarefas-prog" id="tarefas-prog">
-          <div class="tarefas-dot"></div>
-          <div class="tarefas-dot"></div>
-          <div class="tarefas-dot"></div>
-          <div class="tarefas-dot"></div>
-        </div>
-      </div>
       <div class="sec-title">Adicionar entregas do dia</div>
       <div id="input-area">
         <button id="ocr-btn" onclick="verificarEAbrirOCR()" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
@@ -541,7 +429,6 @@ body.dark #onb-text{color:#bbb;}
       <div class="sec-title">Lista de hoje</div>
       <div id="lista-entregas"><div style="text-align:center;padding:20px;font-size:13px;color:#aaa;">Nenhuma entrega adicionada.</div></div>
       <button id="rota-btn" onclick="gerarRota()">🗺 Gerar rota otimizada</button>
-      <button id="finalizar-btn" onclick="finalizarEntregas()">🏁 Finalizar dia — limpar lista</button>
     </div>
   </div>
 
@@ -630,7 +517,6 @@ body.dark #onb-text{color:#bbb;}
 <script>
 const SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
-const ANTHROPIC_KEY='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';
 
 // ===== Helper Supabase com surfacing de erros =====
 function _toastErro(msg){
@@ -666,9 +552,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.29';
-const _buildSig='EL-ADA-2026-3F395D9FAEA1FC7E';
-const _buildOwner='ADL/'+atob('YWRpbHNvbmxpZGVyMDRAZ21haWwuY29t');
+const APP_VERSION='1.0.7';
 const OSRM_URL='https://router.project-osrm.org';
 const VERSION_URL='https://adilson161618.github.io/entrega-log/version.json';
 
@@ -676,19 +560,41 @@ var map=null,marker=null,rotaLine=null,watchId=null;
 var rotaCoords=[],distTotal=0,lastPos=null;
 var entregas=[],currentPos=null,usuarioAtual=null,photoData=null;
 var paradaTimer=0,paradaPos=null,paradaRef=null,paradaFotoBase64=null;
+// PERF v1.0.8: limites pra nao travar em celular fraco
+var MAX_ROTA_PONTOS=300;
+var markersExtraLayer=null,polylinesExtras=[];
+function addMarkerExtra(latlon,opts){if(!map||typeof L==='undefined')return null;if(!markersExtraLayer)markersExtraLayer=L.layerGroup().addTo(map);var m=L.marker(latlon,opts).addTo(markersExtraLayer);return m;}
+function addPolylineExtra(coords,opts){if(!map||typeof L==='undefined')return null;var p=L.polyline(coords,opts).addTo(map);polylinesExtras.push(p);return p;}
+function limparMapaExtra(){if(markersExtraLayer)markersExtraLayer.clearLayers();polylinesExtras.forEach(function(p){try{map.removeLayer(p);}catch(e){}});polylinesExtras=[];}
 function previewFotoParada(ev){
   try{
     var f=ev.target.files&&ev.target.files[0];
     if(!f) return;
+    // PERF v1.0.8: comprime a foto pra nao estourar localStorage em celular fraco
     var r=new FileReader();
     r.onload=function(e){
-      _comprimirFoto(e.target.result,function(compressed){
-        paradaFotoBase64=compressed;
-        var img=document.getElementById('parada-foto-preview');
-        if(img){img.src=paradaFotoBase64;img.style.display='block';}
+      var raw=e.target.result;
+      var img=new Image();
+      img.onload=function(){
+        var maxW=800;
+        var w=img.width,h=img.height;
+        if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+        var cv=document.createElement('canvas');
+        cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        paradaFotoBase64=cv.toDataURL('image/jpeg',0.72);
+        var pv=document.getElementById('parada-foto-preview');
+        if(pv){pv.src=paradaFotoBase64;pv.style.display='block';}
         var st=document.getElementById('parada-foto-status');
         if(st) st.textContent='Foto pronta';
-      });
+      };
+      img.onerror=function(){
+        // fallback: usa raw mesmo
+        paradaFotoBase64=raw;
+        var pv=document.getElementById('parada-foto-preview');
+        if(pv){pv.src=raw;pv.style.display='block';}
+      };
+      img.src=raw;
     };
     r.readAsDataURL(f);
   }catch(e){console.error('previewFotoParada erro:',e);}
@@ -731,18 +637,15 @@ function showUserBadge(){
   b.style.display='block';
 }
 async function fazerLogin(){
-  var raw=document.getElementById('login-id').value.trim();
-  if(!raw)return alert('Digite seu e-mail ou celular.');
-  var isEmail=raw.indexOf('@')>-1;
-  var isPhone=/^[\d\s\(\)\-\+]+$/.test(raw)&&raw.replace(/\D/g,'').length>=10;
-  if(!isEmail&&!isPhone)return alert('Digite um e-mail válido ou celular com DDD (ex: 11999998888).');
-  var identificador=isPhone?raw.replace(/\D/g,''):raw.toLowerCase();
-  var nomeDisplay=isEmail?raw.split('@')[0]:identificador;
-  usuarioAtual={nome:nomeDisplay,identificador:identificador};
+  var nome=document.getElementById('login-nome').value.trim();
+  var whats=document.getElementById('login-whats').value.trim().replace(/\D/g,'');
+  if(!nome)return alert('Digite seu nome.');
+  if(whats.length<10)return alert('Digite seu WhatsApp com DDD.');
+  usuarioAtual={nome:nome,whatsapp:whats};
   try{localStorage.setItem('el_user',JSON.stringify(usuarioAtual));}catch(e){}
   // Salva no Supabase
   try{
-    await fetch(SB_URL+'/rest/v1/usuarios',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:nomeDisplay,whatsapp:isPhone?identificador:null})});
+    await fetch(SB_URL+'/rest/v1/usuarios',{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},body:JSON.stringify({nome:nome,whatsapp:whats})});
   }catch(e){}
   document.getElementById('login-screen').classList.remove('show');
   showUserBadge();
@@ -797,7 +700,6 @@ function criarMapa(lat,lon){
   }
   map=L.map('leafmap',{zoomControl:true,attributionControl:true}).setView([lat,lon],15);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-  setTimeout(function(){map.invalidateSize();},200);
   var icone=L.divIcon({html:'<div style="width:16px;height:16px;background:#F97316;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(249,115,22,0.3);"></div>',iconSize:[16,16],iconAnchor:[8,8],className:''});
   marker=L.marker([lat,lon],{icon:icone,zIndexOffset:1000}).addTo(map);
   rotaLine=L.polyline([],{color:'#F97316',weight:5,opacity:0.9}).addTo(map);
@@ -818,8 +720,9 @@ function startGPS(){
       map.setView([la,lo],map.getZoom());
       // Atualiza coords
       document.getElementById('gps-coords').textContent=la.toFixed(5)+' '+lo.toFixed(5);
-      // Adiciona à rota
+      // Adiciona à rota (PERF v1.0.8: limita a MAX_ROTA_PONTOS pontos)
       rotaCoords.push([la,lo]);
+      if(rotaCoords.length>MAX_ROTA_PONTOS) rotaCoords=rotaCoords.slice(-MAX_ROTA_PONTOS);
       rotaLine.setLatLngs(rotaCoords);
       // Calcula distância
       if(lastPos){
@@ -979,13 +882,14 @@ async function confirmarParada(){
     L.marker([paradaRef.lat,paradaRef.lon],{icon:ic}).addTo(map).bindPopup('<b>'+paradaRef.nome+'</b>'+(nota?'<br/>'+nota:''));
   }
   notificarContribuicao();
-  try{completarTarefa('registrar1');}catch(e){}
   fecharModalParada();
   alert(syncOk?'✅ Ponto registrado e salvo no banco colaborativo!':'⚠ Salvo localmente. Nao consegui enviar pro banco - veja o aviso vermelho.');
 }
 
 // ===== TABS =====
 function showTab(t){
+  // PERF v1.0.8: ao sair de mapa, limpa markers acumulados pra liberar memoria
+  if(t!=='mapa') limparMapaExtra();
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.querySelectorAll('.ntab').forEach(function(b){b.classList.remove('active');});
   var sc=document.getElementById('screen-'+t);
@@ -1072,18 +976,9 @@ async function geocode(q){
 function renderLista(){
   var el=document.getElementById('lista-entregas');
   var btn=document.getElementById('rota-btn');
-  var finBtn=document.getElementById('finalizar-btn');
-  var pendentes=entregas.filter(function(e){return!e.entregue;}).length;
-  document.getElementById('status-badge').textContent=pendentes+' entregas';
-  if(!entregas.length){
-    el.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#aaa;">Nenhuma entrega adicionada.</div>';
-    btn.className='rota-btn';
-    if(finBtn) finBtn.className='finalizar-btn';
-    return;
-  }
-  var todasEntregues=pendentes===0;
-  btn.className=todasEntregues?'rota-btn':'rota-btn show';
-  if(finBtn) finBtn.className=todasEntregues?'finalizar-btn show':'finalizar-btn';
+  document.getElementById('status-badge').textContent=entregas.filter(function(e){return!e.entregue;}).length+' entregas';
+  if(!entregas.length){el.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:#aaa;">Nenhuma entrega adicionada.</div>';btn.className='rota-btn';return;}
+  btn.className='rota-btn show';
   el.innerHTML='';
   entregas.forEach(function(e,i){
     var nc=e.entregue?'done':e.conhecido?'known':'';
@@ -1098,38 +993,6 @@ function renderLista(){
       +'<button class="e-btn" onclick="delEntrega('+i+')" style="color:#ddd">✕</button>';
     el.appendChild(card);
   });
-  // Banner de conclusão quando todas entregues
-  if(todasEntregues && entregas.length>0){
-    var banner=document.createElement('div');
-    banner.style.cssText='background:linear-gradient(135deg,#F0FDF4,#DCFCE7);border:1px solid #86EFAC;border-radius:14px;padding:16px;text-align:center;margin-bottom:8px;';
-    banner.innerHTML='<div style="font-size:32px;margin-bottom:6px;">🏆</div>'
-      +'<div style="font-size:15px;font-weight:800;color:#166534;">Todas as entregas concluídas!</div>'
-      +'<div style="font-size:12px;color:#4ADE80;margin-top:4px;">'+entregas.length+' entrega(s) — ótimo trabalho!</div>';
-    el.insertBefore(banner, el.firstChild);
-  }
-}
-
-function finalizarEntregas(){
-  var total=entregas.length;
-  if(!confirm('Finalizar o dia?\n\n'+total+' entrega(s) serão arquivadas e a lista será limpa para um novo dia.')) return;
-  // Salva resumo da sessão
-  try{
-    var rotas=JSON.parse(localStorage.getItem('el_rotas')||'[]');
-    rotas.unshift({
-      data: new Date().toLocaleString('pt-BR'),
-      total: total,
-      entregas: entregas.map(function(e){return{nome:e.nome,addr:e.addr};})
-    });
-    if(rotas.length>30) rotas=rotas.slice(0,30);
-    localStorage.setItem('el_rotas',JSON.stringify(rotas));
-  }catch(e){}
-  // Limpa lista
-  entregas=[];
-  renderLista();
-  atualizarBotaoTrajeto();
-  if(map) map.eachLayer(function(l){if(l._icon||l._path) try{map.removeLayer(l);}catch(e){} });
-  showTab('relatorio');
-  _toastTarefa('🏁 Dia finalizado! '+total+' entrega(s) salva(s) no histórico.');
 }
 function delEntrega(i){entregas.splice(i,1);renderLista();}
 function editEntrega(i){
@@ -1161,7 +1024,6 @@ async function gerarRota(){
   renderLista();
   showTab('mapa');
   atualizarBotaoTrajeto();
-  try{completarTarefa('gerar_rota');}catch(e){}
   setTimeout(function(){
     if(map){
       var pts=entregas.filter(function(e){return e.lat&&e.lon;});
@@ -1229,7 +1091,6 @@ function marcarEntregue(){
   verificarMomentFeedback();
   renderLista();
   proximaEntrega();
-  try{checarTarefasAuto();}catch(e){}
 }
 
 var searchMarker=null;
@@ -1526,45 +1387,11 @@ async function abrirNavegacao(){
   if(b) b.style.display='none';
   var e=entregas.find(function(x){return!x.entregue;});
   if(!e){alert('Nenhuma entrega pendente.');return;}
-  if(!e.lat&&!e.lon){
-    // Sem coordenadas — abre Google Maps direto
+  if(!e.lat||!e.lon){
+    // Sem coordenadas — abre Google Maps
     window.open('https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(e.addr),'_blank');
     return;
   }
-  // Verifica preferência salva
-  var pref=localStorage.getItem('el_nav_pref');
-  if(pref==='gmaps'){_abrirGoogleMaps(e);return;}
-  if(pref==='interno'){await _abrirNavInterno(e);return;}
-  // Sem preferência: mostra modal de escolha
-  window._navChoiceEntrega=e;
-  var txt=document.getElementById('nc-destino-txt');
-  if(txt) txt.textContent='Para: '+(e.nome||e.addr||'próxima entrega');
-  var cb=document.getElementById('nc-lembrar-cb');
-  if(cb) cb.checked=false;
-  document.getElementById('modal-nav-choice').classList.add('open');
-}
-
-function _fecharNavChoice(){
-  document.getElementById('modal-nav-choice').classList.remove('open');
-  window._navChoiceEntrega=null;
-}
-
-async function _escolherNav(tipo){
-  var cb=document.getElementById('nc-lembrar-cb');
-  if(cb&&cb.checked) localStorage.setItem('el_nav_pref',tipo);
-  document.getElementById('modal-nav-choice').classList.remove('open');
-  var e=window._navChoiceEntrega;
-  if(!e) return;
-  if(tipo==='gmaps'){_abrirGoogleMaps(e);}
-  else{await _abrirNavInterno(e);}
-}
-
-function _abrirGoogleMaps(e){
-  var dest=(e.lat&&e.lon)?(e.lat+','+e.lon):encodeURIComponent(e.addr);
-  window.open('https://www.google.com/maps/dir/?api=1&destination='+dest,'_blank');
-}
-
-async function _abrirNavInterno(e){
   navDestino=e;
   navAtivo=true;
   _vozUltimoMarco=null;
@@ -1660,34 +1487,14 @@ function cancelarNavegacao(){
   atualizarBotaoTrajeto();
 }
 
-// ===== COMPRESSOR DE FOTO (evita estouro do localStorage) =====
-function _comprimirFoto(dataUrl,cb){
-  try{
-    var img=new Image();
-    img.onload=function(){
-      var maxW=600,maxH=600,w=img.width,h=img.height;
-      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
-      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
-      var canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      cb(canvas.toDataURL('image/jpeg',0.5));
-    };
-    img.onerror=function(){cb(dataUrl);};
-    img.src=dataUrl;
-  }catch(e){cb(dataUrl);}
-}
-
 // ===== REGISTRAR =====
 function handlePhoto(ev){
   var file=ev.target.files[0];if(!file)return;
   var r=new FileReader();
   r.onload=function(e){
-    _comprimirFoto(e.target.result,function(compressed){
-      photoData=compressed;
-      var img=document.getElementById('photo-prev');img.src=photoData;img.style.display='block';
-      document.getElementById('photo-area').style.display='none';
-    });
+    photoData=e.target.result;
+    var img=document.getElementById('photo-prev');img.src=photoData;img.style.display='block';
+    document.getElementById('photo-area').style.display='none';
   };r.readAsDataURL(file);
 }
 async function salvarRegistro(){
@@ -1704,7 +1511,6 @@ async function salvarRegistro(){
   try{await salvarSupabaseSafe('enderecos',{nome:nome,addr:end,nota:nota,lat:reg.lat,lon:reg.lon,registrado_por:usr});}catch(e){}
   document.getElementById('reg-nome').value='';document.getElementById('reg-end').value='';document.getElementById('reg-nota').value='';
   photoData=null;document.getElementById('photo-prev').style.display='none';document.getElementById('photo-area').style.display='block';document.getElementById('ph-input').value='';
-  try{completarTarefa('registrar1');}catch(e){}
   alert(_res==='atualizado'?'✅ Esse endereço já existia — atualizei o registro em vez de criar um duplicado.':'✅ Registrado! Outros entregadores vão ver essa dica.');
 }
 
@@ -1790,19 +1596,20 @@ function renderHistorico(){
         showTab('mapa');
         setTimeout(function(){
           if(map&&typeof L!=='undefined'){
+            limparMapaExtra(); // PERF v1.0.8
             map.setView([r.lat,r.lon],17);
             // Inicia navegacao interna
             navegandoPara=nova;
             destLat=r.lat;destLon=r.lon;
             var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#1D9E75;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
-            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+            addMarkerExtra([r.lat,r.lon],{icon:ic}).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
             // Desenha rota pelas ruas (OSRM) — fallback linha reta tracejada
             if(currentPos){
               obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon).then(function(rota){
                 var coords; var dashOpt={};
                 if(rota&&rota.coords.length>1){ coords=rota.coords; }
                 else { coords=[[currentPos.lat,currentPos.lon],[r.lat,r.lon]]; dashOpt={dashArray:'8,6'}; }
-                L.polyline(coords,Object.assign({color:'#1D9E75',weight:4,opacity:0.9},dashOpt)).addTo(map);
+                addPolylineExtra(coords,Object.assign({color:'#1D9E75',weight:4,opacity:0.9},dashOpt));
                 try{ map.fitBounds(L.latLngBounds(coords),{padding:[60,60]}); }catch(e){}
               });
             }
@@ -1819,9 +1626,10 @@ function renderHistorico(){
         showTab('mapa');
         setTimeout(function(){
           if(map&&typeof L!=='undefined'){
+            limparMapaExtra(); // PERF v1.0.8
             map.setView([r.lat,r.lon],17);
             var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+            addMarkerExtra([r.lat,r.lon],{icon:ic}).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
           }
         },400);
       };
@@ -2103,6 +1911,7 @@ function monitorarBateria(){
               if(marker) marker.setLatLng([la,lo]);
               document.getElementById('gps-coords').textContent=la.toFixed(4)+' '+lo.toFixed(4)+' ⚡';
               rotaCoords.push([la,lo]);
+              if(rotaCoords.length>MAX_ROTA_PONTOS) rotaCoords=rotaCoords.slice(-MAX_ROTA_PONTOS);
               rotaLine.setLatLngs(rotaCoords);
               if(lastPos) distTotal+=haverDist(lastPos,{lat:la,lon:lo});
               lastPos={lat:la,lon:lo};
@@ -2515,28 +2324,13 @@ function incrementarScans(){
     data.count++;
     localStorage.setItem('el_scans',JSON.stringify(data));
   }catch(e){}
-  try{atualizarContadorOCR();}catch(e){}
-}
-
-function resetarScansHoje(){
-  try{
-    var hoje=new Date().toLocaleDateString('pt-BR');
-    localStorage.setItem('el_scans',JSON.stringify({dia:hoje,count:0}));
-    try{atualizarContadorOCR();}catch(e){}
-    alert('✅ Scans resetados! Você tem 3 scans disponíveis hoje.');
-  }catch(e){alert('Erro: '+e.message);}
 }
 
 function verificarLimiteOCR(){
   if(isPremium()) return true;
   var scans=getScansHoje();
-  var bonus=getBonusOCRHoje();
-  var limite=3+bonus;
-  if(scans>=limite){
-    var msg=bonus>0
-      ? 'Você usou todos os seus '+limite+' scans de hoje (3 base + '+bonus+' bônus). Complete tarefas amanhã para ganhar mais, ou assine o Premium para OCR ilimitado!'
-      : 'Você usou seus 3 scans gratuitos de hoje. Complete tarefas para ganhar bônus, ou assine o Premium para OCR ilimitado por R$ 9,90/mês!';
-    abrirPremium(msg);
+  if(scans>=3){
+    abrirPremium('Voce usou seus 3 scans gratuitos de hoje. No premium sao ilimitados por R$ 9,90/mes — menos que 2 entregas!');
     return false;
   }
   return true;
@@ -2545,7 +2339,6 @@ function verificarLimiteOCR(){
 function abrirPremium(msg){
   if(msg) document.getElementById('premium-msg').textContent=msg;
   document.getElementById('modal-premium').classList.add('open');
-  try{_atualizarBtnVideo();}catch(e){}
 }
 
 function fecharPremium(){
@@ -2567,109 +2360,6 @@ function indicarAmigos(){
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
-// ===== VIDEO AD (rewarded) =====
-var _videoAdTimer=null;
-var VIDEO_AD_MAX_DIA=3; // maximo de videos por dia
-
-function _getVideosHoje(){
-  try{
-    var hoje=new Date().toLocaleDateString('pt-BR');
-    var d=JSON.parse(localStorage.getItem('el_videos')||'{}');
-    if(d.dia!==hoje) return 0;
-    return d.count||0;
-  }catch(e){return 0;}
-}
-
-function _incVideosHoje(){
-  try{
-    var hoje=new Date().toLocaleDateString('pt-BR');
-    var d=JSON.parse(localStorage.getItem('el_videos')||'{}');
-    if(d.dia!==hoje) d={dia:hoje,count:0};
-    d.count++;
-    localStorage.setItem('el_videos',JSON.stringify(d));
-  }catch(e){}
-}
-
-function _atualizarBtnVideo(){
-  var btn=document.getElementById('btn-video-ad');
-  var info=document.getElementById('video-ad-info');
-  if(!btn) return;
-  var vistos=_getVideosHoje();
-  var restam=VIDEO_AD_MAX_DIA-vistos;
-  if(restam<=0){
-    btn.disabled=true;
-    btn.textContent='📺 Limite diário atingido ('+VIDEO_AD_MAX_DIA+'/dia)';
-    if(info) info.textContent='Volte amanhã para mais vídeos gratuitos';
-  } else {
-    btn.disabled=false;
-    btn.innerHTML='📺 Assistir vídeo curto — ganhar +1 scan grátis';
-    if(info) info.textContent=restam+' vídeo(s) disponível(is) hoje · '+VIDEO_AD_MAX_DIA+' por dia';
-  }
-}
-
-// Conteúdos simulados do anuncio (troque por AdMob real quando disponivel)
-var _AD_CONTEUDOS=[
-  {emoji:'🛵',marca:'Entrega rápida — anúncio'},
-  {emoji:'📦',marca:'Logística pro — anúncio'},
-  {emoji:'🗺',marca:'Rotas inteligentes — anúncio'},
-  {emoji:'💼',marca:'Organize seu trabalho — anúncio'}
-];
-
-function abrirVideoAd(){
-  if(isPremium()){fecharPremium();return;}
-  var vistos=_getVideosHoje();
-  if(vistos>=VIDEO_AD_MAX_DIA){
-    alert('Você já assistiu '+VIDEO_AD_MAX_DIA+' vídeos hoje. Volte amanhã!');
-    return;
-  }
-  fecharPremium();
-  // Sorteia conteúdo
-  var c=_AD_CONTEUDOS[Math.floor(Math.random()*_AD_CONTEUDOS.length)];
-  document.getElementById('video-ad-emoji').textContent=c.emoji;
-  document.getElementById('video-ad-marca').textContent=c.marca;
-  document.getElementById('video-ad-titulo').textContent='+1 scan OCR liberado';
-  document.getElementById('video-ad-sub').textContent='Aguarde o vídeo terminar para resgatar';
-  document.getElementById('video-ad-countdown').textContent='⏱ 15 segundos';
-  document.getElementById('video-ad-fechar').style.display='none';
-  document.getElementById('video-ad-timer-bar').style.width='0';
-  document.getElementById('modal-video-ad').classList.add('open');
-  // Animação da barra + contagem regressiva
-  var seg=15;
-  var bar=document.getElementById('video-ad-timer-bar');
-  var cnt=document.getElementById('video-ad-countdown');
-  // Dispara expansão da barra
-  setTimeout(function(){bar.style.width='100%';},50);
-  _videoAdTimer=setInterval(function(){
-    seg--;
-    if(seg>0){
-      cnt.textContent='⏱ '+seg+' segundo'+(seg!==1?'s':'');
-    } else {
-      clearInterval(_videoAdTimer);
-      cnt.textContent='✅ Pronto!';
-      document.getElementById('video-ad-fechar').style.display='block';
-      document.getElementById('video-ad-sub').textContent='Vídeo concluído — clique para resgatar';
-    }
-  },1000);
-}
-
-function concluirVideoAd(){
-  clearInterval(_videoAdTimer);
-  document.getElementById('modal-video-ad').classList.remove('open');
-  _incVideosHoje();
-  // Adiciona 1 scan de bônus via sistema de bônus OCR
-  try{
-    var hoje=new Date().toLocaleDateString('pt-BR');
-    var d=JSON.parse(localStorage.getItem('el_tasks')||'{}');
-    if(d.dia!==hoje){d={dia:hoje,completadas:[],bonus:0};}
-    d.bonus=(d.bonus||0)+1;
-    localStorage.setItem('el_tasks',JSON.stringify(d));
-  }catch(e){}
-  atualizarContadorOCR();
-  atualizarStripTarefas();
-  _atualizarBtnVideo();
-  _toastTarefa('📺 Vídeo assistido! +1 scan OCR liberado');
-}
-
 function verificarHistorico7dias(lista){
   if(isPremium()) return lista;
   var limite=new Date();
@@ -2683,161 +2373,6 @@ function verificarHistorico7dias(lista){
   });
 }
 
-// ===== SISTEMA DE TAREFAS (bonus OCR) =====
-var TAREFAS_DEF=[
-  {id:'entregar5',  emoji:'📦', titulo:'Complete 5 entregas hoje',      desc:'Marque 5 como entregue',         bonus:2, tipo:'auto'},
-  {id:'registrar1', emoji:'📍', titulo:'Registre 1 ponto colaborativo', desc:'Salve um endereço difícil',       bonus:1, tipo:'auto'},
-  {id:'gerar_rota', emoji:'🗺', titulo:'Gere uma rota otimizada',        desc:'Use "Gerar rota otimizada"',     bonus:1, tipo:'auto'},
-  {id:'compartilhar',emoji:'🔗',titulo:'Compartilhe o app',              desc:'Indique o EntregaLog a alguém',  bonus:2, tipo:'manual'}
-];
-
-function _getTarefasHoje(){
-  try{
-    var hoje=new Date().toLocaleDateString('pt-BR');
-    var d=JSON.parse(localStorage.getItem('el_tasks')||'{}');
-    if(d.dia!==hoje) return {dia:hoje, completadas:[], bonus:0};
-    return d;
-  }catch(e){return {dia:new Date().toLocaleDateString('pt-BR'),completadas:[],bonus:0};}
-}
-
-function _saveTarefas(d){
-  try{localStorage.setItem('el_tasks',JSON.stringify(d));}catch(e){}
-}
-
-function getBonusOCRHoje(){
-  return _getTarefasHoje().bonus||0;
-}
-
-function completarTarefa(id){
-  var d=_getTarefasHoje();
-  if(d.completadas.indexOf(id)!==-1) return false; // já completada
-  var t=TAREFAS_DEF.filter(function(x){return x.id===id;})[0];
-  if(!t) return false;
-  d.completadas.push(id);
-  d.bonus=(d.bonus||0)+t.bonus;
-  _saveTarefas(d);
-  _toastTarefa(t.emoji+' Tarefa completa! +'+t.bonus+' scan(s) OCR desbloqueado(s)');
-  atualizarStripTarefas();
-  atualizarContadorOCR();
-  return true;
-}
-
-function _toastTarefa(msg){
-  try{
-    var t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,0.25);white-space:nowrap;text-align:center;';
-    t.textContent=msg;
-    document.body.appendChild(t);
-    setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},3500);
-  }catch(e){}
-}
-
-function atualizarStripTarefas(){
-  var d=_getTarefasHoje();
-  var total=TAREFAS_DEF.length;
-  var feitas=d.completadas.length;
-  var badge=document.getElementById('tarefas-badge');
-  var sub=document.getElementById('tarefas-strip-sub');
-  var prog=document.getElementById('tarefas-prog');
-  if(badge) badge.textContent=feitas+'/'+total;
-  if(sub){
-    if(feitas===total) sub.textContent='🏆 Todas completas! +'+d.bonus+' scans ganhos hoje';
-    else sub.textContent='Complete e ganhe +'+(TAREFAS_DEF.reduce(function(a,t){return a+t.bonus;},0)-d.bonus)+' scan(s) ainda disponíveis';
-  }
-  if(prog){
-    var dots=prog.querySelectorAll('.tarefas-dot');
-    for(var i=0;i<dots.length;i++){
-      if(i<feitas) dots[i].className='tarefas-dot done';
-      else dots[i].className='tarefas-dot';
-    }
-  }
-}
-
-function abrirTarefas(){
-  var d=_getTarefasHoje();
-  var total=TAREFAS_DEF.reduce(function(a,t){return a+t.bonus;},0);
-  var ganho=d.bonus||0;
-  var el=document.getElementById('tarefas-bonus-total');
-  if(el) el.innerHTML='🎁 Bônus hoje: <b>+'+ganho+' scan(s)</b> de '+total+' disponíveis &nbsp;·&nbsp; Base livre: 3 scans &nbsp;·&nbsp; Total: '+(3+ganho)+' scans';
-  var lista=document.getElementById('tarefas-lista');
-  if(lista){
-    lista.innerHTML='';
-    TAREFAS_DEF.forEach(function(t){
-      var feita=d.completadas.indexOf(t.id)!==-1;
-      var item=document.createElement('div');
-      item.className='task-item'+(feita?' done':'');
-      var btn='';
-      if(!feita && t.tipo==='manual'){
-        btn='<button class="task-action" onclick="completarTarefaManual(\''+t.id+'\')">Compartilhar</button>';
-      } else if(feita){
-        btn='<span class="task-check">✅</span>';
-      } else {
-        btn='<span style="font-size:11px;color:#aaa;white-space:nowrap;">Auto</span>';
-      }
-      item.innerHTML='<span class="task-emoji">'+t.emoji+'</span>'
-        +'<div class="task-info"><div class="task-titulo">'+t.titulo+'</div>'
-        +'<div class="task-bonus">+'+t.bonus+' scan(s) &nbsp;·&nbsp; '+t.desc+'</div></div>'
-        +btn;
-      lista.appendChild(item);
-    });
-  }
-  document.getElementById('modal-tarefas').classList.add('open');
-}
-
-function fecharTarefas(){
-  document.getElementById('modal-tarefas').classList.remove('open');
-}
-
-function completarTarefaManual(id){
-  if(id==='compartilhar'){
-    var nome=usuarioAtual?usuarioAtual.nome:'Entregador';
-    var msg='Ei! Uso o EntregaLog pra organizar minhas entregas e amei!\n\nÉ de graça e funciona no celular sem precisar instalar:\nhttps://adilson161618.github.io/entrega-log\n\nDá uma olhada 👊';
-    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
-    completarTarefa(id);
-    fecharTarefas();
-  }
-}
-
-function atualizarContadorOCR(){
-  var scans=getScansHoje();
-  var bonus=getBonusOCRHoje();
-  var limite=3+bonus;
-  var restantes=Math.max(0,limite-scans);
-  var counter=document.getElementById('ocr-counter');
-  if(counter&&!isPremium()){
-    var txt=restantes+' scan(s) restante(s) hoje (3 base'+(bonus>0?' + '+bonus+' bônus':'')+')';
-    counter.textContent=txt;
-  }
-}
-
-// Atualiza o anuncio discreto
-var _ADS=[
-  'Sabia que o Premium libera OCR ilimitado? R$ 9,90/mês',
-  'Histórico completo no Premium — veja entregas de semanas atrás',
-  'Otimize suas rotas diárias com o EntregaLog Premium',
-  'Faça mais entregas por dia com rotas inteligentes por ruas'
-];
-function _rotacionarAd(){
-  try{
-    if(isPremium()) return;
-    var el=document.getElementById('ad-text');
-    if(el){
-      var idx=Math.floor(Math.random()*_ADS.length);
-      el.textContent=_ADS[idx];
-    }
-    document.getElementById('ad-banner').classList.add('show');
-  }catch(e){}
-}
-
-// Checa tarefas automaticas
-function checarTarefasAuto(){
-  // Tarefa: gerar_rota (chamada em gerarRota)
-  // Tarefa: registrar1 (chamada em confirmarParada / salvarRegistro)
-  // Tarefa: entregar5 (chamada em marcarEntregue / confirmarChegada)
-  var entregues=entregas.filter(function(e){return e.entregue;}).length;
-  if(entregues>=5) completarTarefa('entregar5');
-}
-
 // ===== OCR =====
 var ocrResultados=[];
 var ocrFotoBase64=null;
@@ -2845,11 +2380,12 @@ var ocrFotoBase64=null;
 async function processarOCR(event){
   var file=event.target.files[0];
   if(!file) return;
-  // Verifica limite de scans (só incrementa após sucesso da API)
+  // Verifica limite de scans
   if(!verificarLimiteOCR()){
     document.getElementById('ocr-input').value='';
     return;
   }
+  incrementarScans();
   var reader=new FileReader();
   reader.onload=async function(e){
     var base64=e.target.result;
@@ -2870,49 +2406,48 @@ async function processarOCR(event){
         var canvas=document.createElement('canvas');
         var imgEl=new Image();
         await new Promise(function(res){imgEl.onload=res;imgEl.src=base64;});
-        var maxW=1600,maxH=1600;
+        var maxW=800,maxH=800;
         var w=imgEl.width,h=imgEl.height;
         if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
         if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
         canvas.width=w;canvas.height=h;
         canvas.getContext('2d').drawImage(imgEl,0,0,w,h);
-        var compressed=canvas.toDataURL('image/jpeg',0.92);
+        var compressed=canvas.toDataURL('image/jpeg',0.7);
         imgData=compressed.split(',')[1];
       }catch(e){
         imgData=base64.split(',')[1];
       }
-      var response=await fetch(SB_URL+'/functions/v1/bright-responder',{
+      var response=await fetch('https://psqtdivgmrnuxgdvymrh.supabase.co/functions/v1/bright-responder',{
         method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'apikey':SB_KEY,
-          'Authorization':'Bearer '+SB_KEY
-        },
-        body:JSON.stringify({imgData:imgData,mediaType:mediaType})
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1000,
+          messages:[{
+            role:'user',
+            content:[
+              {type:'image',source:{type:'base64',media_type:mediaType,data:imgData}},
+              {type:'text',text:'Leia esta imagem e extraia todos os enderecos encontrados. Um endereco pode ser: rua, avenida, travessa, alameda, rodovia, com ou sem numero, com ou sem bairro ou cidade. Tambem aceite CEP isolado ou coordenadas. Retorne SOMENTE este JSON sem markdown: {"enderecos":["endereco 1 completo","endereco 2 completo"]}. Se nao encontrar nenhum endereco retorne: {"enderecos":[]}.'}
+            ]
+          }]
+        })
       });
-      var rawText=await response.text();
-      var data={};
-      try{data=JSON.parse(rawText);}catch(e){data={};}
-      // Detecta erro mesmo quando Supabase devolve 200 com corpo de erro da Anthropic
-      var apiErr=(!response.ok)||(data.error)||(data.type==='error')||(!data.content);
-      if(apiErr){
-        var errDetail=data.error&&data.error.message||data.message||rawText.slice(0,200)||'Erro desconhecido';
-        loading.textContent='Erro da IA: '+errDetail;
+      var data=await response.json();
+      console.log('API response status:',response.status,'data:',JSON.stringify(data).slice(0,200));
+      if(!response.ok){
+        loading.textContent='API erro '+response.status+': '+(data.error&&data.error.message||'verifique os creditos');
         loading.style.background='#FFF5F5';loading.style.borderColor='#F87171';loading.style.color='#A32D2D';
         btn.disabled=false;btn.textContent='📷 Fotografar endereço — etiqueta, papel ou escrito à mão';
         document.getElementById('ocr-input').value='';
         return;
       }
-      incrementarScans();
-      var texto=data.content&&data.content[0]&&data.content[0].text||'{"enderecos":[]}';
-      // Extrai JSON mesmo que venha com texto extra ao redor
-      var jsonMatch=texto.match(/\{[\s\S]*\}/);
-      var resultado={};
-      try{resultado=JSON.parse(jsonMatch?jsonMatch[0]:texto);}catch(e){resultado={};}
+      var texto=data.content&&data.content[0]&&data.content[0].text||'{"entregas":[]}';
+      texto=texto.replace(/```json|```/g,'').trim();
+      var resultado=JSON.parse(texto);
       var lista=[];
-      // Formato principal
+      // Novo formato simples
       if(resultado.enderecos&&resultado.enderecos.length>0){
-        lista=resultado.enderecos.filter(function(e){return e&&e.trim();}).map(function(e){return{nome:'',endereco:e.trim(),cidade:'',telefone:''};});
+        lista=resultado.enderecos.map(function(e){return{nome:'',endereco:e,cidade:'',telefone:''};});
       }
       // Formato antigo compativel
       else if(resultado.entregas&&resultado.entregas.length>0){
@@ -2920,17 +2455,6 @@ async function processarOCR(event){
       }
       else if(resultado.nome||resultado.endereco){
         lista=[resultado];
-      }
-      // Fallback regex: tenta extrair linhas que parecem endereco brasileiro
-      if(!lista.length){
-        var textoLivre=texto.replace(/[{}"\\[\]]/g,' ');
-        var linhas=textoLivre.split(/[\n,]+/);
-        linhas.forEach(function(l){
-          l=l.trim();
-          if(/\b(rua|av\.?|avenida|travessa|trav\.?|alameda|al\.?|rodovia|rod\.?|estrada|est\.?|pca\.?|praca|r\.)\b/i.test(l)&&l.length>8){
-            lista.push({nome:'',endereco:l,cidade:'',telefone:''});
-          }
-        });
       }
       if(!lista.length){
         loading.textContent='Nao encontrei nenhum endereco na imagem. Tente uma foto mais proxima do texto.';
@@ -3061,11 +2585,10 @@ function abrirConfig(){
   try{
     var u=usuarioAtual||JSON.parse(localStorage.getItem('el_user')||'null');
     if(u){
-      document.getElementById('config-nome').textContent=u.nome||u.identificador||'--';
-      var id=u.identificador||u.whatsapp||'';
-      // Formata celular se for número
-      if(/^\d{10,11}$/.test(id)){id='('+id.slice(0,2)+') '+id.slice(2,7)+'-'+id.slice(7);}
-      document.getElementById('config-whats').textContent=id||'--';
+      document.getElementById('config-nome').textContent=u.nome||'--';
+      var w=u.whatsapp||'';
+      if(w.length>=10){w='('+w.slice(0,2)+') '+w.slice(2,7)+'-'+w.slice(7);}
+      document.getElementById('config-whats').textContent=w||'--';
     }
   }catch(e){}
   var au=localStorage.getItem('el_auto_update');
@@ -3094,12 +2617,6 @@ function testarVozNav(){
     return;
   }
   falarVoz('Teste de voz do EntregaLog. Em 200 metros, vire à direita.',{interromper:true,force:true});
-}
-
-function resetarNavPref(){
-  localStorage.removeItem('el_nav_pref');
-  var btn=document.getElementById('btn-reset-nav-pref');
-  if(btn){btn.textContent='✓ Redefinido';setTimeout(function(){btn.textContent='🗺 Redefinir app de mapa';},2000);}
 }
 
 function toggleAutoUpdate(el){
@@ -3243,51 +2760,24 @@ function abrirPrivacidade(){
   window.open('https://adilson161618.github.io/entrega-log/privacidade.html','_blank');
 }
 
-function abrirTermos(){
-  window.open('https://adilson161618.github.io/entrega-log/termos.html','_blank');
-}
-
 function abrirSuporte(){
   var msg='Olá! Preciso de ajuda com o EntregaLog (versão '+APP_VERSION+').';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
 // ===== INIT =====
-// Registra Service Worker — com auto-limpeza de versão antiga
+// Registra Service Worker (PWA + cache offline)
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    // Se já fizemos o reset desta versão, vai direto pro registro normal
-    var swKey='el_sw_v'+APP_VERSION;
-    if(!localStorage.getItem(swKey)){
-      // Primeira vez nesta versão: deregistra todos os SWs antigos e recarrega
-      navigator.serviceWorker.getRegistrations().then(function(regs){
-        if(regs.length===0){
-          localStorage.setItem(swKey,'1');
-          return;
-        }
-        var ps=regs.map(function(r){return r.unregister();});
-        Promise.all(ps).then(function(){
-          localStorage.setItem(swKey,'1');
-          // Limpa todos os caches do EntregaLog
-          if('caches' in window){
-            caches.keys().then(function(ks){
-              ks.forEach(function(k){if(k.indexOf('entregalog-')===0)caches.delete(k);});
-            });
-          }
-          location.reload();
-        });
-      });
-      return;
-    }
-    // Registro normal após limpeza
     navigator.serviceWorker.register('service-worker.js').then(function(reg){
-      if(reg.waiting){reg.waiting.postMessage({type:'SKIP_WAITING'});}
+      // Se já tem um SW esperando, deixa o app decidir quando ativar
+      if(reg.waiting){ console.log('[App] SW atualizado pronto'); }
       reg.addEventListener('updatefound',function(){
         var nw=reg.installing;
         if(nw){
           nw.addEventListener('statechange',function(){
-            if(nw.state==='installed'){
-              nw.postMessage({type:'SKIP_WAITING'});
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              console.log('[App] Nova versao do SW instalada');
             }
           });
         }
@@ -3299,11 +2789,13 @@ initDark();
 hideSplash();
 // GPS iniciado pelo mapa
 monitorarBateria();
-// Atualiza contador OCR, tarefas e anuncio
+// Atualiza contador OCR
 setTimeout(function(){
-  atualizarContadorOCR();
-  atualizarStripTarefas();
-  _rotacionarAd();
+  var scans=getScansHoje();
+  var counter=document.getElementById('ocr-counter');
+  if(counter&&!isPremium()){
+    counter.textContent=(3-scans)+' scan(s) gratuito(s) restante(s) hoje';
+  }
 },2500);
 if(!onlineStatus) document.getElementById("offline-bar").classList.add("show");
 sincronizarFila();
@@ -3339,17 +2831,6 @@ function aplicarHashRoute(){
 }
 window.addEventListener('hashchange',aplicarHashRoute);
 setTimeout(aplicarHashRoute,2300);
-
-// build integrity check
-window.addEventListener('keydown',function(e){
-  if(e.ctrlKey&&e.altKey&&(e.key==='E'||e.key==='e')){
-    console.log('%cEntregaLog','color:#F97316;font-size:24px;font-weight:bold;');
-    console.log('%cBuild '+APP_VERSION+' | '+_buildSig,'color:#1D9E75;font-weight:bold;');
-    console.log('%cPropriedade de Adilson Daniel de Almeida','color:#1a1a1a;');
-    console.log('%cContato: '+_buildOwner.split('/')[1],'color:#666;');
-    console.log('%cCopia ou redistribuicao nao autorizada e crime - Lei 9.610/98','color:#B91C1C;font-style:italic;');
-  }
-});
 </script>
 
 <div id="modal-chegada">
@@ -3398,144 +2879,15 @@ window.addEventListener('keydown',function(e){
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>OCR ilimitado — leia qualquer documento</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Historico completo sem limite de tempo</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Relatorio PDF mensal com ganhos</div>
-      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios e sem videos</div>
+      <div class="prem-feat"><div class="prem-feat-dot">✓</div>Sem anuncios</div>
       <div class="prem-feat"><div class="prem-feat-dot">✓</div>Suporte prioritario por WhatsApp</div>
     </div>
     <button class="btn-assinar" onclick="assinarPremium()" style="opacity:0.85;">Em breve — disponivel no lancamento</button>
-    <div class="prem-divider">ou ganhe gratis</div>
-    <button class="btn-video-ad" id="btn-video-ad" onclick="abrirVideoAd()">📺 Assistir vídeo curto — ganhar +1 scan grátis</button>
-    <div id="video-ad-info" style="font-size:11px;color:#aaa;text-align:center;margin-top:-4px;margin-bottom:10px;"></div>
     <button class="btn-indicar" onclick="indicarAmigos()">Indicar 3 amigos e ganhar 30 dias gratis</button>
     <button class="btn-fechar-prem" onclick="fecharPremium()">Agora nao</button>
   </div>
 </div>
 
-<!-- MODAL VIDEO AD -->
-<div id="modal-video-ad">
-  <div id="video-ad-sheet">
-    <div id="video-ad-tela">
-      <div id="video-ad-emoji">📦</div>
-      <div id="video-ad-marca">Anúncio</div>
-      <div id="video-ad-timer-bar"></div>
-    </div>
-    <div id="video-ad-titulo">+1 scan OCR liberado</div>
-    <div id="video-ad-sub">Aguarde o vídeo terminar</div>
-    <div id="video-ad-countdown">⏱ 15 segundos</div>
-    <button id="video-ad-fechar" onclick="concluirVideoAd()">✅ Resgatar +1 scan grátis</button>
-  </div>
-</div>
-
-<!-- MODAL ESCOLHA NAVEGAÇÃO -->
-<div id="modal-nav-choice">
-  <div id="nav-choice-sheet">
-    <h3>Como quer navegar?</h3>
-    <p class="nc-sub" id="nc-destino-txt">Para: —</p>
-    <button class="nc-btn nc-btn-interno" onclick="_escolherNav('interno')">
-      <span class="nc-icon">🗺</span>
-      <div>
-        <div class="nc-label">Navegar pelo EntregaLog</div>
-        <div class="nc-desc">GPS integrado, histórico salvo automaticamente</div>
-      </div>
-    </button>
-    <button class="nc-btn nc-btn-gmaps" onclick="_escolherNav('gmaps')">
-      <span class="nc-icon">📍</span>
-      <div>
-        <div class="nc-label">Abrir no Google Maps</div>
-        <div class="nc-desc">Abre o Google Maps com o destino já preenchido</div>
-      </div>
-    </button>
-    <label class="nc-lembrar">
-      <input type="checkbox" id="nc-lembrar-cb"> Lembrar minha escolha
-    </label>
-    <button class="nc-fechar" onclick="_fecharNavChoice()">Cancelar</button>
-  </div>
-</div>
-
-<!-- MODAL TAREFAS -->
-<div id="modal-tarefas">
-  <div id="tarefas-sheet">
-    <h3>🎯 Tarefas do dia</h3>
-    <div class="ts-sub">Complete e ganhe scans OCR extras — reseta à meia-noite</div>
-    <div id="tarefas-bonus-total" style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#9A3412;font-weight:600;"></div>
-    <div id="tarefas-lista"></div>
-    <button onclick="fecharTarefas()" style="background:none;border:none;color:#888;font-size:13px;cursor:pointer;width:100%;padding:8px;font-family:inherit;">Fechar</button>
-  </div>
-</div>
-
-<div class="overlay" id="modal-config">
-  <div class="modal-sheet">
-    <h3>⚙️ Configurações</h3>
-
-    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:11px;color:#9A3412;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Conta</div>
-      <div id="config-nome" style="font-size:14px;font-weight:700;color:#111;">--</div>
-      <div id="config-whats" style="font-size:12px;color:#888;margin-top:2px;">--</div>
-    </div>
-
-    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="flex:1;">
-          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Verificar atualizações automaticamente</div>
-          <div style="font-size:11px;color:#888;margin-top:2px;">Ao abrir o app, checa se há uma versão nova</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="toggle-autoupdate" onchange="toggleAutoUpdate(this)"/>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
-        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">--</b></div>
-        <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
-      </div>
-      <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
-    </div>
-
-    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="flex:1;">
-          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Voz de navegação</div>
-          <div style="font-size:11px;color:#888;margin-top:2px;">Fala as instruções ao navegar</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="toggle-voz-nav" onchange="toggleVozNav(this)"/>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-        <button onclick="testarVozNav()" style="background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;">🔊 Testar voz</button>
-        <button onclick="resetarNavPref()" style="background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;" id="btn-reset-nav-pref">🗺 Redefinir app de mapa</button>
-      </div>
-    </div>
-
-    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="flex:1;">
-          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Modo escuro</div>
-          <div style="font-size:11px;color:#888;margin-top:2px;">Reduz brilho da tela</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="toggle-dark" onchange="toggleDarkFromConfig(this)"/>
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
-      <button onclick="mostrarOnboarding(true)" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🎓 Ver tutorial de novo</button>
-      <button onclick="resetarScansHoje()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#7C3AED;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🔄 Resetar scans OCR de hoje</button>
-      <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📄 Política de Privacidade</button>
-      <button class="cfg-link" onclick="abrirTermos()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">📜 Termos de Uso</button>
-      <button class="cfg-link" onclick="abrirSuporte()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;">💬 Falar com suporte</button>
-    </div>
-
-    <button onclick="fazerLogout()" style="background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;">🚪 Sair / Trocar conta</button>
-    <button onclick="excluirConta()" style="background:none;color:#888;border:none;width:100%;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;margin-bottom:8px;">Excluir minha conta e meus dados</button>
-
-    <div class="mbtn-row">
-      <button class="mbtn ok" onclick="fecharConfig()" style="flex:1;">Fechar</button>
-    </div>
-  </div>
-</div>
 
 <button id="feedback-tab-btn" onclick="abrirFeedback()">💬 Feedback</button>
 
@@ -3565,7 +2917,7 @@ window.addEventListener('keydown',function(e){
       <button class="cat-btn" onclick="selecionarCat(this,'GPS e rota')">🗺 GPS e rota</button>
       <button class="cat-btn" onclick="selecionarCat(this,'Banco de endereços')">📍 Banco de endereços</button>
       <button class="cat-btn" onclick="selecionarCat(this,'OCR câmera')">📷 OCR câmera</button>
-      <button class="cat-btn" onclick="selecionarCat(this,'Histórico')">&#128193; Histórico</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Histórico')">📁 Histórico</button>
     </div>
 
     <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:6px;">O que poderia melhorar ou sua ideia para o app?</label>
@@ -3576,12 +2928,14 @@ window.addEventListener('keydown',function(e){
   </div>
 </div>
 
+
 <button id="btn-ranking" onclick="abrirRanking()">🏆 Ranking</button>
 
 <div id="modal-ranking">
   <div id="ranking-sheet">
     <h3>🏆 Top Colaboradores</h3>
     <p>Entregadores que mais registraram endereços difíceis e ajudaram a comunidade!</p>
+    
     <div class="rank-minha-pos" id="minha-posicao" style="display:none;">
       <div style="font-size:24px;">📍</div>
       <div style="flex:1;">
@@ -3590,26 +2944,58 @@ window.addEventListener('keydown',function(e){
       </div>
       <div style="font-size:13px;font-weight:700;color:#F97316;" id="rank-minha-pos-num">#-</div>
     </div>
+    
     <div id="ranking-lista">
       <div style="text-align:center;padding:20px;font-size:13px;color:#888;">Carregando ranking...</div>
     </div>
+    
     <button class="btn-fechar-rank" onclick="fecharRanking()">Fechar</button>
   </div>
 </div>
 
-<style>
-.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
-.switch input{opacity:0;width:0;height:0;}
-.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
-.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
-.switch input:checked + .slider{background:#F97316;}
-.switch input:checked + .slider:before{transform:translateX(20px);}
-body.dark .slider{background:#444;}
-body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
-body.dark #modal-config .cfg-label{color:#eee !important;}
-body.dark #modal-config .cfg-link{color:#eee !important;}
-body.dark #config-nome{color:#eee !important;}
-</style>
 
-</body>
-</html>
+<!-- ========== MODAL CONFIGURACOES ========== -->
+<div class="overlay" id="modal-config">
+  <div class="modal-sheet">
+    <h3>⚙️ Configurações</h3>
+
+    <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;color:#9A3412;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Conta</div>
+      <div id="config-nome" style="font-size:14px;font-weight:700;color:#111;">--</div>
+      <div id="config-whats" style="font-size:12px;color:#888;margin-top:2px;">--</div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Verificar atualizações automaticamente</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Ao abrir o app, checa se há uma versão nova</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-autoupdate" onchange="toggleAutoUpdate(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee;">
+        <div style="font-size:12px;color:#888;">Versão atual: <b id="config-versao" style="color:#F97316;">1.0.7</b></div>
+        <button onclick="verificarAtualizacao(true)" style="background:#F97316;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Verificar agora</button>
+      </div>
+      <div id="config-update-status" style="font-size:11px;color:#666;margin-top:8px;display:none;"></div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div class="cfg-label" style="font-size:13px;font-weight:600;color:#111;">Modo escuro</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">Reduz brilho da tela</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-dark" onchange="toggleDarkFromConfig(this)"/>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="cfg-card" style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:4px 12px;margin-bottom:14px;">
+      <button class="cfg-link" onclick="fecharConfig();setTimeout(function(){mostrarOnboarding(true);},250);" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom:1px solid #eee;">🎓 Ver tutorial de novo</button>
+      <button class="cfg-link" onclick="abrirPrivacidade()" style="background:none;border:none;width:100%;text-align:left;padding:10px 0;font-size:13px;color:#111;cursor:pointer;font-family:inherit;border-bottom

@@ -1,5 +1,6 @@
 {
-  "version": "1.0.29",
-  "released_at": "2026-05-27",
-  "notes": "OCR Gemini 2.0 + fix reset scans"
+  "version": "1.0.8",
+  "released_at": "2026-05-21",
+  "notes": "Performance - corrigido travamento em Android low-end (3GB RAM): markers nao acumulam, GPS limitado, foto comprimida, cache podado.",
+  "min_supported": "1.0.0"
 }
