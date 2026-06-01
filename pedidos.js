@@ -11,9 +11,9 @@ function sbHeaders(){return{'Content-Type':'application/json','apikey':SB_KEY,'A
 
 async function sbListarPedidos(){
   try{
-    var meu=getMotoboyId();
-    // Pega aguardando OU os meus em qualquer status diferente de entregue/cancelado
-    var url=SB_URL+'/rest/v1/el_pedidos?or=(status.eq.aguardando,and(motoboy_id.eq.'+meu+',status.in.(caminho,entregue)))&order=criado_em.desc';
+    // Query simples: pega todos os pedidos nao-cancelados, ordena por criado_em
+    // Filtra no client (mais simples e robusto que OR complexo do PostgREST)
+    var url=SB_URL+'/rest/v1/el_pedidos?status=neq.cancelado&order=criado_em.desc&limit=100';
     var r=await fetch(url,{headers:sbHeaders()});
     if(r.ok)return await r.json();
   }catch(e){console.warn('sbListarPedidos erro:',e);}
