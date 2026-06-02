@@ -112,15 +112,17 @@ function salvarIdsVistos(ids){
 
 function detectarNovoPedido(listaDisponiveis){
   var vistos=carregarIdsVistos();
+  var jaCarregouAntes=localStorage.getItem('el_carregou_antes')==='1';
   var novos=listaDisponiveis.filter(function(p){return vistos.indexOf(p.id)===-1;});
-  if(novos.length>0 && vistos.length>0){
-    // So alerta se ja tinha alguma lista antes (evita disparar na primeira carga)
+  if(novos.length>0 && jaCarregouAntes){
     tocarBeep();
     vibrar();
     notificacaoVisual(novos.length);
+    console.log('[NOTIF] '+novos.length+' pedido(s) novo(s) detectado(s)');
   }
   var ids=listaDisponiveis.map(function(p){return p.id;});
   salvarIdsVistos(ids);
+  localStorage.setItem('el_carregou_antes','1');
 }
 
 // ============ PERFIL ============
