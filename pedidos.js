@@ -110,16 +110,31 @@ function salvarIdsVistos(ids){
   try{localStorage.setItem(IDS_VISTOS_KEY,JSON.stringify(ids.slice(0,200)));}catch(e){}
 }
 
+var ultimoAlertaRepeticao=0;
+var INTERVALO_REPETICAO=60000; // 60 segundos
+
 function detectarNovoPedido(listaDisponiveis){
   var vistos=carregarIdsVistos();
   var jaCarregouAntes=localStorage.getItem('el_carregou_antes')==='1';
   var novos=listaDisponiveis.filter(function(p){return vistos.indexOf(p.id)===-1;});
+  var agora=Date.now();
+
+  // Alerta de pedido NOVO (id que nao estava na lista anterior)
   if(novos.length>0 && jaCarregouAntes){
     tocarBeep();
     vibrar();
     notificacaoVisual(novos.length);
+    ultimoAlertaRepeticao=agora;
     console.log('[NOTIF] '+novos.length+' pedido(s) novo(s) detectado(s)');
   }
+  // Alerta de REPETICAO: se ainda tem disponivel e ja passou 60s do ultimo alerta
+  else if(listaDisponiveis.length>0 && jaCarregouAntes && (agora-ultimoAlertaRepeticao>INTERVALO_REPETICAO)){
+    tocarBeep();
+    vibrar();
+    ultimoAlertaRepeticao=agora;
+    console.log('[NOTIF] repeticao - '+listaDisponiveis.length+' pedido(s) ainda disponivel(eis)');
+  }
+
   var ids=listaDisponiveis.map(function(p){return p.id;});
   salvarIdsVistos(ids);
   localStorage.setItem('el_carregou_antes','1');
