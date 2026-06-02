@@ -11,9 +11,8 @@ function sbHeaders(){return{'Content-Type':'application/json','apikey':SB_KEY,'A
 
 async function sbListarPedidos(){
   try{
-    // Query simples: pega todos os pedidos nao-cancelados, ordena por criado_em
-    // Filtra no client (mais simples e robusto que OR complexo do PostgREST)
-    var url=SB_URL+'/rest/v1/el_pedidos?status=neq.cancelado&order=criado_em.desc&limit=100';
+    var meu=getMotoboyId();
+    var url=SB_URL+'/rest/v1/el_pedidos?or=(status.eq.aguardando,and(motoboy_id.eq.'+meu+',status.in.(caminho,entregue)))&order=criado_em.desc';
     var r=await fetch(url,{headers:sbHeaders()});
     if(r.ok)return await r.json();
   }catch(e){console.warn('sbListarPedidos erro:',e);}
@@ -49,7 +48,7 @@ async function sbSoltarPedido(pid){
 function getMotoboyId(){var m=carregarMotoboy();return m?m.id:'sem-id';}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('ativo');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('ativo');},2200);}
 function fecharModal(id){document.getElementById(id).classList.remove('ativo');}
-function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"\']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
 
 function abrirPerfil(){
   var m=carregarMotoboy()||{};
@@ -105,7 +104,6 @@ function renderPedidos(lista){
   document.getElementById('st-meus').textContent=meus.length;
   document.getElementById('st-entregue').textContent=entregues.length;
 
-  // Meus pedidos em andamento
   var elM=document.getElementById('lista-meus');
   if(!meus.length){
     elM.innerHTML='<div class="empty"><div class="empty-titulo">Nenhum pedido seu agora</div><div>Aceite um da lista abaixo</div></div>';
@@ -113,7 +111,6 @@ function renderPedidos(lista){
     elM.innerHTML='';
     meus.forEach(function(p){elM.appendChild(renderCardMeu(p));});
   }
-  // Disponiveis
   var elD=document.getElementById('lista-disponiveis');
   if(!disp.length){
     elD.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-titulo">Sem pedidos no momento</div><div>Vai aparecer aqui quando alguma loja publicar.</div></div>';
@@ -126,6 +123,7 @@ function renderPedidos(lista){
 function renderCardMeu(p){
   var c=document.createElement('div');
   c.className='pedido meu';
+  var mapsUrl='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.endereco||'');
   var h='<span class="badge badge-meu">SEU PEDIDO</span>';
   h+='<div class="pedido-loja">'+escapeHtml(p.estabelecimento_nome||'Estabelecimento')+' #'+p.numero+'</div>';
   h+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
@@ -134,6 +132,7 @@ function renderCardMeu(p){
   if(p.valor)h+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
   if(p.obs)h+='<div class="pedido-obs">💡 '+escapeHtml(p.obs)+'</div>';
   h+='<div class="pedido-acoes">';
+  h+='<a class="btn btn-laranja" href="'+mapsUrl+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:center">🗺️ Navegar</a>';
   h+='<button class="btn btn-verde" onclick="entregar(\''+p.id+'\')">✓ Entreguei</button>';
   h+='<button class="btn btn-cinza" onclick="soltar(\''+p.id+'\')">↩ Soltar</button>';
   h+='</div>';
@@ -169,7 +168,6 @@ async function carregar(){
 
 document.querySelectorAll('.modal-overlay').forEach(function(ov){ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('ativo');});});
 
-// Inicia
 var motoboy=carregarMotoboy();
 if(motoboy&&motoboy.nome){
   document.getElementById('motoboy-nome').textContent=motoboy.nome;
@@ -178,5 +176,4 @@ if(motoboy&&motoboy.nome){
   setTimeout(abrirPerfil,500);
 }
 carregar();
-// Auto-refresh a cada 10 segundos (polling - mais simples que WebSocket realtime)
 setInterval(carregar,10000);
