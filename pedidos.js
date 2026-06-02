@@ -1,4 +1,4 @@
-// EntregaLog - Pedidos disponiveis (motoboy) - v7 com retirada/entrega + auto-maps
+// EntregaLog - Pedidos disponiveis (motoboy) - v8 LGPD com retirada/entrega + auto-maps
 var SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 var MOTOBOY_KEY='el_motoboy_dados';
@@ -58,6 +58,19 @@ function getMotoboyId(){var m=carregarMotoboy();return m?m.id:'sem-id';}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('ativo');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('ativo');},2200);}
 function fecharModal(id){document.getElementById(id).classList.remove('ativo');}
 function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"\']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function mascararEndereco(end){
+  if(!end)return '';
+  var parts=end.split(',').map(function(s){return s.trim();}).filter(function(s){return s;});
+  if(parts.length<3)return 'Região oculta · liberada após aceitar';
+  return parts.slice(-3).join(', ');
+}
+function mascararNome(nome){
+  if(!nome)return 'Cliente';
+  var partes=nome.trim().split(/\s+/);
+  if(partes.length===1)return partes[0].substring(0,1)+'.';
+  return partes[0]+' '+partes.slice(1).map(function(p){return (p[0]||'')+'.';}).join(' ');
+}
+
 function abrirMaps(endereco){
   var url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(endereco||'');
   window.open(url,'_blank');
@@ -154,14 +167,18 @@ function abrirPerfil(){
   var m=carregarMotoboy()||{};
   document.getElementById('m-nome').value=m.nome||'';
   document.getElementById('m-telefone').value=m.telefone||'';
+  var chk=document.getElementById('m-aceito-termo');
+  if(chk)chk.checked=!!m.aceitoTermo;
   document.getElementById('modal-perfil').classList.add('ativo');
 }
 
 function salvarPerfil(){
   var nome=document.getElementById('m-nome').value.trim();
+  var aceito=document.getElementById('m-aceito-termo').checked;
   if(!nome){alert('Informe seu nome');return;}
+  if(!aceito){alert('Você precisa concordar com o termo de proteção de dados pra continuar.');return;}
   var atual=carregarMotoboy()||{};
-  var d={id:atual.id||uuid(),nome:nome,telefone:document.getElementById('m-telefone').value.trim()};
+  var d={id:atual.id||uuid(),nome:nome,telefone:document.getElementById('m-telefone').value.trim(),aceitoTermo:true,aceitoTermoEm:new Date().toISOString()};
   salvarMotoboy(d);
   fecharModal('modal-perfil');
   document.getElementById('motoboy-nome').textContent=d.nome;
@@ -174,6 +191,7 @@ function salvarPerfil(){
 async function aceitar(pid,enderecoRetirada){
   var m=carregarMotoboy();
   if(!m||!m.nome){alert('Cadastre seu nome primeiro (botão 👤 no canto superior)');abrirPerfil();return;}
+  if(!m.aceitoTermo){alert('Você precisa aceitar o termo de proteção de dados no seu perfil pra continuar.');abrirPerfil();return;}
   if(!confirm('Aceitar essa entrega?\n\nAo confirmar, o Google Maps abre direto pra retirada.'))return;
   toast('Aceitando...');
   var ok=await sbAceitarPedido(pid);
@@ -278,13 +296,12 @@ function renderCardMeu(p){
 function renderCardDisponivel(p){
   var c=document.createElement('div');
   c.className='pedido';
-  var h='<span class="badge badge-aguardando">Disponível</span>';
+  var h='<span class="badge badge-aguardando">Disponível · 🔒 dados parciais</span>';
   h+='<div class="pedido-loja">'+escapeHtml(p.estabelecimento_nome||'Estabelecimento')+' #'+p.numero+'</div>';
-  h+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
-  if(p.endereco_retirada)h+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+  h+='<div class="pedido-cliente">'+escapeHtml(mascararNome(p.cliente))+'</div>';
+  if(p.endereco_retirada)h+='<div class="pedido-addr">📦 Retira: '+escapeHtml(mascararEndereco(p.endereco_retirada))+'</div>';
   if(p.hora_retirada)h+='<div class="pedido-meta">🕐 Quando: '+escapeHtml(p.hora_retirada)+'</div>';
-  if(p.obs_retirada)h+='<div class="pedido-obs">📋 '+escapeHtml(p.obs_retirada)+'</div>';
-  h+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
+  h+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(mascararEndereco(p.endereco))+'</div>';
   if(p.itens)h+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
   if(p.valor)h+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
   if(p.obs)h+='<div class="pedido-obs">💡 '+escapeHtml(p.obs)+'</div>';
