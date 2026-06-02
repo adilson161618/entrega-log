@@ -1,4 +1,4 @@
-// EntregaLog - Pedidos disponiveis (motoboy) - v6 com retirada/entrega + auto-maps
+// EntregaLog - Pedidos disponiveis (motoboy) - v7 com retirada/entrega + auto-maps
 var SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 var MOTOBOY_KEY='el_motoboy_dados';
@@ -253,6 +253,8 @@ function renderCardMeu(p){
   h+='<div class="pedido-loja">'+escapeHtml(p.estabelecimento_nome||'Estabelecimento')+' #'+p.numero+'</div>';
   h+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
   if(p.endereco_retirada)h+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+  if(p.hora_retirada && !jaColetou)h+='<div class="pedido-meta">🕐 Quando: '+escapeHtml(p.hora_retirada)+'</div>';
+  if(p.obs_retirada && !jaColetou)h+='<div class="pedido-obs">📋 '+escapeHtml(p.obs_retirada)+'</div>';
   h+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
   if(p.itens)h+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
   if(p.valor)h+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
@@ -280,12 +282,14 @@ function renderCardDisponivel(p){
   h+='<div class="pedido-loja">'+escapeHtml(p.estabelecimento_nome||'Estabelecimento')+' #'+p.numero+'</div>';
   h+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
   if(p.endereco_retirada)h+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+  if(p.hora_retirada)h+='<div class="pedido-meta">🕐 Quando: '+escapeHtml(p.hora_retirada)+'</div>';
+  if(p.obs_retirada)h+='<div class="pedido-obs">📋 '+escapeHtml(p.obs_retirada)+'</div>';
   h+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
   if(p.itens)h+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
   if(p.valor)h+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
   if(p.obs)h+='<div class="pedido-obs">💡 '+escapeHtml(p.obs)+'</div>';
   var ha=p.criado_em?new Date(p.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
-  h+='<div class="pedido-meta">🕐 Publicado às '+ha+'</div>';
+  h+='<div class="pedido-meta">Publicado às '+ha+'</div>';
   h+='<div class="pedido-acoes">';
   var endRet=(p.endereco_retirada||'').replace(/'/g,"\\'");
   h+='<button class="btn btn-laranja" onclick="aceitar(\''+p.id+'\',\''+endRet+'\')">🛵 Aceitar entrega</button>';

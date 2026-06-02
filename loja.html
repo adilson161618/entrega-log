@@ -143,6 +143,8 @@ body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);b
 <div class="campo"><label>Cliente *</label><input type="text" id="p-cliente" placeholder="Nome do cliente" /></div>
 <div class="campo campo-rel"><label>📦 Endereço de retirada *</label><input type="text" id="p-endereco-retirada" placeholder="Onde o motoboy retira" autocomplete="off" /><div id="sug-retirada" class="autocomplete-sug"></div></div>
 <div class="campo campo-rel"><label>🏠 Endereço de entrega *</label><input type="text" id="p-endereco" placeholder="Onde o motoboy entrega" autocomplete="off" /><div id="sug-entrega" class="autocomplete-sug"></div></div>
+<div class="campo"><label>🕐 Quando retirar?</label><input type="text" id="p-hora-retirada" placeholder="Ex: agora, às 15h, depois das 18h" /></div>
+<div class="campo"><label>📋 Info da retirada</label><textarea id="p-obs-retirada" placeholder="Ex: falar com Maria no balcão, tel 99999-9999"></textarea></div>
 <div class="campo"><label>Itens / descrição</label><textarea id="p-itens" placeholder="Ex: 1 saco ração 15kg"></textarea></div>
 <div class="campo"><label>Valor (R$)</label><input type="text" id="p-valor" placeholder="Ex: 10,00" inputmode="decimal" /></div>
 <div class="campo"><label>Observação ao motoboy</label><input type="text" id="p-obs" placeholder="Ex: portaria nos fundos" /></div>
@@ -176,6 +178,6 @@ body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);b
 <div class="modal-acoes"><button class="btn btn-cinza" onclick="fecharModal('modal-config')">Fechar</button><button class="btn btn-principal" onclick="salvarConfig()">💾 Salvar</button></div>
 </div></div>
 <div class="toast" id="toast"></div>
-<script src="loja.js?v=2"></script>
+<script src="loja.js?v=3"></script>
 </body>
 </html>

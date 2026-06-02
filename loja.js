@@ -1,4 +1,4 @@
-// EntregaLog - Pagina da Loja - v3 com retirada + autocomplete
+// EntregaLog - Pagina da Loja - v4 com retirada + autocomplete
 var SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 var LOJA_KEY='el_loja_dados';
@@ -74,7 +74,7 @@ async function sbUpsertEstab(){
 
 async function sbCriarPedido(p){
   var d=carregarLoja();
-  var body={estabelecimento_id:getEstabId(),estabelecimento_nome:d.nome,numero:p.numero,cliente:p.cliente,endereco_retirada:p.endereco_retirada,endereco:p.endereco,itens:p.itens,valor:p.valor,obs:p.obs,status:p.status};
+  var body={estabelecimento_id:getEstabId(),estabelecimento_nome:d.nome,numero:p.numero,cliente:p.cliente,endereco_retirada:p.endereco_retirada,endereco:p.endereco,hora_retirada:p.hora_retirada,obs_retirada:p.obs_retirada,itens:p.itens,valor:p.valor,obs:p.obs,status:p.status};
   try{
     var r=await fetch(SB_URL+'/rest/v1/el_pedidos',{method:'POST',headers:sbHeaders(),body:JSON.stringify(body)});
     if(r.ok){var j=await r.json();if(j&&j[0])return j[0].id;}
@@ -153,6 +153,8 @@ function abrirNovoPedido(){
   document.getElementById('p-cliente').value='';
   document.getElementById('p-endereco-retirada').value=loja.endereco||'';
   document.getElementById('p-endereco').value='';
+  document.getElementById('p-hora-retirada').value='';
+  document.getElementById('p-obs-retirada').value='';
   document.getElementById('p-itens').value='';
   document.getElementById('p-valor').value='';
   document.getElementById('p-obs').value='';
@@ -167,7 +169,7 @@ async function salvarPedido(){
   if(!endRet){alert('Informe o endereço de retirada');return;}
   if(!end){alert('Informe o endereço de entrega');return;}
   var lista=carregarPedidos();
-  var p={numero:novoIdPedido(),cliente:cli,endereco_retirada:endRet,endereco:end,itens:document.getElementById('p-itens').value.trim(),valor:document.getElementById('p-valor').value.trim(),obs:document.getElementById('p-obs').value.trim(),status:'aguardando',criado_em:new Date().toISOString(),motoboy_id:null,motoboy_nome:null,saiu_em:null,entregue_em:null,coletado_em:null,sb_id:null};
+  var p={numero:novoIdPedido(),cliente:cli,endereco_retirada:endRet,endereco:end,hora_retirada:document.getElementById('p-hora-retirada').value.trim(),obs_retirada:document.getElementById('p-obs-retirada').value.trim(),itens:document.getElementById('p-itens').value.trim(),valor:document.getElementById('p-valor').value.trim(),obs:document.getElementById('p-obs').value.trim(),status:'aguardando',criado_em:new Date().toISOString(),motoboy_id:null,motoboy_nome:null,saiu_em:null,entregue_em:null,coletado_em:null,sb_id:null};
   lista.unshift(p);
   salvarPedidos(lista);
   fecharModal('modal-pedido');
@@ -236,6 +238,8 @@ function renderPedidos(){
     var html='<div class="pedido-topo"><div><div class="pedido-num">#'+p.numero+'</div></div><span class="badge '+bd[p.status]+'">'+lab[p.status]+'</span></div>';
     html+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
     if(p.endereco_retirada)html+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+    if(p.hora_retirada)html+='<div class="pedido-meta">🕐 '+escapeHtml(p.hora_retirada)+'</div>';
+    if(p.obs_retirada)html+='<div class="pedido-meta">📋 '+escapeHtml(p.obs_retirada)+'</div>';
     html+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
     if(p.itens)html+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
     if(p.valor)html+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
