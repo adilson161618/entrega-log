@@ -1,4 +1,4 @@
-// EntregaLog - Pedidos disponiveis (motoboy) - v3 com notificacao
+// EntregaLog - Pedidos disponiveis (motoboy) - v6 com retirada/entrega + auto-maps
 var SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 var MOTOBOY_KEY='el_motoboy_dados';
@@ -30,6 +30,14 @@ async function sbAceitarPedido(pid){
   return false;
 }
 
+async function sbColetadoPedido(pid){
+  try{
+    var body={coletado_em:new Date().toISOString()};
+    var r=await fetch(SB_URL+'/rest/v1/el_pedidos?id=eq.'+pid,{method:'PATCH',headers:Object.assign({'Prefer':'return=minimal'},sbHeaders()),body:JSON.stringify(body)});
+    return r.ok;
+  }catch(e){return false;}
+}
+
 async function sbEntreguePedido(pid){
   try{
     var body={status:'entregue',entregue_em:new Date().toISOString()};
@@ -40,7 +48,7 @@ async function sbEntreguePedido(pid){
 
 async function sbSoltarPedido(pid){
   try{
-    var body={status:'aguardando',motoboy_id:null,motoboy_nome:null,saiu_em:null};
+    var body={status:'aguardando',motoboy_id:null,motoboy_nome:null,saiu_em:null,coletado_em:null};
     var r=await fetch(SB_URL+'/rest/v1/el_pedidos?id=eq.'+pid,{method:'PATCH',headers:Object.assign({'Prefer':'return=minimal'},sbHeaders()),body:JSON.stringify(body)});
     return r.ok;
   }catch(e){return false;}
@@ -50,13 +58,16 @@ function getMotoboyId(){var m=carregarMotoboy();return m?m.id:'sem-id';}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('ativo');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('ativo');},2200);}
 function fecharModal(id){document.getElementById(id).classList.remove('ativo');}
 function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"\']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function abrirMaps(endereco){
+  var url='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(endereco||'');
+  window.open(url,'_blank');
+}
 
 // ============ ALERTAS / NOTIFICACOES ============
 var audioCtx=null;
 function tocarBeep(){
   try{
     if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    // 3 beeps rapidos pra chamar atencao
     [0,0.2,0.4].forEach(function(delay){
       var osc=audioCtx.createOscillator();
       var gain=audioCtx.createGain();
@@ -111,7 +122,7 @@ function salvarIdsVistos(ids){
 }
 
 var ultimoAlertaRepeticao=0;
-var INTERVALO_REPETICAO=60000; // 60 segundos
+var INTERVALO_REPETICAO=60000;
 
 function detectarNovoPedido(listaDisponiveis){
   var vistos=carregarIdsVistos();
@@ -119,20 +130,18 @@ function detectarNovoPedido(listaDisponiveis){
   var novos=listaDisponiveis.filter(function(p){return vistos.indexOf(p.id)===-1;});
   var agora=Date.now();
 
-  // Alerta de pedido NOVO (id que nao estava na lista anterior)
   if(novos.length>0 && jaCarregouAntes){
     tocarBeep();
     vibrar();
     notificacaoVisual(novos.length);
     ultimoAlertaRepeticao=agora;
-    console.log('[NOTIF] '+novos.length+' pedido(s) novo(s) detectado(s)');
+    console.log('[NOTIF] '+novos.length+' pedido(s) novo(s)');
   }
-  // Alerta de REPETICAO: se ainda tem disponivel e ja passou 60s do ultimo alerta
   else if(listaDisponiveis.length>0 && jaCarregouAntes && (agora-ultimoAlertaRepeticao>INTERVALO_REPETICAO)){
     tocarBeep();
     vibrar();
     ultimoAlertaRepeticao=agora;
-    console.log('[NOTIF] repeticao - '+listaDisponiveis.length+' pedido(s) ainda disponivel(eis)');
+    console.log('[NOTIF] repeticao - '+listaDisponiveis.length+' disponivel(eis)');
   }
 
   var ids=listaDisponiveis.map(function(p){return p.id;});
@@ -162,14 +171,30 @@ function salvarPerfil(){
 }
 
 // ============ ACOES PEDIDO ============
-async function aceitar(pid){
+async function aceitar(pid,enderecoRetirada){
   var m=carregarMotoboy();
   if(!m||!m.nome){alert('Cadastre seu nome primeiro (botão 👤 no canto superior)');abrirPerfil();return;}
-  if(!confirm('Aceitar essa entrega?'))return;
+  if(!confirm('Aceitar essa entrega?\n\nAo confirmar, o Google Maps abre direto pra retirada.'))return;
   toast('Aceitando...');
   var ok=await sbAceitarPedido(pid);
-  if(ok){toast('✓ Pedido aceito! Boa entrega');}
+  if(ok){
+    toast('✓ Pedido aceito! Abrindo rota...');
+    // AUTO: abre maps pra retirada
+    setTimeout(function(){abrirMaps(enderecoRetirada);},300);
+  }
   else{toast('⚠ Outro motoboy pegou antes');}
+  carregar();
+}
+
+async function peguei(pid,enderecoEntrega){
+  if(!confirm('Confirma que pegou o pedido na loja?\n\nAo confirmar, o Google Maps abre direto pra entrega.'))return;
+  toast('Confirmando retirada...');
+  var ok=await sbColetadoPedido(pid);
+  if(ok){
+    toast('✓ Retirado! Abrindo rota da entrega...');
+    // AUTO: abre maps pra entrega
+    setTimeout(function(){abrirMaps(enderecoEntrega);},300);
+  }
   carregar();
 }
 
@@ -194,7 +219,6 @@ function renderPedidos(lista){
   var entregues=lista.filter(function(p){return p.motoboy_id===meuId&&p.status==='entregue';});
   var disp=lista.filter(function(p){return p.status==='aguardando';});
 
-  // Detectar novo pedido ANTES de salvar ids
   detectarNovoPedido(disp);
 
   document.getElementById('st-aguardando').textContent=disp.length;
@@ -220,18 +244,30 @@ function renderPedidos(lista){
 function renderCardMeu(p){
   var c=document.createElement('div');
   c.className='pedido meu';
-  var mapsUrl='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.endereco||'');
-  var h='<span class="badge badge-meu">SEU PEDIDO</span>';
+  var jaColetou=!!p.coletado_em;
+  var mapsRet='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.endereco_retirada||'');
+  var mapsEnt='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.endereco||'');
+
+  var badgeTxt=jaColetou?'INDO ENTREGAR':'INDO RETIRAR';
+  var h='<span class="badge badge-meu">'+badgeTxt+'</span>';
   h+='<div class="pedido-loja">'+escapeHtml(p.estabelecimento_nome||'Estabelecimento')+' #'+p.numero+'</div>';
   h+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
-  h+='<div class="pedido-addr">📍 '+escapeHtml(p.endereco)+'</div>';
+  if(p.endereco_retirada)h+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+  h+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
   if(p.itens)h+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
   if(p.valor)h+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
   if(p.obs)h+='<div class="pedido-obs">💡 '+escapeHtml(p.obs)+'</div>';
   h+='<div class="pedido-acoes">';
-  h+='<a class="btn btn-laranja" href="'+mapsUrl+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:center">🗺️ Navegar</a>';
-  h+='<button class="btn btn-verde" onclick="entregar(\''+p.id+'\')">✓ Entreguei</button>';
-  h+='<button class="btn btn-cinza" onclick="soltar(\''+p.id+'\')">↩ Soltar</button>';
+  if(jaColetou){
+    // Fase entrega
+    h+='<a class="btn btn-laranja" href="'+mapsEnt+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:center">🗺️ Reabrir entrega</a>';
+    h+='<button class="btn btn-verde" onclick="entregar(\''+p.id+'\')">✓ Entreguei</button>';
+  }else{
+    // Fase retirada
+    h+='<a class="btn btn-laranja" href="'+mapsRet+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;align-items:center;justify-content:center">🗺️ Reabrir retirada</a>';
+    h+='<button class="btn btn-verde" onclick="peguei(\''+p.id+'\',\''+(p.endereco||'').replace(/'/g,"\\'")+'\')">📦 Peguei na loja</button>';
+  }
+  h+='<button class="btn btn-cinza" onclick="soltar(\''+p.id+'\')">↩</button>';
   h+='</div>';
   c.innerHTML=h;
   return c;
@@ -243,14 +279,16 @@ function renderCardDisponivel(p){
   var h='<span class="badge badge-aguardando">Disponível</span>';
   h+='<div class="pedido-loja">'+escapeHtml(p.estabelecimento_nome||'Estabelecimento')+' #'+p.numero+'</div>';
   h+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
-  h+='<div class="pedido-addr">📍 '+escapeHtml(p.endereco)+'</div>';
+  if(p.endereco_retirada)h+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+  h+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
   if(p.itens)h+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
   if(p.valor)h+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
   if(p.obs)h+='<div class="pedido-obs">💡 '+escapeHtml(p.obs)+'</div>';
   var ha=p.criado_em?new Date(p.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
   h+='<div class="pedido-meta">🕐 Publicado às '+ha+'</div>';
   h+='<div class="pedido-acoes">';
-  h+='<button class="btn btn-laranja" onclick="aceitar(\''+p.id+'\')">🛵 Aceitar entrega</button>';
+  var endRet=(p.endereco_retirada||'').replace(/'/g,"\\'");
+  h+='<button class="btn btn-laranja" onclick="aceitar(\''+p.id+'\',\''+endRet+'\')">🛵 Aceitar entrega</button>';
   h+='</div>';
   c.innerHTML=h;
   return c;
@@ -265,7 +303,6 @@ async function carregar(){
 
 document.querySelectorAll('.modal-overlay').forEach(function(ov){ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('ativo');});});
 
-// Inicia
 var motoboy=carregarMotoboy();
 if(motoboy&&motoboy.nome){
   document.getElementById('motoboy-nome').textContent=motoboy.nome;
@@ -274,7 +311,6 @@ if(motoboy&&motoboy.nome){
   document.getElementById('motoboy-nome').textContent='Sem cadastro';
   setTimeout(abrirPerfil,500);
 }
-// Primeira interacao do usuario libera audio context (politica do navegador)
 document.addEventListener('click',function _init(){
   try{if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}

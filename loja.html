@@ -95,6 +95,13 @@ body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);b
 .bola-cor{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid #fff;box-shadow:0 0 0 1px var(--borda);transition:transform 0.15s}
 .bola-cor.selecionada{border-color:#000}
 .bola-cor:active{transform:scale(0.9)}
+
+.campo-rel{position:relative}
+.autocomplete-sug{position:absolute;left:0;right:0;background:#fff;border:1px solid var(--borda);border-radius:9px;margin-top:4px;max-height:220px;overflow-y:auto;z-index:300;box-shadow:0 6px 18px rgba(0,0,0,0.12);display:none}
+.autocomplete-sug.ativo{display:block}
+.autocomplete-sug-item{padding:10px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--cinza-claro);line-height:1.35}
+.autocomplete-sug-item:hover{background:var(--cor-principal-clara)}
+.autocomplete-sug-item:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -134,7 +141,8 @@ body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);b
 <div class="modal-overlay" id="modal-pedido"><div class="modal">
 <div class="modal-titulo">Novo pedido</div>
 <div class="campo"><label>Cliente *</label><input type="text" id="p-cliente" placeholder="Nome do cliente" /></div>
-<div class="campo"><label>Endereço *</label><input type="text" id="p-endereco" placeholder="Rua, número, bairro" /></div>
+<div class="campo campo-rel"><label>📦 Endereço de retirada *</label><input type="text" id="p-endereco-retirada" placeholder="Onde o motoboy retira" autocomplete="off" /><div id="sug-retirada" class="autocomplete-sug"></div></div>
+<div class="campo campo-rel"><label>🏠 Endereço de entrega *</label><input type="text" id="p-endereco" placeholder="Onde o motoboy entrega" autocomplete="off" /><div id="sug-entrega" class="autocomplete-sug"></div></div>
 <div class="campo"><label>Itens / descrição</label><textarea id="p-itens" placeholder="Ex: 1 saco ração 15kg"></textarea></div>
 <div class="campo"><label>Valor (R$)</label><input type="text" id="p-valor" placeholder="Ex: 10,00" inputmode="decimal" /></div>
 <div class="campo"><label>Observação ao motoboy</label><input type="text" id="p-obs" placeholder="Ex: portaria nos fundos" /></div>
@@ -144,7 +152,7 @@ body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);b
 <div class="modal-titulo">⚙️ Configurações</div>
 <div class="sec-titulo" style="margin:4px 0 8px;color:var(--cor-principal)">📋 Dados básicos</div>
 <div class="campo"><label>Nome do comércio</label><input type="text" id="c-nome" /></div>
-<div class="campo"><label>Endereço</label><input type="text" id="c-endereco" placeholder="Rua, número, bairro" /></div>
+<div class="campo campo-rel"><label>Endereço</label><input type="text" id="c-endereco" placeholder="Rua, número, bairro" autocomplete="off" /><div id="sug-loja" class="autocomplete-sug"></div></div>
 <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="c-telefone" placeholder="(00) 00000-0000" /></div>
 <div class="campo"><label>Plano</label><select id="c-plano"><option value="basico">Básico (R$ 29/mês)</option><option value="intermediario">Intermediário (R$ 49/mês)</option><option value="empresarial">Empresarial (R$ 99/mês)</option></select></div>
 <div class="sec-titulo" style="margin:18px 0 8px;color:var(--cor-principal)">🎨 Personalização visual</div>
@@ -168,6 +176,6 @@ body::before{content:'';position:fixed;inset:0;background-image:var(--bg-loja);b
 <div class="modal-acoes"><button class="btn btn-cinza" onclick="fecharModal('modal-config')">Fechar</button><button class="btn btn-principal" onclick="salvarConfig()">💾 Salvar</button></div>
 </div></div>
 <div class="toast" id="toast"></div>
-<script src="loja.js"></script>
+<script src="loja.js?v=2"></script>
 </body>
 </html>

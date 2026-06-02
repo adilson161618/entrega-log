@@ -1,4 +1,4 @@
-// EntregaLog - Pagina da Loja - v2 com integracao Supabase
+// EntregaLog - Pagina da Loja - v3 com retirada + autocomplete
 var SB_URL='https://psqtdivgmrnuxgdvymrh.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXRkaXZnbXJudXhnZHZ5bXJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDk3NDUsImV4cCI6MjA5MjI4NTc0NX0.CAoKz_Q4MVU_8NM821L1DaGz0EaUtJzCxt725Y_isaY';
 var LOJA_KEY='el_loja_dados';
@@ -19,6 +19,48 @@ function getEstabId(){var id=localStorage.getItem(ESTAB_ID_KEY);if(!id){id=uuid(
 
 function hex2rgba(hex,a){hex=hex.replace('#','');if(hex.length!==6)return 'rgba(249,115,22,'+a+')';var r=parseInt(hex.substring(0,2),16);var g=parseInt(hex.substring(2,4),16);var b=parseInt(hex.substring(4,6),16);return 'rgba('+r+','+g+','+b+','+a+')';}
 
+// ============= AUTOCOMPLETE (Nominatim - OpenStreetMap) =============
+async function buscarSugestoes(query){
+  if(!query||query.length<3)return [];
+  try{
+    var url='https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(query)+'&format=json&countrycodes=br&addressdetails=1&limit=5';
+    var r=await fetch(url,{headers:{'Accept-Language':'pt-BR'}});
+    if(r.ok)return await r.json();
+  }catch(e){console.warn('nominatim erro:',e);}
+  return [];
+}
+
+function setupAutocomplete(inputId,sugId){
+  var input=document.getElementById(inputId);
+  var sug=document.getElementById(sugId);
+  if(!input||!sug)return;
+  var timer=null;
+  input.addEventListener('input',function(){
+    var q=input.value.trim();
+    clearTimeout(timer);
+    if(q.length<3){sug.classList.remove('ativo');return;}
+    timer=setTimeout(async function(){
+      var results=await buscarSugestoes(q);
+      if(!results.length){sug.classList.remove('ativo');return;}
+      sug.innerHTML='';
+      results.forEach(function(r){
+        var item=document.createElement('div');
+        item.className='autocomplete-sug-item';
+        item.textContent=r.display_name;
+        item.onclick=function(){
+          input.value=r.display_name;
+          sug.classList.remove('ativo');
+        };
+        sug.appendChild(item);
+      });
+      sug.classList.add('ativo');
+    },500);
+  });
+  document.addEventListener('click',function(e){
+    if(!input.contains(e.target)&&!sug.contains(e.target))sug.classList.remove('ativo');
+  });
+}
+
 // ============= SUPABASE =============
 function sbHeaders(){return{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=representation'};}
 
@@ -32,7 +74,7 @@ async function sbUpsertEstab(){
 
 async function sbCriarPedido(p){
   var d=carregarLoja();
-  var body={estabelecimento_id:getEstabId(),estabelecimento_nome:d.nome,numero:p.numero,cliente:p.cliente,endereco:p.endereco,itens:p.itens,valor:p.valor,obs:p.obs,status:p.status};
+  var body={estabelecimento_id:getEstabId(),estabelecimento_nome:d.nome,numero:p.numero,cliente:p.cliente,endereco_retirada:p.endereco_retirada,endereco:p.endereco,itens:p.itens,valor:p.valor,obs:p.obs,status:p.status};
   try{
     var r=await fetch(SB_URL+'/rest/v1/el_pedidos',{method:'POST',headers:sbHeaders(),body:JSON.stringify(body)});
     if(r.ok){var j=await r.json();if(j&&j[0])return j[0].id;}
@@ -102,12 +144,14 @@ function trocarTab(t){
 
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('ativo');clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('ativo');},2200);}
 function fecharModal(id){document.getElementById(id).classList.remove('ativo');}
-function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"\']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
 
 function novoIdPedido(){var l=carregarPedidos();var m=l.reduce(function(x,p){return Math.max(x,parseInt(p.numero||0));},1000);return m+1;}
 
 function abrirNovoPedido(){
+  var loja=carregarLoja();
   document.getElementById('p-cliente').value='';
+  document.getElementById('p-endereco-retirada').value=loja.endereco||'';
   document.getElementById('p-endereco').value='';
   document.getElementById('p-itens').value='';
   document.getElementById('p-valor').value='';
@@ -117,18 +161,18 @@ function abrirNovoPedido(){
 
 async function salvarPedido(){
   var cli=document.getElementById('p-cliente').value.trim();
+  var endRet=document.getElementById('p-endereco-retirada').value.trim();
   var end=document.getElementById('p-endereco').value.trim();
   if(!cli){alert('Informe o cliente');return;}
-  if(!end){alert('Informe o endereço');return;}
+  if(!endRet){alert('Informe o endereço de retirada');return;}
+  if(!end){alert('Informe o endereço de entrega');return;}
   var lista=carregarPedidos();
-  var p={numero:novoIdPedido(),cliente:cli,endereco:end,itens:document.getElementById('p-itens').value.trim(),valor:document.getElementById('p-valor').value.trim(),obs:document.getElementById('p-obs').value.trim(),status:'aguardando',criado_em:new Date().toISOString(),motoboy_id:null,motoboy_nome:null,saiu_em:null,entregue_em:null,sb_id:null};
-  // Cache local imediato
+  var p={numero:novoIdPedido(),cliente:cli,endereco_retirada:endRet,endereco:end,itens:document.getElementById('p-itens').value.trim(),valor:document.getElementById('p-valor').value.trim(),obs:document.getElementById('p-obs').value.trim(),status:'aguardando',criado_em:new Date().toISOString(),motoboy_id:null,motoboy_nome:null,saiu_em:null,entregue_em:null,coletado_em:null,sb_id:null};
   lista.unshift(p);
   salvarPedidos(lista);
   fecharModal('modal-pedido');
   renderPedidos();
   toast('Salvando...');
-  // Envia pro Supabase (em background)
   var sbId=await sbCriarPedido(p);
   if(sbId){
     p.sb_id=sbId;
@@ -152,7 +196,6 @@ async function mudarStatus(num,novo){
   renderPedidos();
   var lab={caminho:'a caminho',entregue:'entregue',aguardando:'aguardando'};
   toast('Pedido #'+num+' '+lab[novo]);
-  // Sincroniza Supabase
   if(l[i].sb_id){
     var campos={status:novo};
     if(novo==='caminho')campos.saiu_em=new Date().toISOString();
@@ -192,7 +235,8 @@ function renderPedidos(){
     var h=p.criado_em?new Date(p.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
     var html='<div class="pedido-topo"><div><div class="pedido-num">#'+p.numero+'</div></div><span class="badge '+bd[p.status]+'">'+lab[p.status]+'</span></div>';
     html+='<div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div>';
-    html+='<div class="pedido-addr">📍 '+escapeHtml(p.endereco)+'</div>';
+    if(p.endereco_retirada)html+='<div class="pedido-addr">📦 Retira: '+escapeHtml(p.endereco_retirada)+'</div>';
+    html+='<div class="pedido-addr">🏠 Entrega: '+escapeHtml(p.endereco)+'</div>';
     if(p.itens)html+='<div class="pedido-itens">'+escapeHtml(p.itens)+'</div>';
     if(p.valor)html+='<div class="pedido-valor">R$ '+escapeHtml(p.valor)+'</div>';
     if(p.obs)html+='<div class="pedido-meta">💡 '+escapeHtml(p.obs)+'</div>';
@@ -224,7 +268,7 @@ function renderHistorico(){
     var d=p.criado_em?new Date(p.criado_em).toLocaleDateString('pt-BR'):'';
     var lab={aguardando:'Aguardando',caminho:'A caminho',entregue:'Entregue'};
     var bd={aguardando:'badge-aguardando',caminho:'badge-caminho',entregue:'badge-entregue'};
-    c.innerHTML='<div class="pedido-topo"><div><div class="pedido-num">#'+p.numero+'</div></div><span class="badge '+bd[p.status]+'">'+lab[p.status]+'</span></div><div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div><div class="pedido-addr">📍 '+escapeHtml(p.endereco)+'</div><div class="pedido-meta">🗓 '+d+'</div>';
+    c.innerHTML='<div class="pedido-topo"><div><div class="pedido-num">#'+p.numero+'</div></div><span class="badge '+bd[p.status]+'">'+lab[p.status]+'</span></div><div class="pedido-cliente">'+escapeHtml(p.cliente)+'</div><div class="pedido-addr">🏠 '+escapeHtml(p.endereco)+'</div><div class="pedido-meta">🗓 '+d+'</div>';
     el.appendChild(c);
   });
 }
@@ -305,7 +349,12 @@ document.getElementById('c-logo-arquivo').addEventListener('change',function(e){
 document.getElementById('c-bg-arquivo').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;lerImg(f,1200,function(u){_bgTmp=u;var p=document.getElementById('bg-preview');p.style.backgroundImage='url('+u+')';p.textContent='';});});
 document.querySelectorAll('.modal-overlay').forEach(function(ov){ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('ativo');});});
 
+// Setup autocomplete nos 3 campos de endereco
+setupAutocomplete('p-endereco-retirada','sug-retirada');
+setupAutocomplete('p-endereco','sug-entrega');
+setupAutocomplete('c-endereco','sug-loja');
+
 // Inicia
 aplicarLoja();
 renderPedidos();
-sbUpsertEstab(); // registra o estabelecimento ao abrir
+sbUpsertEstab();
