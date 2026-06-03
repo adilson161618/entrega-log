@@ -25,7 +25,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;}
-body{background:#FAFAFA;}
+body{background:#0f0f0f;}
 body.dark #shell{background:#111;}
 body.dark #topbar,body.dark #nav{background:#1a1a1a;border-color:#333;}
 body.dark .ntab{color:#666;}
@@ -76,7 +76,7 @@ body.dark #login-screen h2{color:#eee;}
 
 /* MAPA */
 #mapwrap{position:relative;flex:1;min-height:0;}
-#leafmap{width:100%;height:100%;position:absolute;inset:0;background:#A8C9F0;}
+#leafmap{width:100%;height:100%;position:absolute;inset:0;}
 #gps-info{position:absolute;bottom:8px;left:8px;right:8px;z-index:1000;display:flex;justify-content:space-between;pointer-events:none;}
 #gps-coords{background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:4px 8px;border-radius:8px;font-family:monospace;}
 #km-badge{background:#F97316;color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:none;}
@@ -1390,7 +1390,7 @@ async function irParaLocal(r){
     iconSize:[36,36],iconAnchor:[18,18],className:''
   });
   searchMarker=L.marker([r.lat,r.lon],{icon:ic}).addTo(map);
-  searchMarker.bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+  searchMarker.bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(r.addr||r.nome)+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
   // Traça rota pelas ruas (OSRM) — fallback para linha reta tracejada
   if(currentPos){
     var rota=await obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon);
@@ -1515,7 +1515,7 @@ async function confirmarChegada(){
   // Pin verde no mapa
   if(map&&typeof L!=='undefined'){
     var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">✅</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-    L.marker([lat,lon],{icon:ic}).addTo(map).bindPopup('<b>'+nome+'</b><br/>'+addrCorrigido+(dica?'<br/>Dica: '+dica:'')).openPopup();
+    L.marker([lat,lon],{icon:ic}).addTo(map).bindPopup('<b>'+nome+'</b><br/>'+addrCorrigido+(dica?'<br/>Dica: '+dica:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(addrCorrigido||nome)+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
   }
 }
 
@@ -1807,7 +1807,7 @@ function renderHistorico(){
             navegandoPara=nova;
             destLat=r.lat;destLon=r.lon;
             var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#1D9E75;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
-            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(r.addr||r.nome||'')+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
             // Desenha rota pelas ruas (OSRM) — fallback linha reta tracejada
             if(currentPos){
               obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon).then(function(rota){
@@ -1833,7 +1833,7 @@ function renderHistorico(){
           if(map&&typeof L!=='undefined'){
             map.setView([r.lat,r.lon],17);
             var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(r.addr||r.nome||'')+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
           }
         },400);
       };
@@ -3581,4 +3581,61 @@ window.addEventListener('keydown',function(e){
       <button class="nps-btn" onclick="selecionarNPS(6)">6</button>
       <button class="nps-btn" onclick="selecionarNPS(7)">7</button>
       <button class="nps-btn" onclick="selecionarNPS(8)">8</button>
-      <button class="nps-btn" onclick="selecionarNP
+      <button class="nps-btn" onclick="selecionarNPS(9)">9</button>
+      <button class="nps-btn" onclick="selecionarNPS(10)">10</button>
+    </div>
+    <div class="nps-labels"><span>Não indicaria</span><span>Indicaria com certeza</span></div>
+
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:8px;">O que você mais usa no app?</label>
+    <div class="feedback-categoria">
+      <button class="cat-btn" onclick="selecionarCat(this,'GPS e rota')">🗺 GPS e rota</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Banco de endereços')">📍 Banco de endereços</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'OCR câmera')">📷 OCR câmera</button>
+      <button class="cat-btn" onclick="selecionarCat(this,'Histórico')">&#128193; Histórico</button>
+    </div>
+
+    <label style="font-size:12px;font-weight:600;color:#111;display:block;margin-bottom:6px;">O que poderia melhorar ou sua ideia para o app?</label>
+    <textarea class="mi" id="feedback-texto" placeholder="Escreva aqui sua sugestão, ideia ou reclamação..." style="height:80px;resize:none;margin-bottom:12px;"></textarea>
+
+    <button class="btn-enviar-fb" onclick="enviarFeedback()">Enviar feedback</button>
+    <button class="btn-fechar-fb" onclick="fecharFeedback()">Agora não</button>
+  </div>
+</div>
+
+<button id="btn-ranking" onclick="abrirRanking()">🏆 Ranking</button>
+
+<div id="modal-ranking">
+  <div id="ranking-sheet">
+    <h3>🏆 Top Colaboradores</h3>
+    <p>Entregadores que mais registraram endereços difíceis e ajudaram a comunidade!</p>
+    <div class="rank-minha-pos" id="minha-posicao" style="display:none;">
+      <div style="font-size:24px;">📍</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:var(--color-text-primary);" id="rank-meu-nome">Você</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);" id="rank-meu-pts">0 endereços registrados</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#F97316;" id="rank-minha-pos-num">#-</div>
+    </div>
+    <div id="ranking-lista">
+      <div style="text-align:center;padding:20px;font-size:13px;color:#888;">Carregando ranking...</div>
+    </div>
+    <button class="btn-fechar-rank" onclick="fecharRanking()">Fechar</button>
+  </div>
+</div>
+
+<style>
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;inset:0;background:#ccc;transition:.2s;border-radius:26px;}
+.slider:before{position:absolute;content:"";height:20px;width:20px;left:3px;top:3px;background:#fff;transition:.2s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.switch input:checked + .slider{background:#F97316;}
+.switch input:checked + .slider:before{transform:translateX(20px);}
+body.dark .slider{background:#444;}
+body.dark #modal-config .cfg-card{background:#222 !important;border-color:#333 !important;}
+body.dark #modal-config .cfg-label{color:#eee !important;}
+body.dark #modal-config .cfg-link{color:#eee !important;}
+body.dark #config-nome{color:#eee !important;}
+</style>
+
+</body>
+</html>
