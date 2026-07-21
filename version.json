@@ -1,6 +1,5 @@
 {
-  "version": "1.0.29",
-  "released_at": "2026-05-29",
-  "notes": "Estavel.",
-  "min_supported": "1.0.0"
+  "version": "1.0.30",
+  "released_at": "2026-07-21",
+  "notes": "Corrigido bug critico: mapa nao aparecia (anuncio AdSense colapsava o layout)"
 }

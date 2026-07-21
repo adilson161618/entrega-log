@@ -678,7 +678,7 @@ async function supaFetch(path,options){
   }
   return txt?JSON.parse(txt):null;
 }
-const APP_VERSION='1.0.29';
+const APP_VERSION='1.0.30';
 const _buildSig='EL-ADA-2026-3F395D9FAEA1FC7E';
 const _buildOwner='ADL/'+atob('YWRpbHNvbmxpZGVyMDRAZ21haWwuY29t');
 const OSRM_URL='https://router.project-osrm.org';
@@ -1390,7 +1390,7 @@ async function irParaLocal(r){
     iconSize:[36,36],iconAnchor:[18,18],className:''
   });
   searchMarker=L.marker([r.lat,r.lon],{icon:ic}).addTo(map);
-  searchMarker.bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(r.addr||r.nome)+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
+  searchMarker.bindPopup('<b>'+r.nome+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
   // Traça rota pelas ruas (OSRM) — fallback para linha reta tracejada
   if(currentPos){
     var rota=await obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon);
@@ -1515,7 +1515,7 @@ async function confirmarChegada(){
   // Pin verde no mapa
   if(map&&typeof L!=='undefined'){
     var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#1D9E75;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">✅</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-    L.marker([lat,lon],{icon:ic}).addTo(map).bindPopup('<b>'+nome+'</b><br/>'+addrCorrigido+(dica?'<br/>Dica: '+dica:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(addrCorrigido||nome)+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
+    L.marker([lat,lon],{icon:ic}).addTo(map).bindPopup('<b>'+nome+'</b><br/>'+addrCorrigido+(dica?'<br/>Dica: '+dica:'')).openPopup();
   }
 }
 
@@ -1807,7 +1807,7 @@ function renderHistorico(){
             navegandoPara=nova;
             destLat=r.lat;destLon=r.lon;
             var ic=L.divIcon({html:'<div style="width:36px;height:36px;background:#1D9E75;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">🎯</div>',iconSize:[36,36],iconAnchor:[18,18],className:''});
-            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(r.addr||r.nome||'')+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+r.addr+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
             // Desenha rota pelas ruas (OSRM) — fallback linha reta tracejada
             if(currentPos){
               obterRotaRuas(currentPos.lat,currentPos.lon,r.lat,r.lon).then(function(rota){
@@ -1833,7 +1833,7 @@ function renderHistorico(){
           if(map&&typeof L!=='undefined'){
             map.setView([r.lat,r.lon],17);
             var ic=L.divIcon({html:'<div style="width:32px;height:32px;background:#F97316;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>',iconSize:[32,32],iconAnchor:[16,16],className:''});
-            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')+'<br/><br/><a href="https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(r.addr||r.nome||'')+'&travelmode=driving&dir_action=navigate" target="_blank" rel="noopener" style="display:inline-block;background:#F97316;color:#fff;padding:9px 14px;border-radius:8px;font-weight:700;text-decoration:none;font-size:13px;text-align:center;width:calc(100% - 32px);">🗺️ Navegar até aqui</a>').openPopup();
+            L.marker([r.lat,r.lon],{icon:ic}).addTo(map).bindPopup('<b>'+(r.nome||'Local')+'</b><br/>'+(r.addr||'')+(r.nota?'<br/>💡 '+r.nota:'')).openPopup();
           }
         },400);
       };
@@ -2645,8 +2645,12 @@ function abrirVideoAd(){
   document.getElementById('video-ad-fechar').style.display='none';
   document.getElementById('video-ad-timer-bar').style.width='0';
   document.getElementById('modal-video-ad').classList.add('open');
-  // Tenta carregar anuncio AdSense real (no-op se ainda nao aprovado)
-  try{ (adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+  // So chama o AdSense de verdade depois que a conta for aprovada (ver _adsenseAprovado()).
+  // Antes disso, ins.adsbygoogle com data-ad-client placeholder + full-width-responsive
+  // faz o script do Google forcar "height:auto!important" em elementos ancestrais pra
+  // tentar redimensionar o slot — isso ja quebrou o layout do mapa em producao (bug
+  // encontrado e corrigido em 2026-07-21). Nao remover essa checagem sem entender isso.
+  if(_adsenseAprovado()){ try{ (adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){} }
   // Animação da barra + contagem regressiva
   var seg=10;
   var bar=document.getElementById('video-ad-timer-bar');
@@ -2840,9 +2844,25 @@ function _rotacionarAd(){
       el.textContent=_ADS[idx];
     }
     document.getElementById('ad-banner').classList.add('show');
-    // Tenta inicializar o slot AdSense do topo (no-op se ainda nao aprovado)
-    try{ (adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+    // So chama o AdSense de verdade depois que a conta for aprovada (ver _adsenseAprovado()).
+    // Ver comentario detalhado em abrirVideoAd() sobre o bug que isso causou.
+    if(_adsenseAprovado()){ try{ (adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){} }
   }catch(e){}
+}
+
+// Retorna true só quando o placeholder "ca-pub-XXXXXXXXXXXXXXXX" tiver sido trocado
+// pelo client ID real do AdSense em TODOS os slots (index.html). Enquanto for
+// placeholder, nunca chamamos adsbygoogle.push() — chamar sem client valido foi o que
+// colapsou o layout do app (ver nota acima e CLAUDE.md, sessao 2026-07-21).
+function _adsenseAprovado(){
+  try{
+    var slots=document.querySelectorAll('ins.adsbygoogle');
+    for(var i=0;i<slots.length;i++){
+      var cli=slots[i].getAttribute('data-ad-client')||'';
+      if(cli.indexOf('XXXX')!==-1 || !cli) return false;
+    }
+    return slots.length>0;
+  }catch(e){ return false; }
 }
 
 // Checa tarefas automaticas
